@@ -25,14 +25,14 @@ export function GoogleAnalytics({ measurementId }: { measurementId: string }) {
 
 // Custom event tracking functions
 export const trackEvent = (eventName: string, eventParams?: Record<string, unknown>) => {
-  if (typeof window !== "undefined" && (window as never)["gtag"]) {
-    (window as never)["gtag"]("event", eventName, eventParams);
+  if (typeof window !== "undefined" && (window as any).gtag) {
+    (window as any).gtag("event", eventName, eventParams);
   }
 };
 
 export const trackPageView = (url: string) => {
-  if (typeof window !== "undefined" && (window as never)["gtag"]) {
-    (window as never)["gtag"]("config", process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID, {
+  if (typeof window !== "undefined" && (window as any).gtag) {
+    (window as any).gtag("config", process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID, {
       page_path: url,
     });
   }

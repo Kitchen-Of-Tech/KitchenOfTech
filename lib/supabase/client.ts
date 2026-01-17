@@ -28,7 +28,7 @@ export async function submitMeetingRequest(data: {
         status: "pending",
         created_at: new Date().toISOString(),
       },
-    ])
+    ] as any)
     .select()
     .single();
 
@@ -54,7 +54,7 @@ export async function submitContactForm(data: {
         ...data,
         created_at: new Date().toISOString(),
       },
-    ])
+    ] as any)
     .select()
     .single();
 
@@ -79,7 +79,7 @@ export async function logAnalyticsEvent(data: {
       ...data,
       created_at: new Date().toISOString(),
     },
-  ]);
+  ] as any);
 
   if (error) {
     console.error("Analytics error:", error);

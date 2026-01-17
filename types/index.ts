@@ -114,6 +114,7 @@ export interface BlogPost {
   category: string;
   tags: string[];
   readTime?: number;
+  featured?: boolean;
   seo?: {
     metaTitle: string;
     metaDescription: string;
