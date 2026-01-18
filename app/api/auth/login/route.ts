@@ -1,0 +1,108 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+
+export async function POST(request: NextRequest) {
+  try {
+    const { username, password } = await request.json();
+
+    if (!username || !password) {
+      return NextResponse.json(
+        { error: 'Username and password are required' },
+        { status: 400 }
+      );
+    }
+
+    // Use service role to bypass RLS for user lookup
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    console.log('🔍 API: Looking up username:', username);
+
+    // Get user's email from username
+    const { data: userProfile, error: profileError } = await supabaseAdmin
+      .from('users')
+      .select('email, is_active, id')
+      .eq('username', username)
+      .single();
+
+    console.log('📋 API: User profile result:', { found: !!userProfile, error: profileError?.message });
+
+    if (profileError || !userProfile) {
+      return NextResponse.json(
+        { error: 'Invalid username or password' },
+        { status: 401 }
+      );
+    }
+
+    if (!userProfile.is_active) {
+      return NextResponse.json(
+        { error: 'Your account has been deactivated. Please contact an administrator.' },
+        { status: 403 }
+      );
+    }
+
+    console.log('✅ API: Found user, attempting auth with email:', userProfile.email);
+
+    // Create a Supabase client with cookie handling
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+          set(name: string, value: string, options) {
+            cookieStore.set({ name, value, ...options });
+          },
+          remove(name: string, options) {
+            cookieStore.set({ name, value: '', ...options });
+          },
+        },
+      }
+    );
+
+    // Now authenticate with email and password
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: userProfile.email,
+      password,
+    });
+
+    if (authError) {
+      console.error('❌ API: Auth failed:', authError.message);
+      return NextResponse.json(
+        { error: 'Invalid username or password' },
+        { status: 401 }
+      );
+    }
+
+    if (!authData.session) {
+      return NextResponse.json(
+        { error: 'Authentication failed' },
+        { status: 401 }
+      );
+    }
+
+    console.log('✅ API: Login successful, cookies set');
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: userProfile.id,
+        email: userProfile.email,
+      },
+    });
+
+  } catch (error) {
+    console.error('❌ API: Login error:', error);
+    return NextResponse.json(
+      { error: 'An error occurred during login' },
+      { status: 500 }
+    );
+  }
+}

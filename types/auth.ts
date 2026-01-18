@@ -1,0 +1,182 @@
+// Authentication and RBAC Types
+
+export interface Role {
+  id: string;
+  name: 'CEO' | 'Manager' | 'Senior Officer' | 'Junior Officer' | 'Intern';
+  description: string;
+  level: number;
+  created_at: string;
+}
+
+export interface User {
+  id: string;
+  username: string;
+  full_name: string;
+  email: string;
+  role_id: string;
+  role?: Role;
+  avatar_url?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  description?: string;
+  team_type?: string;
+  captain_id?: string;
+  captain?: User;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+  members?: TeamMember[];
+}
+
+export interface TeamMember {
+  id: string;
+  team_id: string;
+  user_id: string;
+  user?: User;
+  joined_at: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  team_id?: string;
+  team?: Team;
+  status: 'active' | 'on-hold' | 'completed' | 'archived';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  start_date?: string;
+  due_date?: string;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Task {
+  id: string;
+  project_id?: string;
+  project?: Project;
+  title: string;
+  description?: string;
+  status: 'todo' | 'in-progress' | 'review' | 'completed';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  estimated_hours?: number;
+  actual_hours?: number;
+  due_date?: string;
+  created_by?: string;
+  creator?: User;
+  assignments?: TaskAssignment[];
+  comments?: TaskComment[];
+  attachments?: TaskAttachment[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskAssignment {
+  id: string;
+  task_id: string;
+  user_id: string;
+  user?: User;
+  assigned_by?: string;
+  assigned_at: string;
+}
+
+export interface TaskComment {
+  id: string;
+  task_id: string;
+  user_id: string;
+  user?: User;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TaskAttachment {
+  id: string;
+  task_id: string;
+  user_id?: string;
+  user?: User;
+  file_name: string;
+  file_url: string;
+  file_size?: number;
+  file_type?: string;
+  uploaded_at: string;
+}
+
+export interface TimeEntry {
+  id: string;
+  task_id: string;
+  user_id: string;
+  user?: User;
+  start_time: string;
+  end_time?: string;
+  duration_minutes?: number;
+  description?: string;
+  created_at: string;
+}
+
+export interface Permission {
+  id: string;
+  user_id: string;
+  permission_type: 'view_team_tasks' | 'view_user_tasks' | 'view_all_tasks';
+  target_id?: string;
+  granted_by?: string;
+  granted_at: string;
+}
+
+export interface ActivityLog {
+  id: string;
+  user_id?: string;
+  user?: User;
+  action: string;
+  entity_type: 'user' | 'task' | 'project' | 'team';
+  entity_id?: string;
+  details?: Record<string, unknown>;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: string;
+}
+
+// Permission helpers
+export const ROLE_LEVELS = {
+  CEO: 1,
+  Manager: 2,
+  'Senior Officer': 3,
+  'Junior Officer': 4,
+  Intern: 5,
+} as const;
+
+export const canManageUsers = (role: Role) => role.level <= 2; // CEO or Manager
+export const canDeleteUsers = (role: Role) => role.level === 1; // CEO only
+export const canManagePermissions = (role: Role) => role.level <= 2; // CEO or Manager
+export const canViewAllTasks = (role: Role) => role.level <= 2; // CEO or Manager
+export const isTeamCaptain = (userId: string, team: Team) => team.captain_id === userId;
+
+// Task status colors
+export const TASK_STATUS_COLORS = {
+  'todo': 'bg-gray-500',
+  'in-progress': 'bg-blue-500',
+  'review': 'bg-yellow-500',
+  'completed': 'bg-green-500',
+} as const;
+
+// Priority colors
+export const PRIORITY_COLORS = {
+  'low': 'bg-gray-400',
+  'medium': 'bg-blue-400',
+  'high': 'bg-orange-400',
+  'urgent': 'bg-red-500',
+} as const;
+
+// Project status colors
+export const PROJECT_STATUS_COLORS = {
+  'active': 'bg-green-500',
+  'on-hold': 'bg-yellow-500',
+  'completed': 'bg-blue-500',
+  'archived': 'bg-gray-500',
+} as const;

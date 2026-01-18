@@ -1,5 +1,4 @@
 import { branding } from "./branding";
-import { navbar } from "./navbar";
 import { service } from "./service";
 import { testimonial } from "./testimonial";
 import { clientLogo } from "./clientLogo";
@@ -9,7 +8,6 @@ import { certificate } from "./certificate";
 
 export const schemaTypes = [
   branding,
-  navbar,
   service,
   testimonial,
   clientLogo,
