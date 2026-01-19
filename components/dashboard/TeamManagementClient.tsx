@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Users, UserPlus, X, UserMinus } from 'lucide-react';
-import type { User, Team } from '@/types/auth';
+import type { User, Team, TeamMember } from '@/types/auth';
 
 interface TeamManagementClientProps {
   currentUser: User;
@@ -228,7 +228,7 @@ export default function TeamManagementClient({ currentUser }: TeamManagementClie
     setCreateForm({
       name: team.name,
       description: team.description || '',
-      captain_id: team.captain_id
+      captain_id: team.captain_id || ''
     });
     setShowEditModal(true);
   };
@@ -286,7 +286,7 @@ export default function TeamManagementClient({ currentUser }: TeamManagementClie
         <div className="glass rounded-xl p-6 border border-white/10">
           <h3 className="text-white/60 text-sm font-medium">Total Members</h3>
           <p className="text-3xl font-bold text-primary mt-2">
-            {teams.reduce((acc, t) => acc + (t.team_members?.length || 0), 0)}
+            {teams.reduce((acc, t) => acc + ((t.team_members || t.members)?.length || 0), 0)}
           </p>
         </div>
       </div>
@@ -325,7 +325,7 @@ export default function TeamManagementClient({ currentUser }: TeamManagementClie
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-white">{team.name}</h3>
-                    <p className="text-sm text-white/60">{team.team_members?.length || 0} members</p>
+                    <p className="text-sm text-white/60">{(team.team_members || team.members)?.length || 0} members</p>
                   </div>
                 </div>
               </div>
@@ -481,10 +481,10 @@ export default function TeamManagementClient({ currentUser }: TeamManagementClie
 
             {/* Current Members */}
             <div className="mb-6">
-              <h3 className="text-white font-medium mb-3">Current Members ({selectedTeam.team_members?.length || 0})</h3>
+              <h3 className="text-white font-medium mb-3">Current Members ({selectedTeam.team_members?.length || selectedTeam.members?.length || 0})</h3>
               <div className="space-y-2">
-                {selectedTeam.team_members && selectedTeam.team_members.length > 0 ? (
-                  selectedTeam.team_members.map((member) => (
+                {(selectedTeam.team_members || selectedTeam.members) && (selectedTeam.team_members || selectedTeam.members)!.length > 0 ? (
+                  (selectedTeam.team_members || selectedTeam.members)!.map((member: TeamMember) => (
                     <div key={member.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-white font-semibold">
@@ -519,7 +519,7 @@ export default function TeamManagementClient({ currentUser }: TeamManagementClie
                 <h3 className="text-white font-medium mb-3">Add Members</h3>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {users
-                    .filter(u => !selectedTeam.team_members?.some(m => m.user_id === u.id))
+                    .filter(u => !(selectedTeam.team_members || selectedTeam.members)?.some((m: TeamMember) => m.user_id === u.id))
                     .map((user) => (
                       <div key={user.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
                         <div className="flex items-center gap-3">

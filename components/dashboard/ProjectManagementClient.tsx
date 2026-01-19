@@ -199,7 +199,7 @@ export default function ProjectManagementClient({ currentUser }: ProjectManageme
     setForm({
       name: project.name,
       description: project.description || '',
-      team_id: project.team_id,
+      team_id: project.team_id || '',
       priority: project.priority as ProjectForm['priority'],
       status: project.status as ProjectForm['status'],
       start_date: project.start_date || '',

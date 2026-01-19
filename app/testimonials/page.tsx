@@ -1,10 +1,10 @@
-import { Star, Quote, Link2 } from "lucide-react";
+import { Star, Quote, Filter, Building2, Calendar } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { GradientButton } from "@/components/ui/GradientButton";
-import ApprovedTestimonials from "@/components/testimonials/ApprovedTestimonials";
+import Image from "next/image";
 import Link from "next/link";
 
 // Demo testimonials data

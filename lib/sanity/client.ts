@@ -22,13 +22,13 @@ export function urlFor(source: SanityImageSource) {
 /**
  * Fetch data from Sanity with error handling
  */
-export async function sanityFetch<T = any>({
+export async function sanityFetch<T = unknown>({
   query,
   params = {},
   tags = [],
 }: {
   query: string;
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
   tags?: string[];
 }): Promise<T> {
   try {

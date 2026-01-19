@@ -64,7 +64,7 @@ export function MeetingRequestSection() {
         <ScrollReveal animation="fade-up">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold">
-              <span className="text-white">Let's </span>
+              <span className="text-white">Let&apos;s </span>
               <span className="text-gradient">Connect</span>
             </h2>
             <p className="text-lg text-white/70 max-w-2xl mx-auto">
@@ -190,7 +190,7 @@ export function MeetingRequestSection() {
                 {submitStatus === "success" && (
                   <div className="p-4 glass rounded-xl border border-green-500/50 bg-green-500/10">
                     <p className="text-green-400 text-center font-medium">
-                      ✓ Thank you! We'll get back to you soon.
+                      ✓ Thank you! We&apos;ll get back to you soon.
                     </p>
                   </div>
                 )}

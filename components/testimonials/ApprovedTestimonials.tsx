@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Testimonial } from '@/types/auth';
 
@@ -19,11 +19,7 @@ export default function ApprovedTestimonials({
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  useEffect(() => {
-    fetchApprovedTestimonials();
-  }, []);
-
-  const fetchApprovedTestimonials = async () => {
+  const fetchApprovedTestimonials = useCallback(async () => {
     try {
       const response = await fetch('/api/testimonials?status=approved');
       if (response.ok) {
@@ -36,7 +32,11 @@ export default function ApprovedTestimonials({
     } finally {
       setLoading(false);
     }
-  };
+  }, [limit]);
+
+  useEffect(() => {
+    fetchApprovedTestimonials();
+  }, [fetchApprovedTestimonials]);
 
   const nextTestimonial = () => {
     setCurrentIndex((prev) => (prev + 1) % testimonials.length);

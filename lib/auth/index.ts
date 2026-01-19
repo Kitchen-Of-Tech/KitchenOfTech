@@ -136,7 +136,7 @@ export async function createUser(data: {
       email: data.email,
       role_id: data.role_id,
       is_active: true,
-    });
+    } as never);
 
   if (profileError) {
     // Rollback auth user if profile creation fails
@@ -161,7 +161,7 @@ export async function updateUserRole(userId: string, roleId: string) {
 
   const { error } = await supabase
     .from('users')
-    .update({ role_id: roleId })
+    .update({ role_id: roleId } as never)
     .eq('id', userId);
 
   if (error) {
@@ -183,7 +183,7 @@ export async function updateUserStatus(userId: string, isActive: boolean) {
 
   const { error } = await supabase
     .from('users')
-    .update({ is_active: isActive })
+    .update({ is_active: isActive } as never)
     .eq('id', userId);
 
   if (error) {
@@ -246,7 +246,7 @@ export async function updateUsername(userId: string, username: string) {
 
   const { error } = await supabase
     .from('users')
-    .update({ username })
+    .update({ username } as never)
     .eq('id', userId);
 
   if (error) {
@@ -281,12 +281,12 @@ export async function checkPermission(
     .from('users')
     .select('*, role:roles(*)')
     .eq('id', userId)
-    .single();
+    .single() as { data: User | null };
 
   if (!user) return false;
 
   // CEO and Manager have all permissions
-  if (user.role.level <= 2) return true;
+  if (user.role && user.role.level <= 2) return true;
 
   // Check specific permission
   const { data: permission } = await supabase

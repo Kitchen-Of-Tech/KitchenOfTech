@@ -198,7 +198,7 @@ export default function TeamPage() {
             {/* Team Stats */}
             <ScrollReveal animation="fade-up" delay={200}>
               <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6">
-                {teamStats.map((stat, index) => (
+                {teamStats.map((stat) => (
                   <GlassCard key={stat.label} className="p-6 text-center">
                     <div className="text-3xl md:text-4xl font-bold text-gradient mb-2">
                       {stat.value}

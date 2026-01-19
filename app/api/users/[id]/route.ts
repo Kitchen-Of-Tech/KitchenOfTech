@@ -25,7 +25,7 @@ export async function PATCH(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const updateData: any = {};
+    const updateData: Record<string, string | boolean> = {};
     if (full_name !== undefined) updateData.full_name = full_name;
     if (role_id !== undefined) updateData.role_id = role_id;
     if (is_active !== undefined) updateData.is_active = is_active;

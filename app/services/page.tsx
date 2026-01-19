@@ -147,7 +147,7 @@ export default async function ServicesPage() {
                   Not Sure Which Service You Need?
                 </h2>
                 <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
-                  Schedule a free consultation with our team and we'll help you find the perfect solution
+                  Schedule a free consultation with our team and we&apos;ll help you find the perfect solution
                 </p>
                 <Link href="/meeting">
                   <GradientButton variant="primary" size="lg">

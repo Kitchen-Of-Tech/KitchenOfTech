@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, X, Calendar, Flag, Users, CheckCircle2, Circle, Clock, AlertCircle } from 'lucide-react';
-import type { User, Task, Project } from '@/types/auth';
+import { Plus, Search, Trash2, X, Calendar, Flag, Users, CheckCircle2, Circle, Clock, AlertCircle } from 'lucide-react';
+import type { User, Task, Project, TaskAssignment } from '@/types/auth';
 
 interface TaskManagementClientProps {
   currentUser: User;
@@ -32,7 +32,8 @@ const STATUSES = [
   { value: 'completed', label: 'Completed', color: 'bg-green-500/20 text-green-400', icon: CheckCircle2 }
 ];
 
-export default function TaskManagementClient({ currentUser }: TaskManagementClientProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function TaskManagementClient({ currentUser: _currentUser }: TaskManagementClientProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -237,11 +238,11 @@ export default function TaskManagementClient({ currentUser }: TaskManagementClie
     setForm({
       title: task.title,
       description: task.description || '',
-      project_id: task.project_id,
+      project_id: task.project_id || '',
       priority: task.priority as TaskForm['priority'],
       status: task.status as TaskForm['status'],
       due_date: task.due_date || '',
-      assigned_users: task.task_assignments?.map(a => a.user_id) || []
+      assigned_users: task.task_assignments?.map((a: TaskAssignment) => a.user_id) || []
     });
     setShowEditModal(true);
   };
@@ -253,7 +254,7 @@ export default function TaskManagementClient({ currentUser }: TaskManagementClie
 
   const tasksByStatus = {
     todo: filteredTasks.filter(t => t.status === 'todo'),
-    in_progress: filteredTasks.filter(t => t.status === 'in_progress'),
+    in_progress: filteredTasks.filter(t => t.status === 'in_progress' || t.status === 'in-progress'),
     review: filteredTasks.filter(t => t.status === 'review'),
     completed: filteredTasks.filter(t => t.status === 'completed')
   };
@@ -381,7 +382,7 @@ export default function TaskManagementClient({ currentUser }: TaskManagementClie
                             <div className="flex items-center gap-2">
                               <Users className="w-3 h-3 text-white/60" />
                               <div className="flex -space-x-2">
-                                {task.task_assignments.slice(0, 3).map((assignment, index) => (
+                                {task.task_assignments.slice(0, 3).map((assignment: TaskAssignment) => (
                                   <div
                                     key={assignment.id}
                                     className="w-6 h-6 rounded-full bg-gradient-primary flex items-center justify-center text-white text-xs font-semibold border-2 border-dark-primary"

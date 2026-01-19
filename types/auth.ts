@@ -32,6 +32,7 @@ export interface Team {
   created_at: string;
   updated_at: string;
   members?: TeamMember[];
+  team_members?: TeamMember[]; // Alias for compatibility
 }
 
 export interface TeamMember {
@@ -48,10 +49,11 @@ export interface Project {
   description?: string;
   team_id?: string;
   team?: Team;
-  status: 'active' | 'on-hold' | 'completed' | 'archived';
+  status: 'active' | 'on-hold' | 'completed' | 'archived' | 'planning' | 'in_progress';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   start_date?: string;
   due_date?: string;
+  end_date?: string; // Additional property
   created_by?: string;
   created_at: string;
   updated_at: string;
@@ -63,7 +65,7 @@ export interface Task {
   project?: Project;
   title: string;
   description?: string;
-  status: 'todo' | 'in-progress' | 'review' | 'completed';
+  status: 'todo' | 'in-progress' | 'review' | 'completed' | 'in_progress';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   estimated_hours?: number;
   actual_hours?: number;
@@ -71,6 +73,7 @@ export interface Task {
   created_by?: string;
   creator?: User;
   assignments?: TaskAssignment[];
+  task_assignments?: TaskAssignment[]; // Alias for compatibility
   comments?: TaskComment[];
   attachments?: TaskAttachment[];
   created_at: string;

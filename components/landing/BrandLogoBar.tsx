@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Image from "next/image";
 
 // Demo client logos - replace with Sanity data later
 const demoLogos = [

@@ -8,8 +8,28 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { GradientButton } from "@/components/ui/GradientButton";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
+interface ServiceFeature {
+  title: string;
+  description: string;
+}
+
+interface ServicePricing {
+  startingPrice: number;
+  currency: string;
+  pricingModel: string;
+}
+
+interface Service {
+  title: string;
+  shortDescription: string;
+  fullDescription: string;
+  features: ServiceFeature[];
+  technologies: string[];
+  pricing: ServicePricing;
+}
+
 // Demo service data - Replace with Sanity fetch
-const demoServices: Record<string, any> = {
+const demoServices: Record<string, Service> = {
   "web-development": {
     title: "Web Development",
     shortDescription: "Custom websites and web applications built with cutting-edge technologies",
@@ -207,10 +227,10 @@ export default function ServiceDetailPage({ params }: Props) {
                 <ScrollReveal animation="fade-up" delay={200}>
                   <div>
                     <h2 className="text-2xl md:text-3xl font-bold text-white mb-8">
-                      What's Included
+                      What&apos;s Included
                     </h2>
                     <div className="grid md:grid-cols-2 gap-6">
-                      {service.features.map((feature: any, index: number) => (
+                      {service.features.map((feature: { title: string; description: string }, index: number) => (
                         <GlassCard key={index} className="p-6 hover:scale-105 transition-transform">
                           <div className="flex items-start gap-4">
                             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
@@ -287,7 +307,7 @@ export default function ServiceDetailPage({ params }: Props) {
                     {/* Contact Info */}
                     <div className="mt-8 pt-8 border-t border-white/10">
                       <p className="text-white/70 text-sm mb-4">
-                        Have questions? We're here to help!
+                        Have questions? We&apos;re here to help!
                       </p>
                       <a
                         href="mailto:info@kitchenoftech.org"
@@ -311,8 +331,8 @@ export default function ServiceDetailPage({ params }: Props) {
                 <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
                   Ready to Get Started?
                 </h2>
-                <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
-                  Let's discuss your project and create something amazing together
+                <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                  Let&apos;s discuss your project and create something amazing together
                 </p>
                 <Link href="/meeting">
                   <GradientButton variant="primary" size="lg">

@@ -12,7 +12,9 @@ interface FooterProps {
   }[];
 }
 
-const socialIcons: Record<string, any> = {
+type IconComponent = React.ComponentType<{ className?: string }>;
+
+const socialIcons: Record<string, IconComponent> = {
   facebook: Facebook,
   twitter: Twitter,
   instagram: Instagram,
