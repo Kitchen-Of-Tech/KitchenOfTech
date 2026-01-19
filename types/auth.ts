@@ -180,3 +180,39 @@ export const PROJECT_STATUS_COLORS = {
   'completed': 'bg-blue-500',
   'archived': 'bg-gray-500',
 } as const;
+
+// Testimonial Types
+export interface TestimonialLink {
+  id: string;
+  token: string;
+  email?: string;
+  expires_at: string;
+  used: boolean;
+  used_at?: string;
+  created_by?: string;
+  created_at: string;
+}
+
+export interface Testimonial {
+  id: string;
+  link_id?: string;
+  link?: TestimonialLink;
+  name: string;
+  email: string;
+  company?: string;
+  position?: string;
+  message: string;
+  rating: number;
+  status: 'pending' | 'approved' | 'rejected';
+  image_url?: string;
+  approved_by?: string;
+  approved_by_user?: User;
+  approved_at?: string;
+  rejected_by?: string;
+  rejected_by_user?: User;
+  rejected_at?: string;
+  created_at: string;
+}
+
+export const canManageTestimonials = (role: Role) => role.level <= 2; // CEO or Manager
+

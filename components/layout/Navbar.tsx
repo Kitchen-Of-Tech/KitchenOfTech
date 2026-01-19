@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X, ChevronDown, Home, Briefcase, GraduationCap, FolderOpen, BookOpen, Star, Users, ShieldCheck } from "lucide-react";
+import { Menu, X, MoreHorizontal, Home, Briefcase, GraduationCap, FolderOpen, BookOpen, Star, Users, ShieldCheck, LogIn, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GradientButton } from "@/components/ui/GradientButton";
 
 interface NavItem {
   label: string;
@@ -53,51 +52,55 @@ export function Navbar() {
           {/* Logo */}
           <Link
             href="/"
-            className="text-2xl font-bold text-gradient hover:opacity-80 transition-opacity"
+            className="text-xl lg:text-2xl font-bold text-gradient hover:opacity-80 transition-opacity"
           >
             Kitchen of Tech
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-8">
+          {/* Desktop Navigation - Icon Only with Hover Tooltips */}
+          <div className="hidden lg:flex items-center gap-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-white/90 hover:text-white transition-colors duration-200 font-medium relative group flex items-center gap-2"
+                  className="relative group"
                 >
-                  <Icon className="w-4 h-4" />
-                  {item.label}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary group-hover:w-full transition-all duration-300" />
+                  <div className="p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300 hover:scale-110">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  {/* Tooltip */}
+                  <div className="absolute left-0 top-full mt-2 px-3 py-1.5 bg-black/90 backdrop-blur-xl text-white text-sm font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                    {item.label}
+                    <div className="absolute -top-1 left-4 w-2 h-2 bg-black/90 rotate-45"></div>
+                  </div>
                 </Link>
               );
             })}
 
-            {/* Dropdown */}
+            {/* Dropdown - More Options */}
             <div
               className="relative"
               onMouseEnter={() => setDropdownOpen(true)}
               onMouseLeave={() => setDropdownOpen(false)}
             >
-              <button className="text-white/90 hover:text-white transition-colors duration-200 font-medium flex items-center gap-1">
-                Other
-                <ChevronDown className="w-4 h-4" />
+              <button className="p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300 hover:scale-110">
+                <MoreHorizontal className="w-5 h-5" />
               </button>
 
               {dropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 glass rounded-xl p-2 min-w-[200px] shadow-glass-lg animate-fade-down">
+                <div className="absolute top-full right-0 mt-2 glass rounded-xl p-2 min-w-[220px] shadow-2xl border border-white/20 animate-fade-down">
                   {dropdownItems.map((item) => {
                     const Icon = item.icon;
                     return (
                       <Link
                         key={item.href}
                         href={item.href}
-                        className="flex items-center gap-2 px-4 py-2 text-white/90 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
+                        className="flex items-center gap-3 px-4 py-2.5 text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 group"
                       >
-                        <Icon className="w-4 h-4" />
-                        {item.label}
+                        <Icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                        <span className="font-medium">{item.label}</span>
                       </Link>
                     );
                   })}
@@ -105,18 +108,37 @@ export function Navbar() {
               )}
             </div>
 
-            {/* CTA Button */}
-            <Link href="/meeting">
-              <GradientButton variant="primary" size="md">
+            {/* Divider */}
+            <div className="w-px h-6 bg-white/20 mx-1"></div>
+
+            {/* CTA Buttons - Icon Only */}
+            <Link href="/login" className="relative group">
+              <div className="p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300 hover:scale-110">
+                <LogIn className="w-5 h-5" />
+              </div>
+              {/* Tooltip */}
+              <div className="absolute left-0 top-full mt-2 px-3 py-1.5 bg-black/90 backdrop-blur-xl text-white text-sm font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+                Login
+                <div className="absolute -top-1 left-4 w-2 h-2 bg-black/90 rotate-45"></div>
+              </div>
+            </Link>
+
+            <Link href="/meeting" className="relative group">
+              <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl">
+                <Calendar className="w-5 h-5" />
+              </div>
+              {/* Tooltip */}
+              <div className="absolute left-0 top-full mt-2 px-3 py-1.5 bg-black/90 backdrop-blur-xl text-white text-sm font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
                 Meeting for Hire
-              </GradientButton>
+                <div className="absolute -top-1 left-4 w-2 h-2 bg-black/90 rotate-45"></div>
+              </div>
             </Link>
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="lg:hidden p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -125,42 +147,53 @@ export function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden mt-4 glass rounded-xl p-4 animate-fade-down">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 px-4 py-3 text-white/90 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
+          <div className="lg:hidden mt-4 glass rounded-xl p-4 animate-fade-down border border-white/10">
+            <div className="space-y-1">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-white/90 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group"
+                  >
+                    <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
 
-            {dropdownItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 px-4 py-3 text-white/90 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
+              <div className="my-2 h-px bg-white/10"></div>
 
-            <div className="mt-4 pt-4 border-t border-white/10">
+              {dropdownItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-white/90 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group"
+                  >
+                    <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                <button className="w-full flex items-center justify-center gap-2 px-4 py-3 text-white/90 hover:text-white border border-white/20 hover:border-white/30 rounded-xl transition-all duration-200 font-medium hover:bg-white/5">
+                  <LogIn className="w-5 h-5" />
+                  Login
+                </button>
+              </Link>
               <Link href="/meeting" onClick={() => setMobileMenuOpen(false)}>
-                <GradientButton variant="primary" size="md" fullWidth>
+                <button className="w-full flex items-center justify-center gap-2 px-4 py-3 text-white font-medium rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg">
+                  <Calendar className="w-5 h-5" />
                   Meeting for Hire
-                </GradientButton>
+                </button>
               </Link>
             </div>
           </div>

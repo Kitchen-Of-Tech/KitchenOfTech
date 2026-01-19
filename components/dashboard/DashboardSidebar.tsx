@@ -8,6 +8,7 @@ import {
   UsersRound, 
   FolderKanban, 
   ListTodo,
+  Star,
   LogOut,
   ChevronLeft,
   Shield
@@ -24,7 +25,7 @@ export default function DashboardSidebar({ user }: DashboardSidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
-  const canManageUsers = user.role.level <= 2; // CEO or Manager
+  const canManageUsers = user.role?.level <= 2; // CEO or Manager
   
   const navigation = [
     {
@@ -56,6 +57,12 @@ export default function DashboardSidebar({ user }: DashboardSidebarProps) {
       href: '/dashboard/tasks',
       icon: ListTodo,
       show: true,
+    },
+    {
+      name: 'Testimonials',
+      href: '/dashboard/testimonials',
+      icon: Star,
+      show: canManageUsers, // Only CEO and Manager
     },
   ];
 
@@ -107,7 +114,7 @@ export default function DashboardSidebar({ user }: DashboardSidebarProps) {
             {!collapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-white font-medium truncate">{user.username}</p>
-                <p className="text-white/60 text-sm truncate">{user.role.name}</p>
+                <p className="text-white/60 text-sm truncate">{user.role?.name}</p>
               </div>
             )}
           </div>

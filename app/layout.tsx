@@ -4,6 +4,7 @@ import "./globals.css";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { TemplateTransition } from "@/components/transitions/TemplateTransition";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -55,7 +56,9 @@ export default function RootLayout({
         {measurementId && <GoogleAnalytics measurementId={measurementId} />}
         <ReactQueryProvider>
           <SmoothScrollProvider>
-            {children}
+            <TemplateTransition>
+              {children}
+            </TemplateTransition>
           </SmoothScrollProvider>
         </ReactQueryProvider>
       </body>
