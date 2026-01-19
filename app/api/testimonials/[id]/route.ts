@@ -37,7 +37,7 @@ export async function PATCH(
       .eq('id', user_id)
       .single();
 
-    if (!user || user.role.level > 2) {
+    if (!user || !user.role || user.role.level > 2) {
       return NextResponse.json(
         { error: 'Unauthorized. Only CEO and Managers can manage testimonials.' },
         { status: 403 }
@@ -122,7 +122,7 @@ export async function DELETE(
       .eq('id', userId)
       .single();
 
-    if (!user || user.role.level > 2) {
+    if (!user || !user.role || user.role.level > 2) {
       return NextResponse.json(
         { error: 'Unauthorized. Only CEO and Managers can delete testimonials.' },
         { status: 403 }

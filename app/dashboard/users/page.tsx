@@ -10,7 +10,7 @@ export default async function UsersPage() {
   }
 
   // Only CEO and Manager can access this page
-  if (user.role.level > 2) {
+  if (!user.role || user.role.level > 2) {
     redirect('/dashboard');
   }
 

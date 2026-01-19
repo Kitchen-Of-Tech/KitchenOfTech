@@ -25,7 +25,7 @@ export default function DashboardSidebar({ user }: DashboardSidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
-  const canManageUsers = user.role?.level <= 2; // CEO or Manager
+  const canManageUsers = user.role?.level ? user.role.level <= 2 : false; // CEO or Manager
   
   const navigation = [
     {

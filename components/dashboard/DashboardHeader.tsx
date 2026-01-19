@@ -33,7 +33,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
 
           {/* User badge */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
-            <span className="text-sm text-white/60">{user.role.name}</span>
+            <span className="text-sm text-white/60">{user.role?.name || 'User'}</span>
           </div>
         </div>
       </div>

@@ -15,7 +15,7 @@ export default async function DashboardPage() {
       value: '12',
       icon: Users,
       color: 'from-blue-500 to-cyan-500',
-      show: user.role.level <= 2, // CEO or Manager only
+      show: user.role?.level ? user.role.level <= 2 : false, // CEO or Manager only
     },
     {
       name: 'Active Projects',
@@ -76,7 +76,7 @@ export default async function DashboardPage() {
       <div className="glass rounded-2xl p-8 border border-white/10">
         <h2 className="text-2xl font-bold text-white mb-6">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {user.role.level <= 2 && (
+          {user.role?.level && user.role.level <= 2 && (
             <a
               href="/dashboard/users"
               className="p-6 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 hover:border-blue-500/40 transition-all group"
