@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/auth/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const currentUser = await getCurrentUser();
@@ -16,7 +16,7 @@ export async function POST(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { password } = await request.json();
 
     if (!password || password.length < 6) {
