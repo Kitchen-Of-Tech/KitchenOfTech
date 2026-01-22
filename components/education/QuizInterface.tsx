@@ -39,7 +39,8 @@ export function QuizInterface({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
-  const currentAnswer = answers.find(a => a.questionId === currentQuestion._key);
+  const questionId = currentQuestion._key || `q-${currentQuestionIndex}`;
+  const currentAnswer = answers.find(a => a.questionId === questionId);
   const attemptNumber = previousAttempts.length + 1;
   const bestAttempt = previousAttempts.length > 0 
     ? previousAttempts.reduce((best, attempt) => 
@@ -58,13 +59,15 @@ export function QuizInterface({
   }, [showResults]);
 
   const handleAnswerSelect = (optionIndex: number) => {
-    const questionId = currentQuestion._key;
+    const questionId = currentQuestion._key || `q-${currentQuestionIndex}`;
     const optionValue = String(optionIndex);
 
     setAnswers(prev => {
       const existing = prev.find(a => a.questionId === questionId);
       
-      if (currentQuestion.type === "multiple_choice") {
+      const isMultipleChoice = currentQuestion.type === "multiple" || currentQuestion.questionType === "multiple";
+      
+      if (isMultipleChoice) {
         // Multiple selections allowed
         if (existing) {
           const hasOption = existing.selectedOptions.includes(optionValue);
@@ -96,7 +99,8 @@ export function QuizInterface({
 
   const isAnswered = (questionIndex: number): boolean => {
     const question = quiz.questions[questionIndex];
-    const answer = answers.find(a => a.questionId === question._key);
+    const qId = question._key || `q-${questionIndex}`;
+    const answer = answers.find(a => a.questionId === qId);
     return !!answer && answer.selectedOptions.length > 0;
   };
 
@@ -123,11 +127,12 @@ export function QuizInterface({
   const calculateResults = () => {
     let correctCount = 0;
 
-    quiz.questions.forEach(question => {
-      const answer = answers.find(a => a.questionId === question._key);
+    quiz.questions.forEach((question, index) => {
+      const qId = question._key || `q-${index}`;
+      const answer = answers.find(a => a.questionId === qId);
       if (!answer) return;
 
-      const correctIndices = question.correctAnswers.map(String);
+      const correctIndices = (question.correctAnswers || []).map(String);
       const selectedIndices = answer.selectedOptions.sort();
       const correctSorted = correctIndices.sort();
 
@@ -213,13 +218,15 @@ export function QuizInterface({
 
   const getCorrectAnswer = (questionIndex: number) => {
     const question = quiz.questions[questionIndex];
-    return question.correctAnswers.map(i => question.options[i]).join(", ");
+    if (!question.options || !question.correctAnswers) return "N/A";
+    return question.correctAnswers.map((i: number) => question.options![i]).join(", ");
   };
 
   const isCorrect = (questionIndex: number) => {
     const question = quiz.questions[questionIndex];
-    const answer = answers.find(a => a.questionId === question._key);
-    if (!answer) return false;
+    const qId = question._key || `q-${questionIndex}`;
+    const answer = answers.find(a => a.questionId === qId);
+    if (!answer || !question.correctAnswers) return false;
 
     const correctIndices = question.correctAnswers.map(String).sort();
     const selectedIndices = answer.selectedOptions.sort();
@@ -304,10 +311,11 @@ export function QuizInterface({
             <div className="space-y-4">
               {quiz.questions.map((question, index) => {
                 const correct = isCorrect(index);
-                const userAnswer = answers.find(a => a.questionId === question._key);
+                const qId = question._key || `q-${index}`;
+                const userAnswer = answers.find(a => a.questionId === qId);
 
                 return (
-                  <div key={question._key} className={`p-4 rounded-xl border ${
+                  <div key={qId} className={`p-4 rounded-xl border ${
                     correct 
                       ? "bg-green-500/10 border-green-500/30" 
                       : "bg-red-500/10 border-red-500/30"
@@ -322,11 +330,11 @@ export function QuizInterface({
                         <div className="text-white font-medium mb-2">
                           {index + 1}. {question.question}
                         </div>
-                        {!correct && (
+                        {!correct && question.options && (
                           <div className="space-y-1 text-sm">
                             <div className="text-red-400">
                               Your answer: {userAnswer?.selectedOptions.map(i => 
-                                question.options[parseInt(i)]
+                                question.options![parseInt(i)]
                               ).join(", ")}
                             </div>
                             <div className="text-green-400">
@@ -421,9 +429,9 @@ export function QuizInterface({
         <div className="mb-8">
           <div className="mb-6">
             <div className="text-sm text-primary font-medium mb-2">
-              {currentQuestion.type === "multiple_choice" 
+              {(currentQuestion.type === "multiple" || currentQuestion.questionType === "multiple")
                 ? "Multiple Choice (Select all that apply)" 
-                : currentQuestion.type === "true_false"
+                : (currentQuestion.type === "boolean" || currentQuestion.questionType === "boolean")
                 ? "True or False"
                 : "Single Choice"}
             </div>
@@ -434,7 +442,7 @@ export function QuizInterface({
 
           {/* Options */}
           <div className="space-y-3">
-            {currentQuestion.options.map((option, index) => {
+            {currentQuestion.options && currentQuestion.options.map((option, index) => {
               const isSelected = currentAnswer?.selectedOptions.includes(String(index));
               
               return (

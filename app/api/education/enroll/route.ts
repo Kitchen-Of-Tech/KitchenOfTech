@@ -34,9 +34,12 @@ export async function POST(request: Request) {
       .single();
 
     if (existingEnrollment) {
-      return NextResponse.json({
-        success: false,
-        message: "You are already enrolled in this course",
+      return NextResponse.json(
+        {
+          success: false,
+          message: "You are already enrolled in this course",
+        },
+        { status: 400 }
       );
     }
 

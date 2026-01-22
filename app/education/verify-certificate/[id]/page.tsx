@@ -42,7 +42,7 @@ export default async function VerifyCertificatePage({ params }: PageProps) {
     .single();
 
   // Get enrollment for course details
-  const { data: enrollment } = await supabase
+  const { data: _enrollment } = await supabase
     .from("course_enrollments")
     .select("course_id")
     .eq("id", certificate.enrollment_id)

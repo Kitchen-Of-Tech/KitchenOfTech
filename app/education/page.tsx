@@ -3,13 +3,14 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import CourseCatalog from "@/components/education/CourseCatalog";
 import { sanityFetch } from "@/lib/sanity/client";
+import type { Course } from "@/types/education";
 
 export const metadata: Metadata = {
   title: "Education - Learn with Kitchen of Tech",
   description: "Explore our comprehensive courses in web development, design, AI, and more. Learn from industry experts and earn certificates.",
 };
 
-async function getCourses() {
+async function getCourses(): Promise<Course[]> {
   const query = `*[_type == "course" && status == "published"] | order(publishedAt desc) {
     _id,
     title,
@@ -38,7 +39,7 @@ async function getCourses() {
   }`;
 
   try {
-    const courses = await sanityFetch({ query });
+    const courses = await sanityFetch<Course[]>({ query });
     return courses || [];
   } catch (error) {
     console.error("Error fetching courses:", error);

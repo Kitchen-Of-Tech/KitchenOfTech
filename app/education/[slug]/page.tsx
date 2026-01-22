@@ -93,7 +93,7 @@ async function getCourse(slug: string): Promise<Course | null> {
 
   try {
     const course = await sanityFetch({ query, params: { slug } });
-    return course;
+    return course as Course | null;
   } catch (error) {
     console.error("Error fetching course:", error);
     return null;

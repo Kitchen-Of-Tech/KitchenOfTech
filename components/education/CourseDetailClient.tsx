@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { 
   Play, Star, Clock, BookOpen, Users, Award, CheckCircle, 
   ChevronDown, ChevronRight, FileText, Video, Target, 
-  Globe, BarChart, Share2, Heart, Download,
+  Globe, Share2, Heart, Download,
   Lock, Unlock, Gift
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -34,11 +34,7 @@ export default function CourseDetailClient({ course }: CourseDetailClientProps) 
   const [isLoading, setIsLoading] = useState(false);
 
   // Check if user is enrolled
-  useEffect(() => {
-    checkEnrollment();
-  }, []);
-
-  const checkEnrollment = async () => {
+  const checkEnrollment = useCallback(async () => {
     try {
       const response = await fetch(`/api/education/enrollments?courseId=${course._id}`);
       if (response.ok) {
@@ -52,7 +48,11 @@ export default function CourseDetailClient({ course }: CourseDetailClientProps) 
     } catch (error) {
       console.error("Error checking enrollment:", error);
     }
-  };
+  }, [course._id]);
+
+  useEffect(() => {
+    checkEnrollment();
+  }, [checkEnrollment]);
 
   const toggleModule = (moduleId: string) => {
     const newExpanded = new Set(expandedModules);
@@ -82,8 +82,9 @@ export default function CourseDetailClient({ course }: CourseDetailClientProps) 
       } else {
         alert(data.message || "Invalid coupon code");
       }
-    } catch (error) {
+    } catch (err) {
       alert("Error validating coupon");
+      console.error("Coupon validation error:", err);
     } finally {
       setIsValidating(false);
     }
@@ -118,7 +119,7 @@ export default function CourseDetailClient({ course }: CourseDetailClientProps) 
       } else {
         alert(data.message || "Enrollment failed");
       }
-    } catch (error) {
+    } catch {
       alert("Error enrolling in course");
     } finally {
       setIsLoading(false);
@@ -232,9 +233,9 @@ export default function CourseDetailClient({ course }: CourseDetailClientProps) 
 
                 {/* Instructor */}
                 <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
-                  {course.instructor.profileImage && (
+                  {course.instructor.profileImage?.asset?.url && (
                     <Image
-                      src={course.instructor.profileImage}
+                      src={course.instructor.profileImage.asset.url}
                       alt={course.instructor.name}
                       width={60}
                       height={60}
@@ -423,7 +424,7 @@ export default function CourseDetailClient({ course }: CourseDetailClientProps) 
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`pb-4 px-2 font-medium transition-colors relative ${
                   activeTab === tab.id
                     ? "text-primary"
@@ -599,7 +600,7 @@ function CurriculumTab({
               {isExpanded && (
                 <div className="border-t border-white/10">
                   {/* Lessons */}
-                  {module.lessons.map((lesson, lessonIndex) => (
+                  {module.lessons.map((lesson) => (
                     <div
                       key={lesson._id}
                       className="p-4 border-b border-white/5 last:border-b-0 flex items-center justify-between hover:bg-white/5 transition-colors"
@@ -671,9 +672,9 @@ function InstructorTab({ instructor }: { instructor: Course["instructor"] }) {
     <ScrollReveal animation="fade-up">
       <GlassCard className="p-8">
         <div className="flex flex-col md:flex-row gap-6 mb-6">
-          {instructor.profileImage && (
+          {instructor.profileImage?.asset?.url && (
             <Image
-              src={instructor.profileImage}
+              src={instructor.profileImage.asset.url}
               alt={instructor.name}
               width={120}
               height={120}

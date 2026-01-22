@@ -207,6 +207,7 @@ export interface Testimonial {
   message: string;
   rating: number;
   status: 'pending' | 'approved' | 'rejected';
+  is_verified: boolean;
   image_url?: string;
   approved_by?: string;
   approved_by_user?: User;
@@ -218,4 +219,65 @@ export interface Testimonial {
 }
 
 export const canManageTestimonials = (role: Role) => role.level <= 2; // CEO or Manager
+
+// Payment System Types
+export interface PaymentMethod {
+  id: string;
+  name: string;
+  type: 'bank' | 'mobile_banking' | 'card' | 'crypto' | 'other';
+  account_details: Record<string, string | number>;
+  instructions?: string;
+  is_active: boolean;
+  display_order: number;
+  icon_url?: string;
+  created_by?: string;
+  updated_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaymentTransaction {
+  id: string;
+  user_id: string;
+  user?: User;
+  payment_method_id?: string;
+  payment_method?: PaymentMethod;
+  
+  // Transaction Details
+  transaction_id: string;
+  amount: number;
+  currency: string;
+  
+  // Purchase Details
+  purchase_type: 'course' | 'service' | 'product' | 'other';
+  purchase_id: string;
+  purchase_details?: Record<string, unknown>;
+  
+  // Status
+  status: 'pending' | 'approved' | 'rejected' | 'refunded';
+  
+  // Review Information
+  reviewed_by?: string;
+  reviewed_by_user?: User;
+  reviewed_at?: string;
+  rejection_reason?: string;
+  admin_notes?: string;
+  
+  // Timestamps
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaymentVerificationLog {
+  id: string;
+  transaction_id: string;
+  action: 'submitted' | 'approved' | 'rejected' | 'refunded' | 'updated';
+  performed_by?: string;
+  performed_by_user?: User;
+  notes?: string;
+  created_at: string;
+}
+
+export const canManagePayments = (role: Role) => role.level <= 2; // CEO or Manager
+
 

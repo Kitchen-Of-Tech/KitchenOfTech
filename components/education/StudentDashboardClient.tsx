@@ -54,7 +54,6 @@ export function StudentDashboardClient({
       try {
         const courseIds = enrollments.map(e => e.course_id);
         if (courseIds.length === 0) {
-          setIsLoading(false);
           return;
         }
 

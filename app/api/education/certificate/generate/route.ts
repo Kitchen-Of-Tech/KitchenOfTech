@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     const certificateId = `KOT-${new Date().getFullYear()}-${random}-${timestamp.toString().slice(-4)}`;
 
     // Get user profile for full name
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile } = await supabase
       .from("profiles")
       .select("full_name")
       .eq("id", user.id)

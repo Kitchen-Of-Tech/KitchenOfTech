@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { 
   Search, Filter, Star, Clock, BookOpen, Users, 
-  TrendingUp, Award, Play, CheckCircle 
+  TrendingUp, Play
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
@@ -37,12 +37,12 @@ export default function CourseCatalog({ courses }: CourseCatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedLevel, setSelectedLevel] = useState("All Levels");
   const [selectedPrice, setSelectedPrice] = useState("All");
-  const [sortBy, setSortBy] = useState<"popular" | "rating" | "newest">("popular");
+  const [sortBy, setSortBy] = useState<"popular" | "rating" | "newest" | "highest-rated">("popular");
   const [showFilters, setShowFilters] = useState(false);
 
   // Filter and sort courses
   const filteredCourses = useMemo(() => {
-    let filtered = courses.filter((course) => {
+    const filtered = courses.filter((course) => {
       // Search filter
       const matchesSearch = 
         searchQuery === "" ||
@@ -188,7 +188,7 @@ export default function CourseCatalog({ courses }: CourseCatalogProps) {
             <div className="flex gap-2">
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(e.target.value as "popular" | "newest" | "highest-rated")}
                 className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary/50"
               >
                 <option value="popular">Most Popular</option>
@@ -339,9 +339,9 @@ function CourseCard({ course, featured = false }: { course: Course; featured?: b
 
           {/* Instructor */}
           <div className="flex items-center gap-2 mb-4">
-            {course.instructor.profileImage && (
+            {course.instructor.profileImage?.asset?.url && (
               <Image
-                src={course.instructor.profileImage}
+                src={course.instructor.profileImage.asset.url}
                 alt={course.instructor.name}
                 width={24}
                 height={24}

@@ -30,10 +30,13 @@ export interface Instructor {
 }
 
 export interface QuizQuestion {
+  _key: string; // Sanity unique key
   question: string;
   questionType: "single" | "multiple" | "boolean";
+  type: "single" | "multiple" | "boolean"; // Alias for questionType
   options?: string[];
-  correctAnswer: string[];
+  correctAnswer: string[]; // Keep for Sanity
+  correctAnswers: number[]; // For component usage (indices)
   explanation?: string;
   points: number;
 }
