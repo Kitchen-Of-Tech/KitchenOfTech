@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 // GET - Fetch all payment methods (active ones for public, all for admin)
 export async function GET(request: NextRequest) {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     
     // Check if user is admin
     const { data: { user } } = await supabase.auth.getUser();
-    const isAdmin = user ? await checkIsAdmin(supabase, user.id) : false;
+    const isAdmin = user ? await checkIsAdmin(user.id) : false;
     
     let query = supabase
       .from("payment_methods")
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if user is CEO
-    const isCEO = await checkIsCEO(supabase, user.id);
+    const isCEO = await checkIsCEO(user.id);
     if (!isCEO) {
       return NextResponse.json(
         { error: "Forbidden - CEO access only" },
@@ -124,7 +124,7 @@ export async function PUT(request: NextRequest) {
       );
     }
     
-    const isCEO = await checkIsCEO(supabase, user.id);
+    const isCEO = await checkIsCEO(user.id);
     if (!isCEO) {
       return NextResponse.json(
         { error: "Forbidden - CEO access only" },
@@ -183,7 +183,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
     
-    const isCEO = await checkIsCEO(supabase, user.id);
+    const isCEO = await checkIsCEO(user.id);
     if (!isCEO) {
       return NextResponse.json(
         { error: "Forbidden - CEO access only" },
@@ -222,8 +222,9 @@ export async function DELETE(request: NextRequest) {
 }
 
 // Helper functions
-async function checkIsCEO(supabase: Awaited<ReturnType<typeof createClient>>, userId: string): Promise<boolean> {
-  const { data } = await supabase
+async function checkIsCEO(userId: string): Promise<boolean> {
+  const adminClient = createAdminClient();
+  const { data } = await adminClient
     .from("users")
     .select("role:roles(level)")
     .eq("id", userId)
@@ -232,8 +233,9 @@ async function checkIsCEO(supabase: Awaited<ReturnType<typeof createClient>>, us
   return ((data?.role as { level: number } | undefined)?.level ?? 999) === 1;
 }
 
-async function checkIsAdmin(supabase: Awaited<ReturnType<typeof createClient>>, userId: string): Promise<boolean> {
-  const { data } = await supabase
+async function checkIsAdmin(userId: string): Promise<boolean> {
+  const adminClient = createAdminClient();
+  const { data } = await adminClient
     .from("users")
     .select("role:roles(level)")
     .eq("id", userId)

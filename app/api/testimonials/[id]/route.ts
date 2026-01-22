@@ -14,7 +14,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { action, user_id } = body; // action: 'approve' or 'reject', user_id: who is performing the action
+    const { action, user_id, service_name } = body; // action: 'approve' or 'reject', user_id: who is performing the action, service_name: category when approving
 
     if (!action || !user_id) {
       return NextResponse.json(
@@ -26,6 +26,14 @@ export async function PATCH(
     if (!['approve', 'reject'].includes(action)) {
       return NextResponse.json(
         { error: 'Action must be either "approve" or "reject"' },
+        { status: 400 }
+      );
+    }
+
+    // Require service_name when approving
+    if (action === 'approve' && !service_name) {
+      return NextResponse.json(
+        { error: 'Service category (service_name) is required when approving testimonials' },
         { status: 400 }
       );
     }
@@ -53,11 +61,13 @@ export async function PATCH(
       updateData.approved_at = new Date().toISOString();
       updateData.rejected_by = null;
       updateData.rejected_at = null;
+      updateData.service_name = service_name; // Add service category
     } else {
       updateData.rejected_by = user_id;
       updateData.rejected_at = new Date().toISOString();
       updateData.approved_by = null;
       updateData.approved_at = null;
+      updateData.service_name = null; // Clear service category on rejection
     }
 
     const { data: testimonial, error } = await supabaseAdmin

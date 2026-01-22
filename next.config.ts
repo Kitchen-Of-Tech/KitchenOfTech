@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
         hostname: '**.sanity.io',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
+        pathname: '/**',
+      },
     ],
   },
   typescript: {

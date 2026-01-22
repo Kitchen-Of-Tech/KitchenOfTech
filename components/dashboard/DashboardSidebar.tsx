@@ -11,7 +11,8 @@ import {
   Star,
   LogOut,
   ChevronLeft,
-  Shield
+  Shield,
+  CreditCard
 } from 'lucide-react';
 import { useState } from 'react';
 import type { User } from '@/types/auth';
@@ -63,6 +64,12 @@ export default function DashboardSidebar({ user }: DashboardSidebarProps) {
       href: '/dashboard/testimonials',
       icon: Star,
       show: canManageUsers, // Only CEO and Manager
+    },
+    {
+      name: 'Payment',
+      href: '/dashboard/payment',
+      icon: CreditCard,
+      show: canManageUsers, // CEO and Manager
     },
   ];
 
