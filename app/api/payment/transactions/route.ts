@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
       .select(`
         *,
         payment_method:payment_methods(name, type, icon_url),
-        user:users(id, name, email),
-        reviewer:reviewed_by(name, email)
+        user:users!payment_transactions_user_id_fkey(id, name, email),
+        reviewer:users!payment_transactions_reviewed_by_fkey(id, name, email)
       `)
       .order("created_at", { ascending: false });
     

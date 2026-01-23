@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 // POST - Approve a payment transaction (CEO/Manager only)
 export async function POST(request: NextRequest) {
@@ -81,6 +81,14 @@ export async function POST(request: NextRequest) {
     if (transaction.purchase_type === "course" && transaction.purchase_id) {
       await handleCourseEnrollment(supabase, transaction);
     }
+
+    // Create accounting entry for approved payment
+    await createAccountingEntry(supabase, updatedTransaction, user.id);
+
+    // Update linked invoice status if exists
+    if (transaction.invoice_id) {
+      await updateInvoiceStatus(supabase, transaction.invoice_id);
+    }
     
     return NextResponse.json({
       success: true,
@@ -143,4 +151,67 @@ async function checkIsAdmin(supabase: Awaited<ReturnType<typeof createClient>>, 
     .single();
   
   return ((data?.role as { level: number } | undefined)?.level ?? 999) <= 2; // CEO or Manager
+}
+
+// Helper function to create accounting entry on approval
+async function createAccountingEntry(supabase: Awaited<ReturnType<typeof createClient>>, transaction: Record<string, unknown>, createdById: string) {
+  try {
+    const supabaseAdmin = await createAdminClient();
+    
+    // Determine category based on purchase type
+    let category = 'Other Income';
+    if (transaction.purchase_type === 'course') {
+      category = 'Course Sales';
+    } else if (transaction.purchase_type === 'product') {
+      category = 'Product Sales';
+    } else if (transaction.purchase_type === 'service') {
+      category = 'Service Revenue';
+    }
+
+    const amount = parseFloat(String(transaction.amount)) || 0;
+    const description = `Payment from ${transaction.payer_name || 'Unknown'} - ${transaction.purpose || 'No description'}`;
+    
+    await supabaseAdmin
+      .from('accounting_entries')
+      .insert({
+        entry_type: 'income',
+        amount,
+        category,
+        description,
+        entry_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+        transaction_id: transaction.id,
+        invoice_id: transaction.invoice_id || null,
+        metadata: {
+          auto_created: true,
+          purchase_type: transaction.purchase_type,
+          payment_method: transaction.payment_method_id,
+        },
+        created_by_id: createdById,
+      });
+    
+    console.log(`Created accounting entry for transaction ${transaction.id}`);
+  } catch (error) {
+    console.error('Error creating accounting entry:', error);
+    // Don't throw error, as payment approval was successful
+  }
+}
+
+// Helper function to update invoice status to paid
+async function updateInvoiceStatus(supabase: Awaited<ReturnType<typeof createClient>>, invoiceId: string) {
+  try {
+    const supabaseAdmin = await createAdminClient();
+    
+    await supabaseAdmin
+      .from('invoices')
+      .update({
+        status: 'paid',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', invoiceId);
+    
+    console.log(`Updated invoice ${invoiceId} status to paid`);
+  } catch (error) {
+    console.error('Error updating invoice status:', error);
+    // Don't throw error, as payment approval was successful
+  }
 }
