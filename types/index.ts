@@ -50,6 +50,15 @@ export interface Navbar {
   }[];
 }
 
+export interface ClientLogo {
+  _id: string;
+  name: string;
+  logo: SanityImage;
+  website?: string;
+  order: number;
+  featured: boolean;
+}
+
 export interface Service {
   _id: string;
   title: string;
@@ -57,19 +66,26 @@ export interface Service {
     current: string;
   };
   shortDescription: string;
-  fullDescription?: string;
+  fullDescription?: unknown[];
   icon: SanityImage;
+  category?: ServiceCategory;
+  subcategory?: ServiceSubcategory;
   features?: {
     title: string;
     description: string;
     icon: SanityImage;
   }[];
-  pricing?: {
-    startingPrice: number;
-    currency: string;
-    pricingModel: string;
-  };
+  technologies?: string[];
+  deliverables?: string[];
+  timeline?: string;
+  pricingType: 'subscription' | 'project' | 'hourly' | 'custom';
+  subscriptionTiers?: SubscriptionTier[];
+  projectPricing?: ProjectPricing;
+  hourlyPricing?: HourlyPricing;
+  customPricing?: CustomPricing;
+  portfolioItems?: Portfolio[];
   gallery?: SanityImage[];
+  faq?: FAQ[];
   order?: number;
   featured?: boolean;
   seo?: {
@@ -78,6 +94,134 @@ export interface Service {
     ogImage: SanityImage;
     keywords: string[];
   };
+}
+
+export interface ServiceCategory {
+  _id: string;
+  title: string;
+  slug: {
+    current: string;
+  };
+  description?: string;
+  icon?: SanityImage;
+  color?: {
+    hex: string;
+  };
+  order: number;
+  featured: boolean;
+  seo?: {
+    metaTitle: string;
+    metaDescription: string;
+  };
+}
+
+export interface ServiceSubcategory {
+  _id: string;
+  title: string;
+  slug: {
+    current: string;
+  };
+  category: ServiceCategory;
+  description?: string;
+  icon?: SanityImage;
+  order: number;
+  featured: boolean;
+}
+
+export interface SubscriptionTier {
+  name: string;
+  price: number;
+  currency: string;
+  billingPeriod: 'month' | 'year' | 'once';
+  popular?: boolean;
+  features: string[];
+  featureComparison?: {
+    feature: string;
+    included: boolean;
+    limit?: string;
+  }[];
+}
+
+export interface ProjectPricing {
+  startingPrice?: number;
+  priceRangeLow?: number;
+  priceRangeHigh?: number;
+  currency: string;
+  baseIncludes?: string[];
+  addons?: {
+    title: string;
+    price: number;
+    description: string;
+  }[];
+}
+
+export interface HourlyPricing {
+  rateLow: number;
+  rateHigh: number;
+  currency: string;
+  rateType: 'hour' | 'day' | 'week';
+  minimumEngagement?: string;
+  expertiseLevels?: {
+    level: string;
+    rate: number;
+    description?: string;
+  }[];
+  averageProjectHours?: string;
+}
+
+export interface CustomPricing {
+  displayText: string;
+  description?: string;
+  showBallparkRanges?: boolean;
+  ballparkRanges?: {
+    tier: string;
+    rangeLow: number;
+    rangeHigh: number;
+    currency: string;
+  }[];
+}
+
+export interface Portfolio {
+  _id: string;
+  title: string;
+  slug: {
+    current: string;
+  };
+  client: string;
+  clientLogo?: SanityImage;
+  shortDescription: string;
+  fullDescription?: unknown[];
+  challenge?: string;
+  solution?: string;
+  approach?: {
+    phase: string;
+    description: string;
+  }[];
+  results?: {
+    metric: string;
+    value: string;
+    description?: string;
+  }[];
+  testimonial?: Testimonial;
+  services?: Service[];
+  technologies?: string[];
+  industry?: string;
+  featuredImage: SanityImage;
+  gallery?: SanityImage[];
+  videoUrl?: string;
+  liveUrl?: string;
+  featured: boolean;
+  completedDate?: string;
+  seo?: {
+    metaTitle: string;
+    metaDescription: string;
+    ogImage: SanityImage;
+  };
+}
+
+export interface FAQ {
+  question: string;
+  answer: string;
 }
 
 export interface Testimonial {
@@ -123,21 +267,90 @@ export interface BlogPost {
   };
 }
 
+// TEAM MEMBER TYPES
+export interface TeamExperience {
+  company: string;
+  position: string;
+  duration: string;
+  description?: string;
+  current: boolean;
+}
+
+export interface TeamEducation {
+  degree: string;
+  institution: string;
+  year?: string;
+}
+
+export interface TeamSkill {
+  skill: string;
+  proficiency: number;
+  category?: 'frontend' | 'backend' | 'design' | 'devops' | 'marketing' | 'management' | 'other';
+}
+
+export interface TeamCertification {
+  name: string;
+  issuer?: string;
+  year?: string;
+  credentialUrl?: string;
+}
+
+export interface TeamPassion {
+  passion: string;
+  description?: string;
+  icon?: SanityImage;
+}
+
+export interface TeamPortfolioItem {
+  title: string;
+  description?: string;
+  image?: SanityImage;
+  url?: string;
+  technologies?: string[];
+  featured: boolean;
+}
+
+export interface TeamExternalLink {
+  platform: 'github' | 'dribbble' | 'behance' | 'codepen' | 'website' | 'other';
+  url: string;
+  label?: string;
+}
+
+export interface TeamSocialLink {
+  platform: 'linkedin' | 'twitter' | 'github' | 'dribbble' | 'behance' | 'instagram' | 'youtube';
+  url: string;
+}
+
 export interface TeamMember {
   _id: string;
   name: string;
-  role: string;
-  bio: string;
+  slug: {
+    current: string;
+  };
+  designation: string;
   image: SanityImage;
-  socialLinks: {
-    platform: string;
-    url: string;
-  }[];
-  expertise: string[];
+  shortDescription: string;
+  available: boolean;
+  featured: boolean;
   order: number;
+  fullDescription?: unknown[];
+  yearsOfExperience?: number;
+  experiences?: TeamExperience[];
+  education?: TeamEducation[];
+  primarySkills?: TeamSkill[];
+  technologies?: string[];
+  certifications?: TeamCertification[];
+  passions?: TeamPassion[];
+  portfolioItems?: TeamPortfolioItem[];
+  externalPortfolioLinks?: TeamExternalLink[];
+  socialLinks?: TeamSocialLink[];
+  seo?: {
+    metaTitle?: string;
+    metaDescription?: string;
+  };
 }
 
-export interface ClientLogo {
+export interface Certificate {
   _id: string;
   name: string;
   logo: SanityImage;

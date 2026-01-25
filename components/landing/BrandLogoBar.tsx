@@ -1,23 +1,36 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
-// Demo client logos - replace with Sanity data later
-const demoLogos = [
-  { id: 1, name: "TechCorp", logo: "/logos/client1.svg" },
-  { id: 2, name: "InnovateLab", logo: "/logos/client2.svg" },
-  { id: 3, name: "DigitalWave", logo: "/logos/client3.svg" },
-  { id: 4, name: "CloudNine", logo: "/logos/client4.svg" },
-  { id: 5, name: "FutureSoft", logo: "/logos/client5.svg" },
-  { id: 6, name: "CodeMasters", logo: "/logos/client6.svg" },
-];
+import { useEffect, useRef, useState } from "react";
+import { client, urlFor } from "@/lib/sanity/client";
+import { CLIENT_LOGOS_QUERY } from "@/lib/sanity/queries";
+import type { ClientLogo } from "@/types";
+import Image from "next/image";
 
 export function BrandLogoBar() {
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const [logos, setLogos] = useState<ClientLogo[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLogos = async () => {
+      try {
+        const clientLogos = await client.fetch<ClientLogo[]>(CLIENT_LOGOS_QUERY);
+        if (clientLogos && clientLogos.length > 0) {
+          setLogos(clientLogos.filter(logo => logo.featured));
+        }
+      } catch (error) {
+        console.error("Error fetching client logos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLogos();
+  }, []);
 
   useEffect(() => {
     const scroller = scrollerRef.current;
-    if (!scroller) return;
+    if (!scroller || logos.length === 0) return;
 
     // Duplicate items for infinite scroll
     const scrollerInner = scroller.querySelector("[data-scroller-inner]");
@@ -28,7 +41,12 @@ export function BrandLogoBar() {
         scrollerInner.appendChild(duplicate);
       });
     }
-  }, []);
+  }, [logos]);
+
+  // Don't render if no logos
+  if (!loading && logos.length === 0) {
+    return null;
+  }
 
   return (
     <section className="relative py-16 md:py-24 overflow-hidden">
@@ -59,17 +77,27 @@ export function BrandLogoBar() {
               width: "max-content",
             }}
           >
-            {demoLogos.map((client) => (
+            {logos.map((client) => (
               <div
-                key={client.id}
+                key={client._id}
                 className="flex-shrink-0 w-32 md:w-40 h-16 md:h-20 flex items-center justify-center grayscale hover:grayscale-0 transition-all opacity-50 hover:opacity-100"
               >
-                {/* Placeholder for logo - replace with actual images */}
-                <div className="w-full h-full flex items-center justify-center glass rounded-lg p-4">
-                  <span className="text-white/70 font-semibold text-sm md:text-base text-center">
-                    {client.name}
-                  </span>
-                </div>
+                {client.logo?.asset ? (
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={urlFor(client.logo).width(200).height(100).url()}
+                      alt={client.name}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center glass rounded-lg p-4">
+                    <span className="text-white/70 font-semibold text-sm md:text-base text-center">
+                      {client.name}
+                    </span>
+                  </div>
+                )}
               </div>
             ))}
           </div>

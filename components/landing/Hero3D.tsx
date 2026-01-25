@@ -3,8 +3,37 @@
 import { GradientButton } from "@/components/ui/GradientButton";
 import { Laptop3D } from "@/components/landing/Laptop3D";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { client } from "@/lib/sanity/client";
+import { SERVICE_CATEGORIES_QUERY } from "@/lib/sanity/queries";
+import type { ServiceCategory } from "@/types";
 
 export function Hero3D() {
+  const [serviceTags, setServiceTags] = useState<string[]>([
+    "Web Development",
+    "Mobile Apps",
+    "UI/UX Design",
+    "Digital Marketing",
+    "AI Solutions",
+    "Cloud Services",
+  ]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categories = await client.fetch<ServiceCategory[]>(SERVICE_CATEGORIES_QUERY);
+        if (categories && categories.length > 0) {
+          const tags = categories.slice(0, 6).map(cat => cat.name);
+          setServiceTags(tags);
+        }
+      } catch (error) {
+        console.error("Error fetching service categories:", error);
+        // Keep default fallback tags
+      }
+    };
+
+    fetchCategories();
+  }, []);
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Background Gradient */}
@@ -32,14 +61,7 @@ export function Hero3D() {
 
             {/* Services Tags */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-3 animate-fade-up" style={{ animationDelay: "0.2s" }}>
-              {[
-                "Web Development",
-                "Mobile Apps",
-                "UI/UX Design",
-                "Digital Marketing",
-                "AI Solutions",
-                "Cloud Services",
-              ].map((service) => (
+              {serviceTags.map((service) => (
                 <span
                   key={service}
                   className="px-4 py-2 glass rounded-full text-sm text-white/80 hover:text-white hover:bg-white/10 transition-all cursor-default"

@@ -6,119 +6,26 @@ import { Footer } from "@/components/layout/Footer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { GradientButton } from "@/components/ui/GradientButton";
-
-// Demo portfolio projects
-const demoProjects = [
-  {
-    id: 1,
-    title: "E-Commerce Platform Redesign",
-    category: "Web Development",
-    description: "Complete redesign and development of a modern e-commerce platform with advanced filtering and checkout features.",
-    image: "https://images.unsplash.com/photo-1557821552-17105176677c?w=800&h=600&fit=crop",
-    technologies: ["Next.js", "TypeScript", "Stripe", "PostgreSQL"],
-    link: "#",
-    featured: true,
-  },
-  {
-    id: 2,
-    title: "FinTech Mobile App",
-    category: "Mobile Development",
-    description: "Secure mobile banking application with biometric authentication and real-time transaction monitoring.",
-    image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&h=600&fit=crop",
-    technologies: ["React Native", "Node.js", "MongoDB", "AWS"],
-    link: "#",
-    featured: true,
-  },
-  {
-    id: 3,
-    title: "Healthcare Dashboard UI",
-    category: "UI/UX Design",
-    description: "Intuitive dashboard design for healthcare professionals with patient management and analytics features.",
-    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&h=600&fit=crop",
-    technologies: ["Figma", "Adobe XD", "Prototyping"],
-    link: "#",
-    featured: true,
-  },
-  {
-    id: 4,
-    title: "AI-Powered Analytics Tool",
-    category: "AI Solutions",
-    description: "Machine learning platform for predictive analytics and automated business insights generation.",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop",
-    technologies: ["Python", "TensorFlow", "React", "FastAPI"],
-    link: "#",
-    featured: false,
-  },
-  {
-    id: 5,
-    title: "Real Estate Portal",
-    category: "Web Development",
-    description: "Property listing platform with virtual tours, advanced search filters, and agent management system.",
-    image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=600&fit=crop",
-    technologies: ["Vue.js", "Laravel", "MySQL", "Mapbox"],
-    link: "#",
-    featured: false,
-  },
-  {
-    id: 6,
-    title: "Fitness Tracking App",
-    category: "Mobile Development",
-    description: "Cross-platform fitness app with workout tracking, nutrition logging, and social features.",
-    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&h=600&fit=crop",
-    technologies: ["Flutter", "Firebase", "Apple Health", "Google Fit"],
-    link: "#",
-    featured: false,
-  },
-  {
-    id: 7,
-    title: "SaaS Brand Identity",
-    category: "Branding",
-    description: "Complete brand identity design for a B2B SaaS startup including logo, color system, and guidelines.",
-    image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop",
-    technologies: ["Illustrator", "Photoshop", "Brand Strategy"],
-    link: "#",
-    featured: false,
-  },
-  {
-    id: 8,
-    title: "Cloud Infrastructure Migration",
-    category: "Cloud Services",
-    description: "Enterprise cloud migration from on-premise to AWS with auto-scaling and disaster recovery setup.",
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&h=600&fit=crop",
-    technologies: ["AWS", "Docker", "Kubernetes", "Terraform"],
-    link: "#",
-    featured: false,
-  },
-  {
-    id: 9,
-    title: "Restaurant Ordering System",
-    category: "Web Development",
-    description: "Online food ordering platform with real-time order tracking and kitchen management system.",
-    image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop",
-    technologies: ["React", "Node.js", "Socket.io", "MongoDB"],
-    link: "#",
-    featured: false,
-  },
-];
-
-const categories = [
-  "All Projects",
-  "Web Development",
-  "Mobile Development",
-  "UI/UX Design",
-  "AI Solutions",
-  "Cloud Services",
-  "Branding",
-];
+import { client, urlFor } from "@/lib/sanity/client";
+import { PORTFOLIO_QUERY } from "@/lib/sanity/queries";
+import type { Portfolio } from "@/types";
 
 export const metadata = {
   title: "Portfolio | Kitchen of Tech",
   description: "Explore our portfolio of successful projects across web development, mobile apps, UI/UX design, and digital solutions.",
 };
 
-export default function PortfolioPage() {
-  const featuredProjects = demoProjects.filter((project) => project.featured);
-  const regularProjects = demoProjects.filter((project) => !project.featured);
+export default async function PortfolioPage() {
+  // Fetch portfolio items from Sanity
+  const portfolioItems = await client.fetch<Portfolio[]>(PORTFOLIO_QUERY);
+
+  // Get unique categories from fetched data
+  const allCategories = portfolioItems.map(item => item.category).filter(Boolean);
+  const categories = ["All", ...Array.from(new Set(allCategories))];
+
+  // Split into featured and regular
+  const featuredProjects = portfolioItems.filter((project) => project.featured);
+  const regularProjects = portfolioItems.filter((project) => !project.featured);
 
   return (
     <div className="min-h-screen">
@@ -174,17 +81,19 @@ export default function PortfolioPage() {
 
               <div className="grid grid-cols-1 gap-8 lg:gap-12">
                 {featuredProjects.map((project, index) => (
-                  <ScrollReveal key={project.id} animation="fade-up" delay={index * 100}>
+                  <ScrollReveal key={project._id} animation="fade-up" delay={index * 100}>
                     <GlassCard hover className="group overflow-hidden">
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Image */}
                         <div className="relative h-80 lg:h-auto overflow-hidden">
-                          <Image
-                            src={project.image}
-                            alt={project.title}
-                            fill
-                            className="object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
+                          {project.featuredImage?.asset && (
+                            <Image
+                              src={urlFor(project.featuredImage).width(800).height(600).url()}
+                              alt={project.title}
+                              fill
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent lg:bg-linear-to-r" />
                         </div>
 

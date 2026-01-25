@@ -5,7 +5,21 @@ import { ArrowRight, Code, Smartphone, Palette, TrendingUp, Brain, Cloud } from 
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GradientButton } from "@/components/ui/GradientButton";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { useEffect, useState } from "react";
+import { client } from "@/lib/sanity/client";
+import { SERVICES_QUERY } from "@/lib/sanity/queries";
+import type { Service } from "@/types";
 
+const iconMap: Record<string, any> = {
+  Code,
+  Smartphone,
+  Palette,
+  TrendingUp,
+  Brain,
+  Cloud,
+};
+
+// Fallback services if Sanity has no data
 const defaultServices = [
   {
     id: 1,
@@ -52,6 +66,35 @@ const defaultServices = [
 ];
 
 export function ServicesGrid() {
+  const [services, setServices] = useState<any[]>(defaultServices);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const sanityServices = await client.fetch<Service[]>(SERVICES_QUERY);
+        if (sanityServices && sanityServices.length > 0) {
+          // Map Sanity services to display format
+          const mappedServices = sanityServices.slice(0, 6).map((service, index) => ({
+            id: service._id,
+            title: service.name,
+            description: service.shortDescription || service.description || "Explore our professional services",
+            icon: Code, // Default icon, you can add icon field to Sanity schema later
+            slug: service.slug.current,
+          }));
+          setServices(mappedServices);
+        }
+      } catch (error) {
+        console.error("Error fetching services:", error);
+        // Keep default services
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
   return (
     <section className="relative py-20 md:py-32 overflow-hidden">
       {/* Background Elements */}

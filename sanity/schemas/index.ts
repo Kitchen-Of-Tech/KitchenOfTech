@@ -1,5 +1,8 @@
 import { branding } from "./branding";
 import { service } from "./service";
+import { serviceCategory } from "./serviceCategory";
+import { serviceSubcategory } from "./serviceSubcategory";
+import { portfolio } from "./portfolio";
 import { testimonial } from "./testimonial";
 import { clientLogo } from "./clientLogo";
 import { blog } from "./blog";
@@ -15,7 +18,12 @@ import { assignment } from "./assignment";
 
 export const schemaTypes = [
   branding,
+  // Services
+  serviceCategory,
+  serviceSubcategory,
   service,
+  portfolio,
+  // Other
   testimonial,
   clientLogo,
   blog,
