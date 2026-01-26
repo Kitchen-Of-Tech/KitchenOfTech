@@ -19,8 +19,8 @@ export default async function PortfolioPage() {
   // Fetch portfolio items from Sanity
   const portfolioItems = await client.fetch<Portfolio[]>(PORTFOLIO_QUERY);
 
-  // Get unique categories from fetched data
-  const allCategories = portfolioItems.map(item => item.category).filter(Boolean);
+  // Get unique categories from fetched data (using industry as category)
+  const allCategories = portfolioItems.map(item => item.industry).filter(Boolean);
   const categories = ["All", ...Array.from(new Set(allCategories))];
 
   // Split into featured and regular
@@ -102,7 +102,7 @@ export default async function PortfolioPage() {
                           {/* Category Badge */}
                           <div className="mb-4">
                             <span className="px-3 py-1 bg-primary/20 backdrop-blur-sm text-primary text-sm font-medium rounded-full">
-                              {project.category}
+                              {project.industry}
                             </span>
                           </div>
 
@@ -110,12 +110,12 @@ export default async function PortfolioPage() {
                             {project.title}
                           </h3>
                           <p className="text-white/70 leading-relaxed mb-6 text-lg">
-                            {project.description}
+                            {project.shortDescription}
                           </p>
 
                           {/* Technologies */}
                           <div className="flex flex-wrap gap-2 mb-6">
-                            {project.technologies.map((tech) => (
+                            {project.technologies?.map((tech) => (
                               <span
                                 key={tech}
                                 className="px-3 py-1 bg-white/5 text-white/80 text-sm rounded-lg border border-white/10"
@@ -126,7 +126,7 @@ export default async function PortfolioPage() {
                           </div>
 
                           {/* CTA */}
-                          <Link href={project.link}>
+                          <Link href={project.liveUrl || '#'}>
                             <GradientButton variant="primary" size="md">
                               <span>View Case Study</span>
                               <ExternalLink className="w-4 h-4 ml-2" />
@@ -153,13 +153,13 @@ export default async function PortfolioPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {regularProjects.map((project, index) => (
-                <ScrollReveal key={project.id} animation="fade-up" delay={index * 100}>
-                  <Link href={project.link}>
+                <ScrollReveal key={project._id} animation="fade-up" delay={index * 100}>
+                  <Link href={project.liveUrl || '#'}>
                     <GlassCard hover className="group overflow-hidden h-full flex flex-col">
                       {/* Image */}
                       <div className="relative h-56 overflow-hidden">
                         <Image
-                          src={project.image}
+                          src={urlFor(project.featuredImage).width(800).height(600).url()}
                           alt={project.title}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -169,7 +169,7 @@ export default async function PortfolioPage() {
                         {/* Category Badge */}
                         <div className="absolute top-4 left-4">
                           <span className="px-3 py-1 bg-primary/80 backdrop-blur-sm text-white text-sm font-medium rounded-full">
-                            {project.category}
+                            {project.industry}
                           </span>
                         </div>
 
@@ -185,12 +185,12 @@ export default async function PortfolioPage() {
                           {project.title}
                         </h3>
                         <p className="text-white/70 text-sm leading-relaxed mb-4 flex-1">
-                          {project.description}
+                          {project.shortDescription}
                         </p>
 
                         {/* Technologies */}
                         <div className="flex flex-wrap gap-2">
-                          {project.technologies.slice(0, 3).map((tech) => (
+                          {project.technologies?.slice(0, 3).map((tech) => (
                             <span
                               key={tech}
                               className="px-2 py-1 bg-white/5 text-white/60 text-xs rounded-md"

@@ -23,7 +23,7 @@ export function Hero3D() {
       try {
         const categories = await client.fetch<ServiceCategory[]>(SERVICE_CATEGORIES_QUERY);
         if (categories && categories.length > 0) {
-          const tags = categories.slice(0, 6).map(cat => cat.name);
+          const tags = categories.slice(0, 6).map(cat => cat.title);
           setServiceTags(tags);
         }
       } catch (error) {

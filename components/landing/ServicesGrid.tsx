@@ -10,15 +10,6 @@ import { client } from "@/lib/sanity/client";
 import { SERVICES_QUERY } from "@/lib/sanity/queries";
 import type { Service } from "@/types";
 
-const iconMap: Record<string, any> = {
-  Code,
-  Smartphone,
-  Palette,
-  TrendingUp,
-  Brain,
-  Cloud,
-};
-
 // Fallback services if Sanity has no data
 const defaultServices = [
   {
@@ -65,9 +56,16 @@ const defaultServices = [
   },
 ];
 
+type ServiceDisplay = {
+  id: string | number;
+  title: string;
+  description: string;
+  icon: typeof Code;
+  slug: string;
+};
+
 export function ServicesGrid() {
-  const [services, setServices] = useState<any[]>(defaultServices);
-  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState<ServiceDisplay[]>(defaultServices);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -75,10 +73,10 @@ export function ServicesGrid() {
         const sanityServices = await client.fetch<Service[]>(SERVICES_QUERY);
         if (sanityServices && sanityServices.length > 0) {
           // Map Sanity services to display format
-          const mappedServices = sanityServices.slice(0, 6).map((service, index) => ({
+          const mappedServices: ServiceDisplay[] = sanityServices.slice(0, 6).map((service) => ({
             id: service._id,
-            title: service.name,
-            description: service.shortDescription || service.description || "Explore our professional services",
+            title: service.title,
+            description: service.shortDescription || "Explore our professional services",
             icon: Code, // Default icon, you can add icon field to Sanity schema later
             slug: service.slug.current,
           }));
@@ -87,8 +85,6 @@ export function ServicesGrid() {
       } catch (error) {
         console.error("Error fetching services:", error);
         // Keep default services
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -116,7 +112,7 @@ export function ServicesGrid() {
 
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {defaultServices.map((service, index) => {
+          {services.map((service, index) => {
             const Icon = service.icon;
             return (
               <ScrollReveal
