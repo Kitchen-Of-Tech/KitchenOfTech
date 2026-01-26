@@ -6,6 +6,48 @@ export interface SanityImage {
   alt?: string;
 }
 
+export interface SiteSettings {
+  _id: string;
+  siteName: string;
+  siteDescription: string;
+  logo: SanityImage;
+  favicon: SanityImage;
+  email: string;
+  phone?: string;
+  address?: string;
+  socialMedia: {
+    platform: string;
+    url: string;
+  }[];
+  seo: {
+    metaTitle: string;
+    metaDescription: string;
+    keywords: string[];
+    ogImage: SanityImage;
+  };
+}
+
+export interface FooterSettings {
+  _id: string;
+  companyLinks: {
+    label: string;
+    href: string;
+  }[];
+  servicesLinks: {
+    label: string;
+    href: string;
+  }[];
+  resourcesLinks: {
+    label: string;
+    href: string;
+  }[];
+  legalLinks: {
+    label: string;
+    href: string;
+  }[];
+  copyrightText?: string;
+}
+
 export interface Branding {
   _id: string;
   siteName: string;

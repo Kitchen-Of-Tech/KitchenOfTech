@@ -1,5 +1,53 @@
 import { groq } from "next-sanity";
 
+// Site Settings Query
+export const SITE_SETTINGS_QUERY = groq`
+  *[_type == "siteSettings"][0] {
+    _id,
+    siteName,
+    siteDescription,
+    logo,
+    favicon,
+    email,
+    phone,
+    address,
+    socialMedia[] {
+      platform,
+      url
+    },
+    seo {
+      metaTitle,
+      metaDescription,
+      keywords[],
+      ogImage
+    }
+  }
+`;
+
+// Footer Settings Query
+export const FOOTER_SETTINGS_QUERY = groq`
+  *[_type == "footerSettings"][0] {
+    _id,
+    companyLinks[] {
+      label,
+      href
+    },
+    servicesLinks[] {
+      label,
+      href
+    },
+    resourcesLinks[] {
+      label,
+      href
+    },
+    legalLinks[] {
+      label,
+      href
+    },
+    copyrightText
+  }
+`;
+
 // Branding Query
 export const BRANDING_QUERY = groq`
   *[_type == "branding"][0] {

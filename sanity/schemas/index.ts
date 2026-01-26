@@ -1,4 +1,6 @@
 import { branding } from "./branding";
+import { siteSettings } from "./siteSettings";
+import { footerSettings } from "./footerSettings";
 import { service } from "./service";
 import { serviceCategory } from "./serviceCategory";
 import { serviceSubcategory } from "./serviceSubcategory";
@@ -17,7 +19,10 @@ import { quiz } from "./quiz";
 import { assignment } from "./assignment";
 
 export const schemaTypes = [
+  // Site Configuration
   branding,
+  siteSettings,
+  footerSettings,
   // Services
   serviceCategory,
   serviceSubcategory,

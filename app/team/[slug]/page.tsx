@@ -48,11 +48,6 @@ export default async function TeamMemberDetailPage({ params }: { params: Promise
     notFound();
   }
 
-  const handleHireClick = () => {
-    console.log('Hire button clicked for:', member.name);
-    // User will provide implementation later
-  };
-
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -118,9 +113,11 @@ export default async function TeamMemberDetailPage({ params }: { params: Promise
                   </div>
                 )}
 
-                <GradientButton onClick={handleHireClick} size="lg">
-                  Hire {member.name.split(' ')[0]}
-                </GradientButton>
+                <Link href="/contact">
+                  <GradientButton size="lg">
+                    Hire {member.name.split(' ')[0]}
+                  </GradientButton>
+                </Link>
 
                 {/* Social Links */}
                 {member.socialLinks && member.socialLinks.length > 0 && (
@@ -418,9 +415,11 @@ export default async function TeamMemberDetailPage({ params }: { params: Promise
                   : `Reach out to discuss future opportunities with ${member.name.split(' ')[0]}.`
                 }
               </p>
-              <GradientButton onClick={handleHireClick} size="lg">
-                Hire {member.name.split(' ')[0]} Now
-              </GradientButton>
+              <Link href="/contact">
+                <GradientButton size="lg">
+                  Hire {member.name.split(' ')[0]} Now
+                </GradientButton>
+              </Link>
             </GlassCard>
           </div>
         </div>

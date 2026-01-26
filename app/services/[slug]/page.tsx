@@ -13,12 +13,20 @@ import { ProjectPricingDisplay } from '@/components/services/pricing/ProjectPric
 import { HourlyPricingDisplay } from '@/components/services/pricing/HourlyPricingDisplay';
 import { CustomPricingDisplay } from '@/components/services/pricing/CustomPricingDisplay';
 
+// Force dynamic rendering to avoid build-time Sanity query issues
+export const dynamic = 'force-dynamic';
+
 // Generate static params for all services
 export async function generateStaticParams() {
-  const services = await client.fetch<Service[]>(SERVICES_QUERY);
-  return services.map((service) => ({
-    slug: service.slug.current,
-  }));
+  try {
+    const services = await client.fetch<Service[]>(SERVICES_QUERY);
+    return services.map((service) => ({
+      slug: service.slug.current,
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
 }
 
 // Generate metadata for SEO
