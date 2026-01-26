@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
+import { requireCsrfToken } from '@/lib/middleware/csrf';
 
 // POST - Submit a new payment transaction
 export async function POST(request: NextRequest) {
+  // Validate CSRF token
+  const csrfError = await requireCsrfToken(request);
+  if (csrfError) return csrfError;
+  
   // Apply rate limiting (10 payments per hour)
   const rateLimitResponse = await applyRateLimit(request, rateLimiters.payment);
   if (rateLimitResponse) return rateLimitResponse;

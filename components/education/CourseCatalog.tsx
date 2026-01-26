@@ -303,7 +303,10 @@ function CourseCard({ course, featured = false }: { course: Course; featured?: b
             src={course.thumbnail.asset.url}
             alt={course.title}
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover group-hover:scale-110 transition-transform duration-300"
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iOSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iOSIgZmlsbD0iIzFhMWExYSIvPjwvc3ZnPg=="
           />
           {course.isFree && (
             <div className="absolute top-3 left-3 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
@@ -346,6 +349,8 @@ function CourseCard({ course, featured = false }: { course: Course; featured?: b
                 width={24}
                 height={24}
                 className="rounded-full"
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjMWExYTFhIi8+PC9zdmc+"
               />
             )}
             <span className="text-sm text-white/70">{course.instructor.name}</span>

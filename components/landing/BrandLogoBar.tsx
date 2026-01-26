@@ -89,6 +89,7 @@ export function BrandLogoBar() {
                       src={urlFor(client.logo as SanityImageSource).width(200).height(100).url()}
                       alt={client.name}
                       fill
+                      sizes="(max-width: 768px) 128px, 160px"
                       className="object-contain"
                     />
                   </div>

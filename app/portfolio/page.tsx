@@ -94,7 +94,11 @@ export default async function PortfolioPage() {
                               src={urlFor(project.featuredImage as SanityImageSource).width(800).height(600).url()}
                               alt={project.title}
                               fill
+                              sizes="(max-width: 1024px) 100vw, 50vw"
                               className="object-cover group-hover:scale-110 transition-transform duration-500"
+                              priority
+                              placeholder="blur"
+                              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iIzFhMWExYSIvPjwvc3ZnPg=="
                             />
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent lg:bg-linear-to-r" />
@@ -165,7 +169,10 @@ export default async function PortfolioPage() {
                           src={urlFor(project.featuredImage as SanityImageSource).width(800).height(600).url()}
                           alt={project.title}
                           fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
+                          placeholder="blur"
+                          blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iIzFhMWExYSIvPjwvc3ZnPg=="
                         />
                         <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/50 to-transparent" />
                         

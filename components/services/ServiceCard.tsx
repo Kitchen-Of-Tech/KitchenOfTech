@@ -88,6 +88,7 @@ export function ServiceCard({ service, index, categoryColor }: ServiceCardProps)
                     src={urlFor(service.icon as SanityImageSource).width(64).height(64).url()}
                     alt={service.title}
                     fill
+                    sizes="64px"
                     className="object-contain"
                   />
                 </div>

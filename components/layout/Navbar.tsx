@@ -79,6 +79,7 @@ export function Navbar() {
                     src={urlFor(siteSettings.logo as any).width(100).height(100).url()}
                     alt={siteSettings.logo.alt || siteSettings.siteName || 'Kitchen of Tech'}
                     fill
+                    sizes="(max-width: 1024px) 40px, 48px"
                     className="object-contain"
                     priority
                   />

@@ -226,7 +226,10 @@ export default function TestimonialsPage() {
                             src={testimonial.clientImage}
                             alt={testimonial.clientName}
                             fill
+                            sizes="96px"
                             className="object-cover"
+                            placeholder="blur"
+                            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSIjMWExYTFhIi8+PC9zdmc+"
                           />
                         </div>
                         <h3 className="text-xl font-bold text-white mb-1">
@@ -290,7 +293,10 @@ export default function TestimonialsPage() {
                           src={testimonial.clientImage}
                           alt={testimonial.clientName}
                           fill
+                          sizes="64px"
                           className="object-cover"
+                          placeholder="blur"
+                          blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjMWExYTFhIi8+PC9zdmc+"
                         />
                       </div>
                       <div className="flex-1 min-w-0">

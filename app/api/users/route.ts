@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getCurrentUser } from '@/lib/auth/server';
 import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
+import { requireCsrfToken } from '@/lib/middleware/csrf';
 
 export async function GET() {
   try {
@@ -36,6 +37,10 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  // Validate CSRF token
+  const csrfError = await requireCsrfToken(request);
+  if (csrfError) return csrfError;
+  
   // Apply rate limiting (20 requests per minute for sensitive operations)
   const rateLimitResponse = await applyRateLimit(request, rateLimiters.apiStrict);
   if (rateLimitResponse) return rateLimitResponse;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
+import { cachedJsonResponse, CACHE_PRESETS } from '@/lib/http-cache';
 
 // GET - Fetch all service categories
 export async function GET(request: NextRequest) {
@@ -31,10 +32,11 @@ export async function GET(request: NextRequest) {
     
     if (error) throw error;
     
-    return NextResponse.json({
+    // Cache public category data for 1 hour with 15-minute SWR
+    return cachedJsonResponse({
       success: true,
       categories: categories || [],
-    });
+    }, CACHE_PRESETS.STATIC);
   } catch (error) {
     console.error('Error fetching service categories:', error);
     return NextResponse.json(

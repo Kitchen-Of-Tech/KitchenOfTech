@@ -163,8 +163,11 @@ export default async function ServiceDetailPage({
                       src={urlFor(service.icon as SanityImageSource).width(600).height(600).url()}
                       alt={service.title}
                       fill
+                      sizes="(max-width: 768px) 100vw, 600px"
                       className="object-cover"
                       priority
+                      placeholder="blur"
+                      blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iIzFhMWExYSIvPjwvc3ZnPg=="
                     />
                   </div>
                 </GlassCard>

@@ -45,7 +45,10 @@ export function TeamMemberCard({ member, index }: TeamMemberCardProps) {
                   src={urlFor(member.image as SanityImageSource).width(200).height(200).url()}
                   alt={member.name}
                   fill
+                  sizes="128px"
                   className="object-cover group-hover:scale-110 transition-transform duration-300"
+                  placeholder="blur"
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjMWExYTFhIi8+PC9zdmc+"
                 />
               )}
             </div>
