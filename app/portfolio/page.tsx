@@ -9,6 +9,7 @@ import { GradientButton } from "@/components/ui/GradientButton";
 import { client, urlFor } from "@/lib/sanity/client";
 import { PORTFOLIO_QUERY } from "@/lib/sanity/queries";
 import type { Portfolio } from "@/types";
+import type { Image as SanityImageSource } from "sanity";
 
 export const metadata = {
   title: "Portfolio | Kitchen of Tech",
@@ -88,7 +89,7 @@ export default async function PortfolioPage() {
                         <div className="relative h-80 lg:h-auto overflow-hidden">
                           {project.featuredImage?.asset && (
                             <Image
-                              src={urlFor(project.featuredImage).width(800).height(600).url()}
+                              src={urlFor(project.featuredImage as SanityImageSource).width(800).height(600).url()}
                               alt={project.title}
                               fill
                               className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -159,7 +160,7 @@ export default async function PortfolioPage() {
                       {/* Image */}
                       <div className="relative h-56 overflow-hidden">
                         <Image
-                          src={urlFor(project.featuredImage).width(800).height(600).url()}
+                          src={urlFor(project.featuredImage as SanityImageSource).width(800).height(600).url()}
                           alt={project.title}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-500"

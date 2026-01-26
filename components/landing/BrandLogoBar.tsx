@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { client, urlFor } from "@/lib/sanity/client";
 import { CLIENT_LOGOS_QUERY } from "@/lib/sanity/queries";
 import type { ClientLogo } from "@/types";
+import type { Image as SanityImageSource } from "sanity";
 import Image from "next/image";
 
 export function BrandLogoBar() {
@@ -85,7 +86,7 @@ export function BrandLogoBar() {
                 {client.logo?.asset ? (
                   <div className="relative w-full h-full">
                     <Image
-                      src={urlFor(client.logo).width(200).height(100).url()}
+                      src={urlFor(client.logo as SanityImageSource).width(200).height(100).url()}
                       alt={client.name}
                       fill
                       className="object-contain"

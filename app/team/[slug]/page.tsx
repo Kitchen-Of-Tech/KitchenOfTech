@@ -1,6 +1,7 @@
 ﻿import { client } from '@/lib/sanity/client';
 import { TEAM_MEMBER_QUERY, TEAM_MEMBERS_QUERY } from '@/lib/sanity/queries';
 import type { TeamMember } from '@/types';
+import type { Image as SanityImageSource } from 'sanity';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -79,7 +80,7 @@ export default async function TeamMemberDetailPage({ params }: { params: Promise
                 {member.image?.asset && (
                   <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-2xl overflow-hidden ring-4 ring-blue-500/20 shadow-2xl shadow-blue-500/20">
                     <Image
-                      src={urlFor(member.image).width(400).height(400).url()}
+                      src={urlFor(member.image as SanityImageSource).width(400).height(400).url()}
                       alt={member.name}
                       fill
                       className="object-cover"
@@ -328,7 +329,7 @@ export default async function TeamMemberDetailPage({ params }: { params: Promise
                     {item.image?.asset && (
                       <div className="relative w-full h-48 overflow-hidden">
                         <Image
-                          src={urlFor(item.image).width(600).height(400).url()}
+                          src={urlFor(item.image as SanityImageSource).width(600).height(400).url()}
                           alt={item.title}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-300"
