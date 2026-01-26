@@ -4,6 +4,7 @@ import type { TeamMember } from '@/types';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { TeamMemberCard } from '@/components/team/TeamMemberCard';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Users, Award, TrendingUp } from 'lucide-react';
 import { GlassCard } from '@/components/ui/GlassCard';
 
@@ -22,6 +23,7 @@ export default async function TeamPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <ErrorBoundary>
       <main className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black">
         {/* Background Effects */}
         <div className="fixed inset-0 pointer-events-none">
@@ -146,6 +148,7 @@ export default async function TeamPage() {
         </div>
       </section>
       </main>
+      </ErrorBoundary>
       <Footer />
     </div>
   );

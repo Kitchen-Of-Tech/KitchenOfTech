@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { GradientButton } from "@/components/ui/GradientButton";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { client, urlFor } from "@/lib/sanity/client";
 import { PORTFOLIO_QUERY } from "@/lib/sanity/queries";
 import type { Portfolio } from "@/types";
@@ -31,6 +32,7 @@ export default async function PortfolioPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <ErrorBoundary>
       <main>
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
@@ -266,6 +268,7 @@ export default async function PortfolioPage() {
           </div>
         </section>
       </main>
+      </ErrorBoundary>
       <Footer />
     </div>
   );

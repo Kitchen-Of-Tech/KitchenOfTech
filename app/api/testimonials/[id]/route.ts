@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
 
 // PATCH - Approve or Reject a testimonial
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Apply rate limiting (20 requests per minute for sensitive operations)
+  const rateLimitResponse = await applyRateLimit(request, rateLimiters.apiStrict);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

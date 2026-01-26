@@ -5,6 +5,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { GradientButton } from "@/components/ui/GradientButton";
 import { ServicesCatalog } from "@/components/services/ServicesCatalog";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { sanityFetch } from "@/lib/sanity/client";
 import { 
   SERVICES_QUERY, 
@@ -55,7 +56,8 @@ export default async function ServicesPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <main>
+      <ErrorBoundary>
+        <main>
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-secondary/10 via-transparent to-transparent" />
@@ -170,6 +172,7 @@ export default async function ServicesPage() {
           </div>
         </section>
       </main>
+      </ErrorBoundary>
       <Footer />
     </div>
   );

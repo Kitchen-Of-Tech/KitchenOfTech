@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
 
 // POST - Submit a new payment transaction
 export async function POST(request: NextRequest) {
+  // Apply rate limiting (10 payments per hour)
+  const rateLimitResponse = await applyRateLimit(request, rateLimiters.payment);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);

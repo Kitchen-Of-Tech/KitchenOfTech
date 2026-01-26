@@ -1,8 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
+import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Apply rate limiting (100 requests per minute for general API)
+  const rateLimitResponse = await applyRateLimit(request, rateLimiters.api);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);

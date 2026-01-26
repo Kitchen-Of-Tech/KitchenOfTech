@@ -2,8 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Menu, X, MoreHorizontal, Home, Briefcase, GraduationCap, FolderOpen, BookOpen, Star, Users, ShieldCheck, LogIn, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { client, urlFor } from "@/lib/sanity/client";
+import { SITE_SETTINGS_QUERY } from "@/lib/sanity/queries";
+import type { SiteSettings } from "@/types";
 
 interface NavItem {
   label: string;
@@ -29,6 +33,7 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,6 +41,19 @@ export function Navbar() {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Fetch site settings for logo
+  useEffect(() => {
+    const fetchSiteSettings = async () => {
+      try {
+        const settings = await client.fetch<SiteSettings>(SITE_SETTINGS_QUERY);
+        setSiteSettings(settings);
+      } catch (error) {
+        console.error('Error fetching site settings:', error);
+      }
+    };
+    fetchSiteSettings();
   }, []);
 
   return (
@@ -52,9 +70,28 @@ export function Navbar() {
           {/* Logo */}
           <Link
             href="/"
-            className="text-xl lg:text-2xl font-bold text-gradient hover:opacity-80 transition-opacity"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            Kitchen of Tech
+            {siteSettings?.logo?.asset ? (
+              <>
+                <div className="relative w-10 h-10 lg:w-12 lg:h-12">
+                  <Image
+                    src={urlFor(siteSettings.logo as any).width(100).height(100).url()}
+                    alt={siteSettings.logo.alt || siteSettings.siteName || 'Kitchen of Tech'}
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+                <span className="text-xl lg:text-2xl font-bold text-gradient">
+                  {siteSettings.siteName || 'Kitchen of Tech'}
+                </span>
+              </>
+            ) : (
+              <span className="text-xl lg:text-2xl font-bold text-gradient">
+                Kitchen of Tech
+              </span>
+            )}
           </Link>
 
           {/* Desktop Navigation - Icon with Label */}

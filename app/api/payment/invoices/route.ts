@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
 import type { Role } from '@/types/auth';
 
 interface LineItem {
@@ -76,6 +77,10 @@ export async function GET(request: NextRequest) {
 
 // POST /api/payment/invoices - Create new invoice (Admin only)
 export async function POST(request: NextRequest) {
+  // Apply rate limiting (10 requests per hour for payment operations)
+  const rateLimitResponse = await applyRateLimit(request, rateLimiters.payment);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getCurrentUser } from '@/lib/auth/server';
+import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
 
 export async function GET() {
   try {
@@ -35,6 +36,10 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting (20 requests per minute for sensitive operations)
+  const rateLimitResponse = await applyRateLimit(request, rateLimiters.apiStrict);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const currentUser = await getCurrentUser();
 

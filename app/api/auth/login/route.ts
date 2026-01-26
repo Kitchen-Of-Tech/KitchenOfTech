@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting: 5 login attempts per minute
+  const rateLimitResponse = await applyRateLimit(request, rateLimiters.auth);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const { username, password } = await request.json();
 

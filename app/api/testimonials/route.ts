@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
 
 // GET - List testimonials (filter by status)
 export async function GET(request: NextRequest) {
@@ -49,6 +50,10 @@ export async function GET(request: NextRequest) {
 
 // POST - Submit a new testimonial
 export async function POST(request: NextRequest) {
+  // Apply rate limiting (2 testimonials per hour)
+  const rateLimitResponse = await applyRateLimit(request, rateLimiters.testimonial);
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
