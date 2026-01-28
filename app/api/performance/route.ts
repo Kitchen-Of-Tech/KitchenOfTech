@@ -39,14 +39,9 @@ export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting
     const rateLimitResult = await rateLimitMiddleware(request, 'mutations');
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        {
-          status: 429,
-          headers: { 'Retry-After': rateLimitResult.retryAfter?.toString() || '60' },
-        }
-      );
+    if (rateLimitResult) {
+      // Rate limit exceeded, return the error response
+      return rateLimitResult;
     }
 
     const data = await request.json();

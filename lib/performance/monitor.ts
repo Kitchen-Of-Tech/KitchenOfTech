@@ -3,7 +3,7 @@
  * Tracks Core Web Vitals and custom performance metrics
  */
 
-import { onCLS, onFID, onFCP, onLCP, onTTFB, onINP, Metric } from 'web-vitals';
+import { onCLS, onFCP, onLCP, onTTFB, onINP, type Metric } from 'web-vitals';
 
 export interface PerformanceMetric {
   name: string;
@@ -45,9 +45,6 @@ class PerformanceMonitor {
     // Cumulative Layout Shift
     onCLS(this.handleMetric.bind(this), { reportAllChanges: true });
 
-    // First Input Delay (being replaced by INP)
-    onFID(this.handleMetric.bind(this));
-
     // First Contentful Paint
     onFCP(this.handleMetric.bind(this));
 
@@ -57,7 +54,7 @@ class PerformanceMonitor {
     // Time to First Byte
     onTTFB(this.handleMetric.bind(this));
 
-    // Interaction to Next Paint (new metric)
+    // Interaction to Next Paint (replaced FID)
     onINP(this.handleMetric.bind(this), { reportAllChanges: true });
   }
 

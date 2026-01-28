@@ -3,6 +3,10 @@ import { getCurrentUser } from '@/lib/auth/server';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export default async function DashboardLayout({
   children,
 }: {

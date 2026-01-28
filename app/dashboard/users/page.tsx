@@ -2,6 +2,10 @@ import { getCurrentUser } from '@/lib/auth/server';
 import { redirect } from 'next/navigation';
 import UserManagementClient from '@/components/dashboard/UserManagementClient';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export default async function UsersPage() {
   const user = await getCurrentUser();
 

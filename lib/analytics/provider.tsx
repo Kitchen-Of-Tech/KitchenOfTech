@@ -1,16 +1,21 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { usePageTracking } from './hooks';
+
+/**
+ * Page Tracking Component (wrapped in Suspense)
+ */
+function PageTracker() {
+  usePageTracking();
+  return null;
+}
 
 /**
  * Analytics Provider Component
  * Handles page tracking and initialization
  */
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
-  // Automatically track page views
-  usePageTracking();
-
   // Initialize analytics on mount
   useEffect(() => {
     // Any initialization logic here
@@ -19,5 +24,12 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  return <>{children}</>;
+  return (
+    <>
+      <Suspense fallback={null}>
+        <PageTracker />
+      </Suspense>
+      {children}
+    </>
+  );
 }

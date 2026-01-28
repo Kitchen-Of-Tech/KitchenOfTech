@@ -2,6 +2,10 @@ import { getCurrentUser } from '@/lib/auth/server';
 import { redirect } from 'next/navigation';
 import { Users, FolderKanban, ListTodo, CheckCircle } from 'lucide-react';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 

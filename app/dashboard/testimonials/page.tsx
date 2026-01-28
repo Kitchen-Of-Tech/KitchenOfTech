@@ -2,6 +2,10 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth/server';
 import TestimonialManagementClient from '@/components/dashboard/TestimonialManagementClient';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export default async function TestimonialsPage() {
   const user = await getCurrentUser();
 
@@ -29,3 +33,4 @@ export default async function TestimonialsPage() {
 
   return <TestimonialManagementClient currentUser={user} />;
 }
+

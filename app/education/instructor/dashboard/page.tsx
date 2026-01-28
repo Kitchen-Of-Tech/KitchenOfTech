@@ -4,6 +4,10 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import InstructorDashboardClient from "@/components/education/InstructorDashboardClient";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export const metadata: Metadata = {
   title: "Instructor Dashboard | KitchenOfTech Education",
   description: "Manage your courses, students, and assignments",
