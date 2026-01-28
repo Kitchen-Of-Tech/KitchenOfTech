@@ -4,6 +4,59 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
 
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: User login
+ *     description: Authenticate user with username and password, returns JWT token
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: User's username
+ *                 example: johndoe
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: User's password
+ *                 example: SecurePassword123!
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Login successful
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Missing username or password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Invalid credentials
+ *       403:
+ *         description: Account deactivated
+ *       429:
+ *         description: Rate limit exceeded (5 attempts per 5 minutes)
+ */
 export async function POST(request: NextRequest) {
   // Apply rate limiting: 5 login attempts per minute
   const rateLimitResponse = await applyRateLimit(request, rateLimiters.auth);

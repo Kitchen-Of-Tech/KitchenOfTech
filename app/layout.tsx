@@ -6,6 +6,9 @@ import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvide
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { TemplateTransition } from "@/components/transitions/TemplateTransition";
 import { generateSiteMetadata } from "@/lib/metadata";
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { AnalyticsProvider } from "@/lib/analytics/provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,11 +34,15 @@ export default function RootLayout({
         {measurementId && <GoogleAnalytics measurementId={measurementId} />}
         <ReactQueryProvider>
           <SmoothScrollProvider>
-            <TemplateTransition>
-              {children}
-            </TemplateTransition>
+            <AnalyticsProvider>
+              <TemplateTransition>
+                {children}
+              </TemplateTransition>
+            </AnalyticsProvider>
           </SmoothScrollProvider>
         </ReactQueryProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

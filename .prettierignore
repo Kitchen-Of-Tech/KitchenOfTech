@@ -1,0 +1,29 @@
+# Ignore build outputs
+.next/
+out/
+build/
+dist/
+
+# Ignore dependencies
+node_modules/
+
+# Ignore cache files
+.turbo/
+.cache/
+
+# Ignore test outputs
+coverage/
+playwright-report/
+test-results/
+
+# Ignore lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore generated files
+*.min.js
+*.min.css
+
+# Ignore Sanity Studio
+.sanity/
