@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { Star, Send, Check, X, Loader } from 'lucide-react';
+import { Star, Send, Check, X, Loader, Upload } from 'lucide-react';
 
 export default function TestimonialSubmissionPage() {
   const params = useParams();
@@ -24,9 +24,17 @@ export default function TestimonialSubmissionPage() {
     rating: 5,
   });
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
   useEffect(() => {
     const validate = async () => {
@@ -53,19 +61,66 @@ export default function TestimonialSubmissionPage() {
     validate();
   }, [token]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset errors
+    setImageError(null);
+
+    // Validate file type
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setImageError('Please upload a JPG, PNG, or WEBP image');
+      return;
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      setImageError('Image must be less than 5MB');
+      return;
+    }
+
+    setImageFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
 
     try {
-      const response = await fetch('/api/testimonials', {
+      const formData = new FormData();
+      formData.append('name', form.name);
+      formData.append('email', form.email);
+      formData.append('company', form.company);
+      formData.append('position', form.position);
+      formData.append('message', form.message);
+      formData.append('rating', form.rating.toString());
+      formData.append('link_token', token as string);
+      
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+
+      const response = await fetch('/api/testimonials/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          link_token: token,
-        }),
+        body: formData,
       });
 
       const data = await response.json();
@@ -273,6 +328,50 @@ export default function TestimonialSubmissionPage() {
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-primary/50 transition-colors resize-none"
                     placeholder="Tell us about your experience working with Kitchen of Tech..."
                   />
+                </div>
+
+                {/* Image Upload */}
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">
+                    Your Photo (Optional)
+                  </label>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageChange}
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    className="hidden"
+                  />
+                  
+                  {!imagePreview ? (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="relative border-2 border-dashed border-white/20 rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors group"
+                    >
+                      <Upload className="w-12 h-12 text-white/40 mx-auto mb-4 group-hover:text-primary/70 transition-colors" />
+                      <p className="text-white/70 mb-1">Click to upload your photo</p>
+                      <p className="text-white/50 text-sm">JPG, PNG, or WEBP (max 5MB)</p>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-32 h-32 object-cover rounded-lg mx-auto"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors"
+                      >
+                        <X className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+                  )}
+                  
+                  {imageError && (
+                    <p className="text-red-400 text-sm mt-2">{imageError}</p>
+                  )}
                 </div>
 
                 <div>
