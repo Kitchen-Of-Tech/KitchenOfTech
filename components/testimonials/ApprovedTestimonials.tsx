@@ -1,8 +1,31 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Testimonial } from '@/types/auth';
+import { Star, Quote, ChevronLeft, ChevronRight, User as UserIcon } from 'lucide-react';
+import { urlFor } from '@/lib/sanity/client';
+import Image from 'next/image';
+
+interface SanityTestimonial {
+  _id: string;
+  clientName: string;
+  email: string;
+  clientCompany?: string;
+  position?: string;
+  clientImage?: {
+    _type: string;
+    asset: {
+      _ref: string;
+      _type: string;
+    };
+  };
+  rating: number;
+  testimonial: string;
+  status: string;
+  featured?: boolean;
+  verifiedBadge?: boolean;
+  submittedAt: string;
+  approvedAt?: string;
+}
 
 interface ApprovedTestimonialsProps {
   limit?: number;
@@ -15,17 +38,17 @@ export default function ApprovedTestimonials({
   showNavigation = true,
   variant = 'carousel' 
 }: ApprovedTestimonialsProps) {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonials, setTestimonials] = useState<SanityTestimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const fetchApprovedTestimonials = useCallback(async () => {
     try {
-      const response = await fetch('/api/testimonials?status=approved');
+      const url = `/api/testimonials?status=approved${limit ? `&limit=${limit}` : ''}`;
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
-        const approved = data.testimonials || [];
-        setTestimonials(limit ? approved.slice(0, limit) : approved);
+        setTestimonials(data.testimonials || []);
       }
     } catch (error) {
       console.error('Failed to fetch testimonials:', error);
@@ -61,7 +84,7 @@ export default function ApprovedTestimonials({
     );
   };
 
-  const TestimonialCard = ({ testimonial }: { testimonial: Testimonial }) => (
+  const TestimonialCard = ({ testimonial }: { testimonial: SanityTestimonial }) => (
     <div className="glass rounded-2xl p-8 border border-white/10 h-full flex flex-col">
       {/* Quote Icon */}
       <div className="mb-6">
@@ -75,19 +98,38 @@ export default function ApprovedTestimonials({
 
       {/* Message */}
       <p className="text-white/90 text-lg leading-relaxed mb-6 flex-grow italic">
-        &quot;{testimonial.message}&quot;
+        &quot;{testimonial.testimonial}&quot;
       </p>
 
-      {/* Author Info */}
+      {/* Author Info with Image */}
       <div className="pt-6 border-t border-white/10">
-        <h4 className="text-white font-semibold text-lg mb-1">{testimonial.name}</h4>
-        {(testimonial.position || testimonial.company) && (
-          <p className="text-white/60 text-sm">
-            {testimonial.position}
-            {testimonial.position && testimonial.company && ' at '}
-            {testimonial.company}
-          </p>
-        )}
+        <div className="flex items-center gap-4">
+          {/* Client Image */}
+          {testimonial.clientImage ? (
+            <Image
+              src={urlFor(testimonial.clientImage).width(64).height(64).url()}
+              alt={testimonial.clientName}
+              width={64}
+              height={64}
+              className="w-16 h-16 rounded-full object-cover border-2 border-primary/30"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 border-2 border-primary/30 flex items-center justify-center flex-shrink-0">
+              <UserIcon className="w-8 h-8 text-primary/50" />
+            </div>
+          )}
+          
+          <div className="min-w-0">
+            <h4 className="text-white font-semibold text-lg mb-1 truncate">{testimonial.clientName}</h4>
+            {(testimonial.position || testimonial.clientCompany) && (
+              <p className="text-white/60 text-sm truncate">
+                {testimonial.position}
+                {testimonial.position && testimonial.clientCompany && ' at '}
+                {testimonial.clientCompany}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -115,7 +157,7 @@ export default function ApprovedTestimonials({
     return (
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {testimonials.map((testimonial) => (
-          <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+          <TestimonialCard key={testimonial._id} testimonial={testimonial} />
         ))}
       </div>
     );
@@ -130,7 +172,7 @@ export default function ApprovedTestimonials({
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {testimonials.map((testimonial) => (
-            <div key={testimonial.id} className="w-full flex-shrink-0 px-4 md:px-8">
+            <div key={testimonial._id} className="w-full flex-shrink-0 px-4 md:px-8">
               <TestimonialCard testimonial={testimonial} />
             </div>
           ))}

@@ -1,15 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
+import { updateTestimonial, deleteTestimonial, fetchTestimonialById } from '@/lib/sanity/write';
+import { rateLimitMiddleware } from '@/lib/middleware/rate-limit';
+
+// GET - Fetch single testimonial by ID
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  // Apply rate limiting
+  const rateLimitResult = await rateLimitMiddleware(request, 'queries');
+  if (rateLimitResult) {
+    return rateLimitResult;
+  }
+
+  try {
+    const { id } = await params;
+    const testimonial = await fetchTestimonialById(id);
+
+    if (!testimonial) {
+      return NextResponse.json(
+        { error: 'Testimonial not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      testimonial,
+    });
+  } catch (error: unknown) {
+    console.error('Error fetching testimonial:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch testimonial';
+    return NextResponse.json(
+      { error: errorMessage },
+      { status: 500 }
+    );
+  }
+}
 
 // PATCH - Approve or Reject a testimonial
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Apply rate limiting (20 requests per minute for sensitive operations)
-  const rateLimitResponse = await applyRateLimit(request, rateLimiters.apiStrict);
-  if (rateLimitResponse) return rateLimitResponse;
+  // Apply rate limiting
+  const rateLimitResult = await rateLimitMiddleware(request, 'mutations');
+  if (rateLimitResult) {
+    return rateLimitResult;
+  }
 
   try {
     const supabaseAdmin = createClient(
@@ -19,7 +58,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { action, user_id, service_name } = body; // action: 'approve' or 'reject', user_id: who is performing the action, service_name: category when approving
+    const { action, user_id, projectType } = body; // action: 'approve' or 'reject', user_id: who is performing the action, projectType: category when approving
 
     if (!action || !user_id) {
       return NextResponse.json(
@@ -31,14 +70,6 @@ export async function PATCH(
     if (!['approve', 'reject'].includes(action)) {
       return NextResponse.json(
         { error: 'Action must be either "approve" or "reject"' },
-        { status: 400 }
-      );
-    }
-
-    // Require service_name when approving
-    if (action === 'approve' && !service_name) {
-      return NextResponse.json(
-        { error: 'Service category (service_name) is required when approving testimonials' },
         { status: 400 }
       );
     }
@@ -57,44 +88,29 @@ export async function PATCH(
       );
     }
 
-    const updateData: Record<string, unknown> = {
+    // Prepare updates for Sanity
+    const updates: Record<string, unknown> = {
       status: action === 'approve' ? 'approved' : 'rejected',
     };
 
     if (action === 'approve') {
-      updateData.approved_by = user_id;
-      updateData.approved_at = new Date().toISOString();
-      updateData.rejected_by = null;
-      updateData.rejected_at = null;
-      updateData.service_name = service_name; // Add service category
+      updates.approvedAt = new Date().toISOString();
+      updates.rejectedAt = null;
+      if (projectType) {
+        updates.projectType = projectType;
+      }
     } else {
-      updateData.rejected_by = user_id;
-      updateData.rejected_at = new Date().toISOString();
-      updateData.approved_by = null;
-      updateData.approved_at = null;
-      updateData.service_name = null; // Clear service category on rejection
+      updates.rejectedAt = new Date().toISOString();
+      updates.approvedAt = null;
     }
 
-    const { data: testimonial, error } = await supabaseAdmin
-      .from('testimonials')
-      .update(updateData)
-      .eq('id', id)
-      .select(`
-        *,
-        link:testimonial_links(id, email, token),
-        approved_by_user:users!testimonials_approved_by_fkey(id, full_name, username),
-        rejected_by_user:users!testimonials_rejected_by_fkey(id, full_name, username)
-      `)
-      .single();
-
-    if (error) {
-      throw error;
-    }
+    // Update testimonial in Sanity
+    const updatedTestimonial = await updateTestimonial(id, updates);
 
     return NextResponse.json({
       success: true,
       message: `Testimonial ${action === 'approve' ? 'approved' : 'rejected'} successfully`,
-      testimonial,
+      testimonial: updatedTestimonial,
     });
   } catch (error: unknown) {
     console.error('Error updating testimonial:', error);
@@ -111,6 +127,12 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // Apply rate limiting
+  const rateLimitResult = await rateLimitMiddleware(request, 'mutations');
+  if (rateLimitResult) {
+    return rateLimitResult;
+  }
+
   try {
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -144,14 +166,8 @@ export async function DELETE(
       );
     }
 
-    const { error } = await supabaseAdmin
-      .from('testimonials')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      throw error;
-    }
+    // Delete from Sanity
+    await deleteTestimonial(id);
 
     return NextResponse.json({
       success: true,

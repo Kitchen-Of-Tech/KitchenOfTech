@@ -70,26 +70,26 @@ export function Navbar() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
             {siteSettings?.logo?.asset ? (
               <>
-                <div className="relative w-10 h-10 lg:w-12 lg:h-12">
+                <div className="relative w-8 h-8 md:w-10 md:h-10 lg:w-11 lg:h-11 flex-shrink-0">
                   <Image
                     src={urlFor(siteSettings.logo as any).width(100).height(100).url()}
                     alt={siteSettings.logo.alt || siteSettings.siteName || 'Kitchen of Tech'}
                     fill
-                    sizes="(max-width: 1024px) 40px, 48px"
+                    sizes="(max-width: 768px) 32px, (max-width: 1024px) 40px, 44px"
                     className="object-contain"
                     priority
                   />
                 </div>
-                <span className="text-xl lg:text-2xl font-bold text-gradient">
+                <span className="text-lg md:text-xl lg:text-2xl font-bold text-gradient whitespace-nowrap">
                   {siteSettings.siteName || 'Kitchen of Tech'}
                 </span>
               </>
             ) : (
-              <span className="text-xl lg:text-2xl font-bold text-gradient">
+              <span className="text-lg md:text-xl lg:text-2xl font-bold text-gradient whitespace-nowrap">
                 Kitchen of Tech
               </span>
             )}

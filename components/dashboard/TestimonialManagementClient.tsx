@@ -2,10 +2,36 @@
 
 import { useState, useEffect } from 'react';
 import { Star, Check, X, Trash2, Search, Filter, Link2, Copy, Mail, Plus } from 'lucide-react';
-import type { User, Testimonial } from '@/types/auth';
+import type { User as AuthUser } from '@/types/auth';
+import { urlFor } from '@/lib/sanity/client';
+import Image from 'next/image';
 
 interface TestimonialManagementClientProps {
-  currentUser: User;
+  currentUser: AuthUser;
+}
+
+interface SanityTestimonial {
+  _id: string;
+  clientName: string;
+  email: string;
+  clientCompany?: string;
+  position?: string;
+  clientImage?: {
+    _type: string;
+    asset: {
+      _ref: string;
+      _type: string;
+    };
+  };
+  rating: number;
+  testimonial: string;
+  status: 'pending' | 'approved' | 'rejected';
+  projectType?: string;
+  featured?: boolean;
+  verifiedBadge?: boolean;
+  submittedAt: string;
+  approvedAt?: string;
+  rejectedAt?: string;
 }
 
 interface ServiceCategory {
@@ -17,7 +43,7 @@ interface ServiceCategory {
 }
 
 export default function TestimonialManagementClient({ currentUser }: TestimonialManagementClientProps) {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonials, setTestimonials] = useState<SanityTestimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
@@ -41,7 +67,7 @@ export default function TestimonialManagementClient({ currentUser }: Testimonial
   
   // Approval modal state
   const [showApprovalModal, setShowApprovalModal] = useState(false);
-  const [selectedTestimonial, setSelectedTestimonial] = useState<Testimonial | null>(null);
+  const [selectedTestimonial, setSelectedTestimonial] = useState<SanityTestimonial | null>(null);
   const [selectedService, setSelectedService] = useState('');
 
   useEffect(() => {
@@ -174,7 +200,7 @@ export default function TestimonialManagementClient({ currentUser }: Testimonial
   };
 
   // Open approval modal for categorization
-  const handleApproveClick = (testimonial: Testimonial) => {
+  const handleApproveClick = (testimonial: SanityTestimonial) => {
     setSelectedTestimonial(testimonial);
     setSelectedService('');
     setShowApprovalModal(true);
@@ -187,18 +213,18 @@ export default function TestimonialManagementClient({ currentUser }: Testimonial
       return;
     }
 
-    setActionLoading(selectedTestimonial.id);
+    setActionLoading(selectedTestimonial._id);
     setError('');
     setSuccess('');
 
     try {
-      const response = await fetch(`/api/testimonials/${selectedTestimonial.id}`, {
+      const response = await fetch(`/api/testimonials/${selectedTestimonial._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           action: 'approve', 
           user_id: currentUser.id,
-          service_name: selectedService
+          projectType: selectedService // Changed from service_name to projectType
         }),
       });
 
@@ -225,7 +251,7 @@ export default function TestimonialManagementClient({ currentUser }: Testimonial
   const handleAction = async (testimonialId: string, action: 'approve' | 'reject') => {
     // For approve action, open modal instead
     if (action === 'approve') {
-      const testimonial = testimonials.find(t => t.id === testimonialId);
+      const testimonial = testimonials.find(t => t._id === testimonialId);
       if (testimonial) {
         handleApproveClick(testimonial);
       }
@@ -293,10 +319,10 @@ export default function TestimonialManagementClient({ currentUser }: Testimonial
 
   const filteredTestimonials = testimonials.filter((testimonial) => {
     const matchesSearch = 
-      testimonial.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      testimonial.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       testimonial.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      testimonial.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      testimonial.company?.toLowerCase().includes(searchQuery.toLowerCase());
+      testimonial.testimonial.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      testimonial.clientCompany?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesFilter = filterStatus === 'all' || testimonial.status === filterStatus;
     
@@ -644,36 +670,48 @@ export default function TestimonialManagementClient({ currentUser }: Testimonial
         ) : (
           filteredTestimonials.map((testimonial) => (
             <div
-              key={testimonial.id}
+              key={testimonial._id}
               className="glass rounded-xl p-6 border border-white/10 hover:border-primary/30 transition-all"
             >
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Left: Testimonial Content */}
                 <div className="flex-1">
                   <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="text-white font-semibold text-lg">{testimonial.name}</h3>
-                      <p className="text-white/60 text-sm">
-                        {testimonial.position && testimonial.company
-                          ? `${testimonial.position} at ${testimonial.company}`
-                          : testimonial.position || testimonial.company || testimonial.email}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      {/* Client Image */}
+                      {testimonial.clientImage && urlFor && (
+                        <Image
+                          src={urlFor(testimonial.clientImage).width(48).height(48).url()}
+                          alt={testimonial.clientName}
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-primary/30"
+                        />
+                      )}
+                      <div>
+                        <h3 className="text-white font-semibold text-lg">{testimonial.clientName}</h3>
+                        <p className="text-white/60 text-sm">
+                          {testimonial.position && testimonial.clientCompany
+                            ? `${testimonial.position} at ${testimonial.clientCompany}`
+                            : testimonial.position || testimonial.clientCompany || testimonial.email}
+                        </p>
+                      </div>
                     </div>
                     {renderStars(testimonial.rating)}
                   </div>
 
-                  <p className="text-white/80 mb-4 leading-relaxed">{testimonial.message}</p>
+                  <p className="text-white/80 mb-4 leading-relaxed">{testimonial.testimonial}</p>
 
                   <div className="flex items-center gap-4 text-xs text-white/40">
-                    <span>Submitted {new Date(testimonial.created_at).toLocaleDateString()}</span>
-                    {testimonial.status === 'approved' && testimonial.approved_at && (
+                    <span>Submitted {new Date(testimonial.submittedAt).toLocaleDateString()}</span>
+                    {testimonial.status === 'approved' && testimonial.approvedAt && (
                       <span className="text-green-400">
-                        Approved {new Date(testimonial.approved_at).toLocaleDateString()}
+                        Approved {new Date(testimonial.approvedAt).toLocaleDateString()}
                       </span>
                     )}
-                    {testimonial.status === 'rejected' && testimonial.rejected_at && (
+                    {testimonial.status === 'rejected' && testimonial.rejectedAt && (
                       <span className="text-red-400">
-                        Rejected {new Date(testimonial.rejected_at).toLocaleDateString()}
+                        Rejected {new Date(testimonial.rejectedAt).toLocaleDateString()}
                       </span>
                     )}
                   </div>
@@ -696,16 +734,16 @@ export default function TestimonialManagementClient({ currentUser }: Testimonial
                   {testimonial.status === 'pending' && (
                     <>
                       <button
-                        onClick={() => handleAction(testimonial.id, 'approve')}
-                        disabled={actionLoading === testimonial.id}
+                        onClick={() => handleAction(testimonial._id, 'approve')}
+                        disabled={actionLoading === testimonial._id}
                         className="flex items-center justify-center gap-2 px-3 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded-lg transition-colors text-green-400 text-sm disabled:opacity-50"
                       >
                         <Check className="w-4 h-4" />
                         Approve
                       </button>
                       <button
-                        onClick={() => handleAction(testimonial.id, 'reject')}
-                        disabled={actionLoading === testimonial.id}
+                        onClick={() => handleAction(testimonial._id, 'reject')}
+                        disabled={actionLoading === testimonial._id}
                         className="flex items-center justify-center gap-2 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg transition-colors text-red-400 text-sm disabled:opacity-50"
                       >
                         <X className="w-4 h-4" />
@@ -716,8 +754,8 @@ export default function TestimonialManagementClient({ currentUser }: Testimonial
 
                   {testimonial.status === 'approved' && (
                     <button
-                      onClick={() => handleAction(testimonial.id, 'reject')}
-                      disabled={actionLoading === testimonial.id}
+                      onClick={() => handleAction(testimonial._id, 'reject')}
+                      disabled={actionLoading === testimonial._id}
                       className="flex items-center justify-center gap-2 px-3 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg transition-colors text-red-400 text-sm disabled:opacity-50"
                     >
                       <X className="w-4 h-4" />
@@ -727,8 +765,8 @@ export default function TestimonialManagementClient({ currentUser }: Testimonial
 
                   {testimonial.status === 'rejected' && (
                     <button
-                      onClick={() => handleAction(testimonial.id, 'approve')}
-                      disabled={actionLoading === testimonial.id}
+                      onClick={() => handleAction(testimonial._id, 'approve')}
+                      disabled={actionLoading === testimonial._id}
                       className="flex items-center justify-center gap-2 px-3 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 rounded-lg transition-colors text-green-400 text-sm disabled:opacity-50"
                     >
                       <Check className="w-4 h-4" />
@@ -737,8 +775,8 @@ export default function TestimonialManagementClient({ currentUser }: Testimonial
                   )}
 
                   <button
-                    onClick={() => handleDelete(testimonial.id)}
-                    disabled={actionLoading === testimonial.id}
+                    onClick={() => handleDelete(testimonial._id)}
+                    disabled={actionLoading === testimonial._id}
                     className="flex items-center justify-center gap-2 px-3 py-2 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 rounded-lg transition-colors text-white/60 hover:text-red-400 text-sm disabled:opacity-50"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -759,8 +797,8 @@ export default function TestimonialManagementClient({ currentUser }: Testimonial
             
             <div className="mb-6">
               <p className="text-white/60 text-sm mb-2">Testimonial from:</p>
-              <p className="text-white font-semibold">{selectedTestimonial.name}</p>
-              <p className="text-white/60 text-sm">{selectedTestimonial.company}</p>
+              <p className="text-white font-semibold">{selectedTestimonial.clientName}</p>
+              <p className="text-white/60 text-sm">{selectedTestimonial.clientCompany}</p>
             </div>
 
             <div className="mb-6">
@@ -811,10 +849,10 @@ export default function TestimonialManagementClient({ currentUser }: Testimonial
               </button>
               <button
                 onClick={handleConfirmApproval}
-                disabled={!selectedService || actionLoading === selectedTestimonial.id}
+                disabled={!selectedService || actionLoading === selectedTestimonial._id}
                 className="flex-1 px-4 py-2 bg-gradient-primary text-white rounded-lg font-medium hover:shadow-glow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {actionLoading === selectedTestimonial.id ? 'Approving...' : 'Approve'}
+                {actionLoading === selectedTestimonial._id ? 'Approving...' : 'Approve'}
               </button>
             </div>
           </div>

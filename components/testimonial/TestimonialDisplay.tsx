@@ -1,9 +1,32 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Star, Quote } from "lucide-react";
+import { Star, Quote, User } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Testimonial } from "@/types/auth";
+import { urlFor } from "@/lib/sanity/client";
+import Image from "next/image";
+
+interface SanityTestimonial {
+  _id: string;
+  clientName: string;
+  email: string;
+  clientCompany?: string;
+  position?: string;
+  clientImage?: {
+    _type: string;
+    asset: {
+      _ref: string;
+      _type: string;
+    };
+  };
+  rating: number;
+  testimonial: string;
+  status: string;
+  featured?: boolean;
+  verifiedBadge?: boolean;
+  submittedAt: string;
+  approvedAt?: string;
+}
 
 interface TestimonialDisplayProps {
   limit?: number;
@@ -11,14 +34,14 @@ interface TestimonialDisplayProps {
 }
 
 export default function TestimonialDisplay({ limit, showAll = false }: TestimonialDisplayProps) {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonials, setTestimonials] = useState<SanityTestimonial[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchTestimonials = useCallback(async () => {
     try {
-      let url = "/api/testimonials";
+      let url = "/api/testimonials?status=approved";
       if (limit) {
-        url += `?limit=${limit}`;
+        url += `&limit=${limit}`;
       }
 
       const response = await fetch(url);
@@ -80,42 +103,60 @@ export default function TestimonialDisplay({ limit, showAll = false }: Testimoni
   return (
     <div className={`grid grid-cols-1 ${showAll ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2'} gap-6`}>
       {testimonials.map((testimonial) => (
-        <GlassCard key={testimonial.id} className="p-6 flex flex-col">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
+        <GlassCard key={testimonial._id} className="p-6 flex flex-col">
+          <div className="flex items-start gap-4 mb-4">
+            {/* Client Image or Placeholder */}
+            <div className="flex-shrink-0">
+              {testimonial.clientImage ? (
+                <Image
+                  src={urlFor(testimonial.clientImage).width(64).height(64).url()}
+                  alt={testimonial.clientName}
+                  width={64}
+                  height={64}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-cyan-500/30"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border-2 border-cyan-500/30 flex items-center justify-center">
+                  <User className="w-8 h-8 text-cyan-500/50" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 {renderStars(testimonial.rating)}
                 <span className="text-sm text-gray-400">
                   {testimonial.rating}.0
                 </span>
               </div>
-              <h3 className="text-lg font-semibold text-white">
-                {testimonial.name}
+              <h3 className="text-lg font-semibold text-white truncate">
+                {testimonial.clientName}
               </h3>
-              {testimonial.position && testimonial.company && (
-                <p className="text-sm text-gray-400">
-                  {testimonial.position} at {testimonial.company}
+              {testimonial.position && testimonial.clientCompany && (
+                <p className="text-sm text-gray-400 truncate">
+                  {testimonial.position} at {testimonial.clientCompany}
                 </p>
               )}
-              {testimonial.position && !testimonial.company && (
-                <p className="text-sm text-gray-400">{testimonial.position}</p>
+              {testimonial.position && !testimonial.clientCompany && (
+                <p className="text-sm text-gray-400 truncate">{testimonial.position}</p>
               )}
-              {!testimonial.position && testimonial.company && (
-                <p className="text-sm text-gray-400">{testimonial.company}</p>
+              {!testimonial.position && testimonial.clientCompany && (
+                <p className="text-sm text-gray-400 truncate">{testimonial.clientCompany}</p>
               )}
             </div>
+
             <Quote className="w-8 h-8 text-cyan-500/20 flex-shrink-0" />
           </div>
 
           <blockquote className="flex-1 text-gray-300 leading-relaxed mb-4">
-            &ldquo;{testimonial.message}&rdquo;
+            &ldquo;{testimonial.testimonial}&rdquo;
           </blockquote>
 
           <div className="flex items-center justify-between pt-4 border-t border-white/10">
             <span className="text-xs text-gray-500">
-              {formatDate(testimonial.created_at)}
+              {formatDate(testimonial.approvedAt || testimonial.submittedAt)}
             </span>
-            {testimonial.is_verified && (
+            {testimonial.verifiedBadge && (
               <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400 font-medium">
                 Verified
               </span>

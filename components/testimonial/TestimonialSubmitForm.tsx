@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Star, Send, Loader2, CheckCircle } from "lucide-react";
+import { useState, useRef } from "react";
+import { Star, Send, Loader2, CheckCircle, Upload, X } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 
 interface TestimonialSubmitFormProps {
@@ -17,9 +17,52 @@ export default function TestimonialSubmitForm({ onSuccess }: TestimonialSubmitFo
     message: "",
     rating: 5,
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setImageError(null);
+
+    if (!file) return;
+
+    // Validate file type
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setImageError('Please upload a JPG, PNG, or WEBP image');
+      return;
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      setImageError('Image size must not exceed 5MB');
+      return;
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    setImageFile(file);
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setImageError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,10 +70,22 @@ export default function TestimonialSubmitForm({ onSuccess }: TestimonialSubmitFo
     setError(null);
 
     try {
+      // Use FormData for multipart/form-data
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('company', formData.company);
+      formDataToSend.append('position', formData.position);
+      formDataToSend.append('message', formData.message);
+      formDataToSend.append('rating', formData.rating.toString());
+      
+      if (imageFile) {
+        formDataToSend.append('image', imageFile);
+      }
+
       const response = await fetch("/api/testimonials/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: formDataToSend, // No Content-Type header - browser sets it automatically with boundary
       });
 
       const data = await response.json();
@@ -45,6 +100,7 @@ export default function TestimonialSubmitForm({ onSuccess }: TestimonialSubmitFo
           message: "",
           rating: 5,
         });
+        removeImage();
         if (onSuccess) onSuccess();
         
         // Reset success message after 5 seconds
@@ -149,6 +205,52 @@ export default function TestimonialSubmitForm({ onSuccess }: TestimonialSubmitFo
               disabled={loading}
               className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50"
             />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Your Photo (Optional)
+          </label>
+          <div className="space-y-3">
+            {!imagePreview ? (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-white/20 rounded-lg p-6 text-center cursor-pointer hover:border-cyan-500/50 transition-colors"
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={handleImageChange}
+                  disabled={loading}
+                  className="hidden"
+                />
+                <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-sm text-gray-300 mb-1">Click to upload your photo</p>
+                <p className="text-xs text-gray-500">JPG, PNG, or WEBP (max 5MB)</p>
+              </div>
+            ) : (
+              <div className="relative inline-block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-32 h-32 rounded-lg object-cover border-2 border-white/20"
+                />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  disabled={loading}
+                  className="absolute -top-2 -right-2 p-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            {imageError && (
+              <p className="text-sm text-red-400">{imageError}</p>
+            )}
           </div>
         </div>
 
