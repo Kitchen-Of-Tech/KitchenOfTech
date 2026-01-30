@@ -23,7 +23,9 @@ import type { Article } from '@/types';
 type ArticleStatus = 'all' | 'published' | 'draft' | 'archived';
 
 export default function DashboardArticlesPage() {
-  const { data: session, status: authStatus } = useSession();
+  const sessionData = useSession();
+  const session = sessionData?.data;
+  const authStatus = sessionData?.status || 'loading';
   const router = useRouter();
   
   const [articles, setArticles] = useState<Article[]>([]);
@@ -273,7 +275,7 @@ export default function DashboardArticlesPage() {
                         <div className="flex items-center gap-3">
                           {article.coverImage && (
                             <Image
-                              src={urlFor(article.coverImage).width(60).height(40).url()}
+                              src={urlFor(article.coverImage as any).width(60).height(40).url()}
                               alt={article.title}
                               width={60}
                               height={40}
@@ -299,7 +301,7 @@ export default function DashboardArticlesPage() {
                         <div className="flex items-center gap-2">
                           {article.author.profileImage && (
                             <Image
-                              src={urlFor(article.author.profileImage).width(24).height(24).url()}
+                              src={urlFor(article.author.profileImage as any).width(24).height(24).url()}
                               alt={article.author.name}
                               width={24}
                               height={24}

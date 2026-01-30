@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { sanityWriteClient } from '@/lib/sanity/client';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.facebookId) {
       return NextResponse.json(
@@ -160,7 +159,7 @@ export async function POST(request: NextRequest) {
           };
         } else {
           // Handle bold, italic, and inline code
-          const children: any[] = [];
+          const children: Array<{ _type: string; text: string; marks?: string[] }> = [];
           let currentText = '';
           let i = 0;
           

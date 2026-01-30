@@ -14,12 +14,7 @@ declare module "next-auth" {
   }
 }
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+const authOptions = {
   providers: [
     FacebookProvider({
       clientId: process.env.FACEBOOK_CLIENT_ID!,
@@ -32,21 +27,21 @@ export const {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account }: any) {
       if (account && user) {
         token.facebookId = account.providerAccountId;
         token.id = user.id;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.facebookId = token.facebookId as string;
       }
       return session;
     },
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile }: any) {
       if (account?.provider === 'facebook' && profile) {
         try {
           // Sync author to Sanity
@@ -72,6 +67,14 @@ export const {
     error: '/auth/error',
   },
   session: {
-    strategy: 'jwt',
+    strategy: 'jwt' as const,
   },
-});
+};
+
+const instance = NextAuth(authOptions);
+
+export const auth = instance.auth;
+export const signIn = instance.signIn;
+export const signOut = instance.signOut;
+
+export { authOptions };

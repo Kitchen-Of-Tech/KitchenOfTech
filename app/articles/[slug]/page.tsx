@@ -18,7 +18,8 @@ interface ArticlePageProps {
 }
 
 export default function ArticlePage({ params }: ArticlePageProps) {
-  const { data: session } = useSession();
+  const sessionData = useSession();
+  const session = sessionData?.data;
   const router = useRouter();
   const [article, setArticle] = useState<Article | null>(null);
   const [comments, setComments] = useState<ArticleComment[]>([]);
@@ -146,10 +147,10 @@ export default function ArticlePage({ params }: ArticlePageProps) {
 
   const portableTextComponents = {
     types: {
-      image: ({ value }: { value: {asset: {_ref: string}, alt?: string, caption?: string} }) => (
+      image: ({ value }: any) => (
         <figure className="my-8">
           <img
-            src={urlFor(value).width(800).url()}
+            src={urlFor(value as any).width(800).url()}
             alt={value.alt || ''}
             className="w-full rounded-lg"
           />
@@ -223,7 +224,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
           {article.coverImage && (
             <div className="relative w-full h-96 rounded-2xl overflow-hidden mb-8">
               <Image
-                src={urlFor(article.coverImage).width(1200).height(600).url()}
+                src={urlFor(article.coverImage as any).width(1200).height(600).url()}
                 alt={article.title}
                 fill
                 className="object-cover"
@@ -246,7 +247,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
               <div className="flex items-center gap-3">
                 {article.author.profileImage && (
                   <Image
-                    src={urlFor(article.author.profileImage).width(40).height(40).url()}
+                    src={urlFor(article.author.profileImage as any).width(40).height(40).url()}
                     alt={article.author.name}
                     width={40}
                     height={40}
@@ -324,7 +325,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
           {/* Article Content */}
           <div className="prose prose-invert prose-lg max-w-none mb-12">
             <PortableText
-              value={article.content}
+              value={article.content as any}
               components={portableTextComponents}
             />
           </div>
@@ -401,7 +402,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
                     <div className="flex items-start gap-3 mb-2">
                       {comment.author.profileImage && (
                         <Image
-                          src={urlFor(comment.author.profileImage).width(32).height(32).url()}
+                          src={urlFor(comment.author.profileImage as any).width(32).height(32).url()}
                           alt={comment.author.name}
                           width={32}
                           height={32}

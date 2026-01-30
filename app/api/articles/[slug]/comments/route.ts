@@ -3,9 +3,9 @@ import { auth } from '@/lib/auth';
 import { sanityWriteClient } from '@/lib/sanity/write';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 /**
@@ -14,10 +14,12 @@ interface RouteParams {
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const { slug } = await params;
+    
     // Get article
     const article = await sanityWriteClient.fetch(
       `*[_type == "article" && slug.current == $slug][0]{ _id }`,
-      { slug: params.slug }
+      { slug }
     );
 
     if (!article) {
@@ -61,6 +63,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
+    const { slug } = await params;
+    
     const session = await auth();
     if (!session?.user?.facebookId) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -86,7 +90,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Get article
     const article = await sanityWriteClient.fetch(
       `*[_type == "article" && slug.current == $slug][0]{ _id, commentCount }`,
-      { slug: params.slug }
+      { slug }
     );
 
     if (!article) {

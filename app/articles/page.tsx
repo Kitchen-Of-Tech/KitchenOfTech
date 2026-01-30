@@ -10,7 +10,8 @@ import { useSession } from 'next-auth/react';
 import GoogleAd, { AdSlots } from '@/components/articles/GoogleAd';
 
 export default function ArticlesPage() {
-  const { data: session } = useSession();
+  const sessionData = useSession();
+  const session = sessionData?.data;
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -211,7 +212,7 @@ export default function ArticlesPage() {
                     {article.coverImage && (
                       <div className="relative h-48 overflow-hidden">
                         <Image
-                          src={urlFor(article.coverImage).width(600).height(400).url()}
+                          src={urlFor(article.coverImage as any).width(600).height(400).url()}
                           alt={article.title}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -258,7 +259,7 @@ export default function ArticlesPage() {
                         <div className="flex items-center gap-2">
                           {article.author.profileImage ? (
                             <Image
-                              src={urlFor(article.author.profileImage).width(32).height(32).url()}
+                              src={urlFor(article.author.profileImage as any).width(32).height(32).url()}
                               alt={article.author.name}
                               width={32}
                               height={32}

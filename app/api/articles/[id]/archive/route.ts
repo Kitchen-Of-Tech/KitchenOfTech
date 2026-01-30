@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { sanityWriteClient } from '@/lib/sanity/client';
+import { auth } from '@/lib/auth';
+import { sanityWriteClient } from '@/lib/sanity/write';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user?.facebookId) {
       return NextResponse.json(
@@ -17,7 +16,7 @@ export async function POST(
       );
     }
 
-    const articleId = params.id;
+    const { id: articleId } = await params;
 
     // Fetch the article
     const article = await sanityWriteClient.fetch(

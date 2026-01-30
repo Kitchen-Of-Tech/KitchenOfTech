@@ -22,7 +22,9 @@ const CATEGORIES = [
 ];
 
 export default function SubmitArticlePage() {
-  const { data: session, status } = useSession();
+  const sessionData = useSession();
+  const session = sessionData?.data;
+  const status = sessionData?.status || 'loading';
   const router = useRouter();
   
   const [title, setTitle] = useState('');

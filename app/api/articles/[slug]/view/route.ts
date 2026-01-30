@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sanityWriteClient } from '@/lib/sanity/write';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 /**
@@ -13,10 +13,12 @@ interface RouteParams {
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
+    const { slug } = await params;
+    
     // Get article
     const article = await sanityWriteClient.fetch(
       `*[_type == "article" && slug.current == $slug][0]{ _id, views }`,
-      { slug: params.slug }
+      { slug }
     );
 
     if (!article) {

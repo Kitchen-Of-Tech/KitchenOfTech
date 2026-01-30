@@ -6,13 +6,16 @@
 import { createClient, type SanityClient } from '@sanity/client';
 
 // Create Sanity client with write permissions
-const sanityWriteClient: SanityClient = createClient({
+const writeClient: SanityClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
   apiVersion: '2024-01-01',
   token: process.env.SANITY_API_TOKEN!,
   useCdn: false, // Disable CDN for write operations
 });
+
+// Export for use in other modules
+export const sanityWriteClient = writeClient;
 
 export interface TestimonialData {
   clientName: string;
@@ -63,7 +66,7 @@ export async function uploadImageToSanity(
     }
 
     // Upload to Sanity Assets
-    const asset = await sanityWriteClient.assets.upload('image', buffer, {
+    const asset = await writeClient.assets.upload('image', buffer, {
       filename: filename,
       contentType: contentType,
     });
@@ -99,7 +102,7 @@ export async function createTestimonial(
     }
 
     // Create testimonial document
-    const testimonial = await sanityWriteClient.create({
+    const testimonial = await writeClient.create({
       _type: 'testimonial',
       clientName: data.clientName,
       email: data.email,
@@ -147,7 +150,7 @@ export async function updateTestimonial(
       updates.approvedAt = undefined;
     }
 
-    const testimonial = await sanityWriteClient
+    const testimonial = await writeClient
       .patch(testimonialId)
       .set(updates as any)
       .commit();
@@ -165,7 +168,7 @@ export async function updateTestimonial(
  */
 export async function deleteTestimonial(testimonialId: string) {
   try {
-    await sanityWriteClient.delete(testimonialId);
+    await writeClient.delete(testimonialId);
     return { success: true };
   } catch (error) {
     console.error('Error deleting testimonial from Sanity:', error);
@@ -196,7 +199,7 @@ export async function fetchTestimonials(
       query += ` [0...${limit}]`;
     }
 
-    const testimonials = await sanityWriteClient.fetch(query);
+    const testimonials = await writeClient.fetch(query);
     return testimonials;
   } catch (error) {
     console.error('Error fetching testimonials from Sanity:', error);
@@ -211,7 +214,7 @@ export async function fetchTestimonials(
  */
 export async function fetchTestimonialById(testimonialId: string) {
   try {
-    const testimonial = await sanityWriteClient.fetch(
+    const testimonial = await writeClient.fetch(
       `*[_type == "testimonial" && _id == $id][0]`,
       { id: testimonialId }
     );
@@ -233,7 +236,7 @@ export async function fetchTestimonialById(testimonialId: string) {
  */
 export async function getTestimonialStats() {
   try {
-    const stats = await sanityWriteClient.fetch(`{
+    const stats = await writeClient.fetch(`{
       "total": count(*[_type == "testimonial"]),
       "pending": count(*[_type == "testimonial" && status == "pending"]),
       "approved": count(*[_type == "testimonial" && status == "approved"]),
@@ -249,4 +252,4 @@ export async function getTestimonialStats() {
   }
 }
 
-export default sanityWriteClient;
+export default writeClient;

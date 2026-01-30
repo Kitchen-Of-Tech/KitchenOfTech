@@ -14,6 +14,16 @@ export const client = createClient({
   },
 });
 
+// Write client with authentication token for mutations
+export const sanityWriteClient = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET!,
+  apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION!,
+  useCdn: false, // Don't use CDN for write operations
+  token: process.env.SANITY_API_TOKEN,
+  perspective: 'published',
+});
+
 const builder = imageUrlBuilder(client);
 
 /**
