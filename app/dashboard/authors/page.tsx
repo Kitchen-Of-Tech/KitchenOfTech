@@ -39,9 +39,9 @@ interface ArticleAuthor {
 type RankingPeriod = '7days' | '30days' | '1year';
 
 export default function DashboardAuthorsPage() {
-  const sessionData = useSession();
-  const session = sessionData?.data;
-  const authStatus = sessionData?.status || 'loading';
+  const sessionHook = useSession();
+  const session = sessionHook?.data;
+  const authStatus = sessionHook?.status || 'loading';
   const router = useRouter();
   
   const [authors, setAuthors] = useState<ArticleAuthor[]>([]);

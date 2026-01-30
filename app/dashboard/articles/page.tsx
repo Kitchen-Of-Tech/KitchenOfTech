@@ -23,9 +23,9 @@ import type { Article } from '@/types';
 type ArticleStatus = 'all' | 'published' | 'draft' | 'archived';
 
 export default function DashboardArticlesPage() {
-  const sessionData = useSession();
-  const session = sessionData?.data;
-  const authStatus = sessionData?.status || 'loading';
+  const sessionHook = useSession();
+  const session = sessionHook?.data;
+  const authStatus = sessionHook?.status || 'loading';
   const router = useRouter();
   
   const [articles, setArticles] = useState<Article[]>([]);

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search, TrendingUp, Clock, ChevronRight, PenSquare, ThumbsUp, Eye, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -10,8 +10,8 @@ import { useSession } from 'next-auth/react';
 import GoogleAd, { AdSlots } from '@/components/articles/GoogleAd';
 
 export default function ArticlesPage() {
-  const sessionData = useSession();
-  const session = sessionData?.data;
+  const sessionHook = useSession();
+  const session = sessionHook?.data;
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,11 +31,7 @@ export default function ArticlesPage() {
     { value: 'general-tech', label: 'General Tech' },
   ];
 
-  useEffect(() => {
-    fetchArticles();
-  }, [filter]);
-
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     setLoading(true);
     try {
       const endpoint = filter === 'trending'
@@ -46,13 +42,21 @@ export default function ArticlesPage() {
       if (response.ok) {
         const data = await response.json();
         setArticles(data.articles || []);
+      } else {
+        console.error('Failed to fetch articles: HTTP', response.status);
+        setArticles([]);
       }
     } catch (error) {
       console.error('Failed to fetch articles:', error);
+      setArticles([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    fetchArticles();
+  }, [fetchArticles]);
 
   const filteredArticles = articles.filter((article) => {
     const matchesSearch =

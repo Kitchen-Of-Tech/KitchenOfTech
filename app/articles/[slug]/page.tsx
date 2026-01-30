@@ -18,8 +18,8 @@ interface ArticlePageProps {
 }
 
 export default function ArticlePage({ params }: ArticlePageProps) {
-  const sessionData = useSession();
-  const session = sessionData?.data;
+  const sessionHook = useSession();
+  const session = sessionHook?.data;
   const router = useRouter();
   const [article, setArticle] = useState<Article | null>(null);
   const [comments, setComments] = useState<ArticleComment[]>([]);

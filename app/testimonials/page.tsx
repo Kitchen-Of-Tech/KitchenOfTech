@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Star, Quote, Filter, Building2, Calendar, Loader2, User } from "lucide-react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -50,23 +50,27 @@ export default function TestimonialsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState("All Projects");
 
-  useEffect(() => {
-    fetchTestimonials();
-  }, []);
-
-  const fetchTestimonials = async () => {
+  const fetchTestimonials = useCallback(async () => {
     try {
       const response = await fetch("/api/testimonials?status=approved");
       if (response.ok) {
         const data = await response.json();
         setTestimonials(data.testimonials || []);
+      } else {
+        console.error("Failed to fetch testimonials: HTTP", response.status);
+        setTestimonials([]);
       }
     } catch (error) {
       console.error("Failed to fetch testimonials:", error);
+      setTestimonials([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchTestimonials();
+  }, [fetchTestimonials]);
 
   const filteredTestimonials = selectedFilter === "All Projects"
     ? testimonials
