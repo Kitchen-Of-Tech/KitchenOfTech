@@ -9,6 +9,7 @@ import { generateSiteMetadata } from "@/lib/metadata";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { AnalyticsProvider } from "@/lib/analytics/provider";
+import Script from 'next/script';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,6 +31,15 @@ export default function RootLayout({
   
   return (
     <html lang="en" className="lenis">
+      <head>
+        {/* Google AdSense - Site Verification & Ownership */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5440986495958060"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className={`${inter.variable} antialiased`}>
         {measurementId && <GoogleAnalytics measurementId={measurementId} />}
         <ReactQueryProvider>
