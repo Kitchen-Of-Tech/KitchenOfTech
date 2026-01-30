@@ -31,16 +31,15 @@ export default function RootLayout({
   
   return (
     <html lang="en" className="lenis">
-      <head>
-        {/* Google AdSense - Site Verification & Ownership */}
+      <body className={`${inter.variable} antialiased`}>
+        {/* Google AdSense - Site Verification & Ownership - Must load before interactive */}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5440986495958060"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
         />
-      </head>
-      <body className={`${inter.variable} antialiased`}>
+        
         {measurementId && <GoogleAnalytics measurementId={measurementId} />}
         <ReactQueryProvider>
           <SmoothScrollProvider>
