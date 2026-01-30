@@ -10,6 +10,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { AnalyticsProvider } from "@/lib/analytics/provider";
 import Script from 'next/script';
+import { Navbar } from '@/components/layout/Navbar';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,6 +32,9 @@ export default function RootLayout({
   
   return (
     <html lang="en" className="lenis">
+      <head>
+        <meta name="google-adsense-account" content="ca-pub-5440986495958060" />
+      </head>
       <body className={`${inter.variable} antialiased`}>
         {/* Google AdSense - Site Verification & Ownership - Must load before interactive */}
         <Script
@@ -44,6 +48,7 @@ export default function RootLayout({
         <ReactQueryProvider>
           <SmoothScrollProvider>
             <AnalyticsProvider>
+              <Navbar />
               <TemplateTransition>
                 {children}
               </TemplateTransition>

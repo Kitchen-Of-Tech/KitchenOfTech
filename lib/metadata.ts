@@ -38,9 +38,6 @@ export async function generateSiteMetadata(): Promise<Metadata> {
         shortcut: faviconUrl,
         apple: faviconUrl,
       },
-      verification: {
-        google: 'ca-pub-5440986495958060',
-      },
       other: {
         'google-adsense-account': 'ca-pub-5440986495958060',
       },
@@ -97,9 +94,6 @@ function getDefaultMetadata(): Metadata {
     description: 'Transform your digital presence with cutting-edge web development, mobile apps, UI/UX design, and creative solutions. Expert team delivering innovative technology solutions.',
     keywords: ['IT agency', 'creative agency', 'web development', 'mobile apps', 'UI/UX design', 'digital marketing'],
     authors: [{ name: 'Kitchen of Tech' }],
-    verification: {
-      google: 'ca-pub-5440986495958060',
-    },
     other: {
       'google-adsense-account': 'ca-pub-5440986495958060',
     },

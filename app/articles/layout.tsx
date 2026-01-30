@@ -1,4 +1,5 @@
 import Script from 'next/script';
+import { Navbar } from '@/components/layout/Navbar';
 
 /**
  * Articles Layout - ONLY used for /articles routes
@@ -13,6 +14,7 @@ export default function ArticlesLayout({
 
   return (
     <>
+      <Navbar />
       {/* Google AdSense Script - ONLY loads for articles pages */}
       {adsenseId && (
         <Script

@@ -5,10 +5,12 @@ import { Laptop3D } from "@/components/landing/Laptop3D";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { client } from "@/lib/sanity/client";
-import { SERVICE_CATEGORIES_QUERY } from "@/lib/sanity/queries";
-import type { ServiceCategory } from "@/types";
+import { SERVICE_CATEGORIES_QUERY, SITE_SETTINGS_QUERY } from "@/lib/sanity/queries";
+import type { ServiceCategory, SiteSettings } from "@/types";
 
 export function Hero3D() {
+  const [heroTitle, setHeroTitle] = useState("Transform Your Digital Presence");
+  const [heroSubtitle, setHeroSubtitle] = useState("Cutting-edge IT solutions and creative services that bring your vision to life");
   const [serviceTags, setServiceTags] = useState<string[]>([
     "Web Development",
     "Mobile Apps",
@@ -19,20 +21,36 @@ export function Hero3D() {
   ]);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchContent = async () => {
       try {
+        // Fetch site settings for hero content
+        const settings = await client.fetch<SiteSettings>(SITE_SETTINGS_QUERY);
+        if (settings) {
+          // Use seo.metaTitle and siteDescription as hero content if available
+          if (settings.seo?.metaTitle) {
+            setHeroTitle(settings.seo.metaTitle);
+          } else if (settings.siteName) {
+            setHeroTitle(`Transform Your Digital Presence with ${settings.siteName}`);
+          }
+          
+          if (settings.siteDescription) {
+            setHeroSubtitle(settings.siteDescription);
+          }
+        }
+
+        // Fetch service categories for tags
         const categories = await client.fetch<ServiceCategory[]>(SERVICE_CATEGORIES_QUERY);
         if (categories && categories.length > 0) {
           const tags = categories.slice(0, 6).map(cat => cat.title);
           setServiceTags(tags);
         }
       } catch (error) {
-        console.error("Error fetching service categories:", error);
-        // Keep default fallback tags
+        console.error("Error fetching hero content:", error);
+        // Keep default fallback values
       }
     };
 
-    fetchCategories();
+    fetchContent();
   }, []);
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
@@ -50,12 +68,12 @@ export function Hero3D() {
           <div className="space-y-8 text-center lg:text-left">
             <div className="space-y-4 animate-fade-up">
               <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight">
-                <span className="text-white">Transform Your</span>
+                <span className="text-white">{heroTitle.split(' ').slice(0, 2).join(' ')}</span>
                 <br />
-                <span className="text-gradient">Digital Presence</span>
+                <span className="text-gradient">{heroTitle.split(' ').slice(2).join(' ')}</span>
               </h1>
               <p className="text-lg md:text-xl lg:text-2xl text-white/70 max-w-2xl mx-auto lg:mx-0">
-                Cutting-edge IT solutions and creative services that bring your vision to life
+                {heroSubtitle}
               </p>
             </div>
 
