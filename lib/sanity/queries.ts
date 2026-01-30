@@ -548,6 +548,146 @@ export const FEATURED_TEAM_MEMBERS_QUERY = groq`
   }
 `;
 
+// Articles Queries
+export const ARTICLES_QUERY = groq`
+  *[_type == "article" && status == "published"] | order(publishedAt desc) {
+    _id,
+    title,
+    slug,
+    excerpt,
+    coverImage,
+    tags,
+    category,
+    publishedAt,
+    upvotes,
+    downvotes,
+    views,
+    commentCount,
+    readingTime,
+    featured,
+    author-> {
+      _id,
+      name,
+      profileImage,
+      totalArticles
+    }
+  }
+`;
+
+export const ARTICLES_TRENDING_QUERY = groq`
+  *[_type == "article" && status == "published" && publishedAt > $startDate] | order(upvotes desc) [0...$limit] {
+    _id,
+    title,
+    slug,
+    excerpt,
+    coverImage,
+    tags,
+    category,
+    publishedAt,
+    upvotes,
+    downvotes,
+    views,
+    commentCount,
+    readingTime,
+    featured,
+    author-> {
+      _id,
+      name,
+      profileImage,
+      totalArticles
+    }
+  }
+`;
+
+export const ARTICLE_BY_SLUG_QUERY = groq`
+  *[_type == "article" && slug.current == $slug][0] {
+    _id,
+    title,
+    slug,
+    excerpt,
+    coverImage,
+    content,
+    tags,
+    category,
+    status,
+    publishedAt,
+    updatedAt,
+    upvotes,
+    downvotes,
+    views,
+    commentCount,
+    readingTime,
+    featured,
+    author-> {
+      _id,
+      name,
+      facebookId,
+      email,
+      profileImage,
+      bio,
+      joinedAt,
+      totalArticles,
+      totalUpvotes,
+      totalDownvotes,
+      totalViews
+    }
+  }
+`;
+
+export const ARTICLE_COMMENTS_QUERY = groq`
+  *[_type == "articleComment" && article._ref == $articleId && !isDeleted] | order(createdAt desc) {
+    _id,
+    content,
+    createdAt,
+    isEdited,
+    editedAt,
+    author-> {
+      _id,
+      name,
+      profileImage
+    },
+    parentComment
+  }
+`;
+
+export const RELATED_ARTICLES_QUERY = groq`
+  *[_type == "article" && status == "published" && _id != $articleId && (category == $category || count((tags[])[@ in $tags]) > 0)] | order(publishedAt desc) [0...4] {
+    _id,
+    title,
+    slug,
+    excerpt,
+    coverImage,
+    tags,
+    category,
+    publishedAt,
+    upvotes,
+    views,
+    readingTime,
+    author-> {
+      _id,
+      name,
+      profileImage
+    }
+  }
+`;
+
+export const ARTICLE_AUTHORS_STATS_QUERY = groq`
+  *[_type == "articleAuthor"] | order(totalUpvotes desc) {
+    _id,
+    name,
+    facebookId,
+    email,
+    profileImage,
+    bio,
+    joinedAt,
+    isActive,
+    isBanned,
+    totalArticles,
+    totalUpvotes,
+    totalDownvotes,
+    totalViews
+  }
+`;
 // Single Team Member Query (for detail page)
 export const TEAM_MEMBER_QUERY = groq`
   *[_type == "team" && slug.current == $slug][0] {
