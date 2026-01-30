@@ -33,26 +33,16 @@ export const RATE_LIMITS = {
 // Create rate limiters
 const createRateLimiter = (requests: number, window: Duration) => {
   if (!redis) {
-    console.warn('Redis not configured, using in-memory rate limiting (not suitable for production)');
-    // Use a Map-based store for development
-    const cache = new Map();
-    return new Ratelimit({
-      redis: {
-        sadd: async () => {},
-        eval: async () => {},
-        get: async (key: string) => cache.get(key),
-        set: async (key: string, value: any) => { cache.set(key, value); },
-        del: async (key: string) => { cache.delete(key); },
-        incr: async (key: string) => {
-          const val = (cache.get(key) || 0) + 1;
-          cache.set(key, val);
-          return val;
-        },
-        expire: async () => {},
-      } as any,
-      limiter: Ratelimit.slidingWindow(requests, window),
-      prefix: 'ratelimit',
-    });
+    // Return a dummy rate limiter that always allows requests
+    return {
+      limit: async () => ({
+        success: true,
+        limit: requests,
+        remaining: requests,
+        reset: Date.now() + 60000,
+        pending: Promise.resolve(),
+      }),
+    } as unknown as Ratelimit;
   }
 
   return new Ratelimit({
@@ -85,6 +75,12 @@ export async function rateLimitMiddleware(
   type: RateLimitType = 'queries'
 ): Promise<NextResponse | null> {
   try {
+    // Skip rate limiting if Redis is not configured
+    if (!redis) {
+      console.warn('Redis not configured, skipping rate limiting');
+      return null;
+    }
+
     // Get IP address from headers or use a default
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
                request.headers.get('x-real-ip') ||

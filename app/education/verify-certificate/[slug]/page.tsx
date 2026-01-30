@@ -5,21 +5,21 @@ import { CertificateVerificationClient } from "@/components/education/Certificat
 
 interface PageProps {
   params: Promise<{
-    id: string;
+    slug: string;
   }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
+  const { slug } = await params;
   
   return {
-    title: `Verify Certificate - ${id} | KitchenOfTech`,
+    title: `Verify Certificate - ${slug} | KitchenOfTech`,
     description: "Verify the authenticity of this certificate",
   };
 }
 
 export default async function VerifyCertificatePage({ params }: PageProps) {
-  const { id: certificateId } = await params;
+  const { slug: certificateId } = await params;
 
   // Fetch certificate data
   const supabase = createAdminClient();

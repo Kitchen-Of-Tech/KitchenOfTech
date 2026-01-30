@@ -1,5 +1,5 @@
 import { createClient } from "next-sanity";
-import imageUrlBuilder from "@sanity/image-url";
+import { createImageUrlBuilder } from "@sanity/image-url";
 import type { Image as SanityImageSource } from "sanity";
 
 export const client = createClient({
@@ -24,7 +24,7 @@ export const sanityWriteClient = createClient({
   perspective: 'published',
 });
 
-const builder = imageUrlBuilder(client);
+const builder = createImageUrlBuilder(client);
 
 /**
  * Generate image URL from Sanity image source

@@ -11,6 +11,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { AnalyticsProvider } from "@/lib/analytics/provider";
 import Script from 'next/script';
 import { Navbar } from '@/components/layout/Navbar';
+import { SessionWrapper } from "@/components/providers/SessionWrapper";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -45,16 +46,18 @@ export default function RootLayout({
         />
         
         {measurementId && <GoogleAnalytics measurementId={measurementId} />}
-        <ReactQueryProvider>
-          <SmoothScrollProvider>
-            <AnalyticsProvider>
-              <Navbar />
-              <TemplateTransition>
-                {children}
-              </TemplateTransition>
-            </AnalyticsProvider>
-          </SmoothScrollProvider>
-        </ReactQueryProvider>
+        <SessionWrapper>
+          <ReactQueryProvider>
+            <SmoothScrollProvider>
+              <AnalyticsProvider>
+                <Navbar />
+                <TemplateTransition>
+                  {children}
+                </TemplateTransition>
+              </AnalyticsProvider>
+            </SmoothScrollProvider>
+          </ReactQueryProvider>
+        </SessionWrapper>
         <Analytics />
         <SpeedInsights />
       </body>

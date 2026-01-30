@@ -4,7 +4,7 @@ import { sanityWriteClient } from '@/lib/sanity/write';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const session = await auth();
@@ -16,12 +16,12 @@ export async function DELETE(
       );
     }
 
-    const { id: articleId } = await params;
+    const { slug: articleSlug } = await params;
 
-    // Fetch the article
+    // Fetch the article by slug
     const article = await sanityWriteClient.fetch(
-      `*[_type == "article" && _id == $articleId][0]`,
-      { articleId }
+      `*[_type == "article" && slug.current == $articleSlug][0]`,
+      { articleSlug }
     );
 
     if (!article) {
@@ -32,7 +32,7 @@ export async function DELETE(
     }
 
     // Delete the article
-    await sanityWriteClient.delete(articleId);
+    await sanityWriteClient.delete(article._id);
 
     // Update author's total articles count
     if (article.author && article.author._ref) {
