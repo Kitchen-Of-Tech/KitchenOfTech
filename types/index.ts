@@ -417,3 +417,80 @@ export interface MeetingRequest {
   message: string;
   preferred_date?: string;
 }
+
+// Articles System Types
+export interface ArticleAuthor {
+  _id: string;
+  name: string;
+  facebookId: string;
+  email?: string;
+  phone?: string;
+  profileImage?: SanityImage;
+  bio?: string;
+  joinedAt: string;
+  isActive: boolean;
+  isBanned: boolean;
+  bannedReason?: string;
+  totalArticles: number;
+  totalUpvotes: number;
+  totalDownvotes: number;
+  totalViews: number;
+}
+
+export interface Article {
+  _id: string;
+  title: string;
+  slug: {
+    current: string;
+  };
+  author: ArticleAuthor;
+  coverImage?: SanityImage;
+  excerpt?: string;
+  content: unknown[]; // Portable Text content
+  tags?: string[];
+  category?: string;
+  status: 'draft' | 'published' | 'archived';
+  publishedAt: string;
+  updatedAt?: string;
+  upvotes: number;
+  downvotes: number;
+  views: number;
+  commentCount: number;
+  featured: boolean;
+  readingTime?: number;
+}
+
+export interface ArticleComment {
+  _id: string;
+  article: {
+    _ref: string;
+    _type: 'reference';
+  };
+  author: ArticleAuthor;
+  content: string;
+  parentComment?: {
+    _ref: string;
+    _type: 'reference';
+  };
+  createdAt: string;
+  isEdited: boolean;
+  editedAt?: string;
+  isDeleted: boolean;
+  deletedReason?: string;
+}
+
+export interface ArticleVote {
+  _id: string;
+  article: {
+    _ref: string;
+    _type: 'reference';
+  };
+  voter: {
+    _ref: string;
+    _type: 'reference';
+  };
+  voteType: 'upvote' | 'downvote';
+  votedAt: string;
+  ipAddress?: string;
+}
+

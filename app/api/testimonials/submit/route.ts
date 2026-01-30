@@ -121,12 +121,23 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Error submitting testimonial:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to submit testimonial';
+    
+    // Extract detailed error message
+    let errorMessage = 'Failed to submit testimonial';
+    let errorDetails = undefined;
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      errorDetails = {
+        name: error.name,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      };
+    }
     
     return NextResponse.json(
       { 
         error: errorMessage,
-        details: process.env.NODE_ENV === 'development' ? error : undefined
+        details: errorDetails
       },
       { status: 500 }
     );

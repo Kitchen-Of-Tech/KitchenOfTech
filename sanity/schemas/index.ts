@@ -17,6 +17,11 @@ import { module } from "./module";
 import { lesson } from "./lesson";
 import { quiz } from "./quiz";
 import { assignment } from "./assignment";
+// Articles/Blog System
+import { article } from "./article";
+import { articleAuthor } from "./articleAuthor";
+import { articleComment } from "./articleComment";
+import { articleVote } from "./articleVote";
 
 export const schemaTypes = [
   // Site Configuration
@@ -34,6 +39,11 @@ export const schemaTypes = [
   blog,
   team,
   certificate,
+  // Articles System
+  article,
+  articleAuthor,
+  articleComment,
+  articleVote,
   // Education
   instructor,
   course,

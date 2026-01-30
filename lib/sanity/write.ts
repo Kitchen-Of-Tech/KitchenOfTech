@@ -119,6 +119,10 @@ export async function createTestimonial(
     return testimonial;
   } catch (error) {
     console.error('Error creating testimonial in Sanity:', error);
+    // Provide more detailed error message
+    if (error instanceof Error) {
+      throw new Error(`Failed to create testimonial: ${error.message}`);
+    }
     throw new Error('Failed to create testimonial');
   }
 }
