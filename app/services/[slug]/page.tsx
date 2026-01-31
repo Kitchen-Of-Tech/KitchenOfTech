@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { client, urlFor } from '@/lib/sanity/client';
 import { SERVICE_QUERY, SERVICES_QUERY } from '@/lib/sanity/queries';
 import type { Service } from '@/types';
@@ -13,9 +14,12 @@ import { ProjectPricingDisplay } from '@/components/services/pricing/ProjectPric
 import { HourlyPricingDisplay } from '@/components/services/pricing/HourlyPricingDisplay';
 import { CustomPricingDisplay } from '@/components/services/pricing/CustomPricingDisplay';
 import { ServiceMeetingButton } from '@/components/services/ServiceMeetingButton';
+import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
 
 // Force dynamic rendering to avoid build-time Sanity query issues
 export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Revalidate every hour
 
 // Generate static params for all services
 export async function generateStaticParams() {
@@ -31,39 +35,50 @@ export async function generateStaticParams() {
 }
 
 // Generate metadata for SEO
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const service = await client.fetch<Service>(SERVICE_QUERY, { 
-    slug: params.slug 
-  });
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  try {
+    const { slug } = await params;
+    const service = await client.fetch<Service>(SERVICE_QUERY, {
+      slug: slug
+    });
 
-  if (!service) {
+    if (!service) {
+      return {
+        title: 'Service Not Found | KitchenOfTech',
+        description: 'The requested service could not be found.',
+      };
+    }
+
     return {
-      title: 'Service Not Found',
+      title: service.seo?.metaTitle || `${service.title} | KitchenOfTech`,
+      description: service.seo?.metaDescription || service.shortDescription,
+      openGraph: {
+        title: service.seo?.metaTitle || service.title,
+        description: service.seo?.metaDescription || service.shortDescription,
+        images: service.seo?.ogImage
+          ? [urlFor(service.seo.ogImage as SanityImageSource).width(1200).height(630).url()]
+          : service.icon
+          ? [urlFor(service.icon as SanityImageSource).width(1200).height(630).url()]
+          : [],
+      },
+    };
+  } catch (error) {
+    console.error('Error generating metadata for service:', error);
+    return {
+      title: 'Service | KitchenOfTech',
+      description: 'Explore our comprehensive range of digital services',
     };
   }
-
-  return {
-    title: service.seo?.metaTitle || `${service.title} | KitchenOfTech`,
-    description: service.seo?.metaDescription || service.shortDescription,
-    openGraph: {
-      title: service.seo?.metaTitle || service.title,
-      description: service.seo?.metaDescription || service.shortDescription,
-      images: service.seo?.ogImage 
-        ? [urlFor(service.seo.ogImage as SanityImageSource).width(1200).height(630).url()]
-        : service.icon 
-        ? [urlFor(service.icon as SanityImageSource).width(1200).height(630).url()]
-        : [],
-    },
-  };
 }
 
 export default async function ServiceDetailPage({ 
   params 
 }: { 
-  params: { slug: string } 
+  params: Promise<{ slug: string }>
 }) {
-  const service = await client.fetch<Service>(SERVICE_QUERY, { 
-    slug: params.slug 
+  const { slug } = await params;
+  const service = await client.fetch<Service>(SERVICE_QUERY, {
+    slug: slug
   });
 
   if (!service) {
@@ -71,28 +86,29 @@ export default async function ServiceDetailPage({
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black">
-      {/* Background Effects */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-      </div>
+    <>
+      <Navbar />
+      <main className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black">
+          {/* Background Effects */}
+          <div className="fixed inset-0 pointer-events-none">
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+          </div>
+          {/* Breadcrumb Navigation */}
+          <section className="relative py-8 border-b border-white/10">
+            <div className="container mx-auto px-4">
+              <Link
+                href="/services"
+                className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
+              >
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                <span>Back to Services</span>
+              </Link>
+            </div>
+          </section>
 
-      {/* Breadcrumb Navigation */}
-      <section className="relative py-8 border-b border-white/10">
-        <div className="container mx-auto px-4">
-          <Link 
-            href="/services"
-            className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
-          >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span>Back to Services</span>
-          </Link>
-        </div>
-      </section>
-
-      {/* Hero Section */}
-      <section className="relative py-12 md:py-20">
+          {/* Hero Section */}
+          <section className="relative py-12 md:py-20">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Content */}
@@ -359,6 +375,8 @@ export default async function ServiceDetailPage({
           </GlassCard>
         </div>
       </section>
-    </main>
-  );
+        </main>
+        <Footer />
+      </>
+    );
 }
