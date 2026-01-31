@@ -138,6 +138,7 @@ export const SERVICES_QUERY = groq`
     slug,
     shortDescription,
     icon,
+    coverImage,
     category-> {
       _id,
       title,
@@ -163,6 +164,7 @@ export const SERVICES_BY_CATEGORY_QUERY = groq`
     slug,
     shortDescription,
     icon,
+    coverImage,
     subcategory-> {
       _id,
       title,
@@ -182,6 +184,7 @@ export const SERVICES_BY_SUBCATEGORY_QUERY = groq`
     slug,
     shortDescription,
     icon,
+    coverImage,
     pricingType,
     order,
     featured
@@ -197,6 +200,7 @@ export const SERVICE_QUERY = groq`
     shortDescription,
     fullDescription,
     icon,
+    coverImage,
     category-> {
       _id,
       title,

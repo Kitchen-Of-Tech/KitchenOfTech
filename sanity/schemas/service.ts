@@ -56,6 +56,16 @@ export const service = defineType({
         hotspot: true,
       },
     }),
+    defineField({
+      name: "coverImage",
+      title: "Cover Image",
+      type: "image",
+      group: "basic",
+      options: {
+        hotspot: true,
+      },
+      description: "Large cover image for service cards and detail pages (recommended size: 1200x600)",
+    }),
     
     // CATEGORIZATION
     defineField({

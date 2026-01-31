@@ -110,6 +110,7 @@ export interface Service {
   shortDescription: string;
   fullDescription?: unknown[];
   icon: SanityImage;
+  coverImage?: SanityImage;
   category?: ServiceCategory;
   subcategory?: ServiceSubcategory;
   features?: {

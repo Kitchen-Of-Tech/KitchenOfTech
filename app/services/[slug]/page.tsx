@@ -12,6 +12,7 @@ import { SubscriptionPricingDisplay } from '@/components/services/pricing/Subscr
 import { ProjectPricingDisplay } from '@/components/services/pricing/ProjectPricingDisplay';
 import { HourlyPricingDisplay } from '@/components/services/pricing/HourlyPricingDisplay';
 import { CustomPricingDisplay } from '@/components/services/pricing/CustomPricingDisplay';
+import { ServiceMeetingButton } from '@/components/services/ServiceMeetingButton';
 
 // Force dynamic rendering to avoid build-time Sanity query issues
 export const dynamic = 'force-dynamic';
@@ -141,11 +142,12 @@ export default async function ServiceDetailPage({
 
               {/* CTA Buttons */}
               <div className="flex flex-wrap gap-4 pt-4">
-                <Link href="/meeting">
-                  <GradientButton variant="primary" size="lg">
-                    Get Started
-                  </GradientButton>
-                </Link>
+                <ServiceMeetingButton
+                  service={{
+                    slug: service.slug.current,
+                    title: service.title
+                  }}
+                />
                 <Link href="/contact">
                   <GradientButton variant="outline" size="lg">
                     Contact Us
@@ -154,16 +156,20 @@ export default async function ServiceDetailPage({
               </div>
             </div>
 
-            {/* Image */}
-            {service.icon && (
+            {/* Image - Prioritize Cover Image */}
+            {(service.coverImage || service.icon) && (
               <div className="relative">
                 <GlassCard className="p-8 bg-gradient-to-br from-white/5 to-white/0">
-                  <div className="relative aspect-square rounded-2xl overflow-hidden">
+                  <div className={`relative ${service.coverImage ? 'aspect-video' : 'aspect-square'} rounded-2xl overflow-hidden`}>
                     <Image
-                      src={urlFor(service.icon as SanityImageSource).width(600).height(600).url()}
+                      src={
+                        service.coverImage 
+                          ? urlFor(service.coverImage as SanityImageSource).width(800).height(450).url()
+                          : urlFor(service.icon as SanityImageSource).width(600).height(600).url()
+                      }
                       alt={service.title}
                       fill
-                      sizes="(max-width: 768px) 100vw, 600px"
+                      sizes="(max-width: 768px) 100vw, 800px"
                       className="object-cover"
                       priority
                       placeholder="blur"
@@ -338,11 +344,12 @@ export default async function ServiceDetailPage({
               Let&apos;s discuss your project and how we can help you achieve your goals.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/meeting">
-                <GradientButton variant="primary" size="lg">
-                  Schedule Free Consultation
-                </GradientButton>
-              </Link>
+              <ServiceMeetingButton
+                service={{
+                  slug: service.slug.current,
+                  title: service.title
+                }}
+              />
               <Link href="/contact">
                 <GradientButton variant="outline" size="lg">
                   Get Custom Quote
