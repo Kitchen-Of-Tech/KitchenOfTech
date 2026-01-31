@@ -39,10 +39,10 @@ export default function SubmitArticlePage() {
   const [submitting, setSubmitting] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
 
-  // Redirect to sign-in if not authenticated
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/auth/signin?callbackUrl=/articles/submit');
+      router.push('/login?callbackUrl=/articles/submit');
     }
   }, [status, router]);
 

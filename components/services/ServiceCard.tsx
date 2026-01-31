@@ -172,7 +172,7 @@ export function ServiceCard({ service, index, categoryColor }: ServiceCardProps)
                 </div>
               </div>
 
-              {/* Request Meeting Button */}
+              {/* Hire Button */}
               <button
                 onClick={(e) => {
                   e.preventDefault();
@@ -182,7 +182,7 @@ export function ServiceCard({ service, index, categoryColor }: ServiceCardProps)
                 className="w-full px-4 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary rounded-lg transition-all flex items-center justify-center gap-2 text-sm font-medium"
               >
                 <Calendar className="w-4 h-4" />
-                Request Meeting
+                Hire
               </button>
             </div>
           </div>
