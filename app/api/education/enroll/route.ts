@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
+import { sendEnrollmentConfirmation } from '@/lib/email/notifications';
 
 export async function POST(request: NextRequest) {
   // Apply rate limiting (100 requests per minute for general API)
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { courseId, couponCode } = await request.json();
+    const { courseId, couponCode, paymentTransactionId, status } = await request.json();
 
     if (!courseId) {
       return NextResponse.json(
@@ -48,8 +49,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const finalPrice = 0;
+    let finalPrice = 0;
     let appliedCoupon = null;
+
+    // Get payment transaction if provided
+    if (paymentTransactionId) {
+      const { data: transaction } = await supabase
+        .from("payment_transactions")
+        .select("amount")
+        .eq("id", paymentTransactionId)
+        .single();
+
+      if (transaction) {
+        finalPrice = transaction.amount;
+      }
+    }
 
     // Validate coupon if provided
     if (couponCode) {
@@ -83,6 +97,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create enrollment
+    const enrollmentStatus = paymentTransactionId ? (status || "pending") : "active";
+    
     const { data: enrollment, error: enrollError } = await supabase
       .from("course_enrollments")
       .insert({
@@ -90,7 +106,8 @@ export async function POST(request: NextRequest) {
         course_id: courseId,
         payment_amount: finalPrice,
         coupon_used: appliedCoupon?.code || null,
-        status: "active",
+        status: enrollmentStatus,
+        payment_transaction_id: paymentTransactionId || null,
       } as never)
       .select()
       .single();
@@ -101,6 +118,25 @@ export async function POST(request: NextRequest) {
         { success: false, message: "Failed to create enrollment" },
         { status: 500 }
       );
+    }
+
+    // Send enrollment confirmation email
+    const { data: userProfile } = await supabase
+      .from('users')
+      .select('name, email')
+      .eq('id', user.id)
+      .single();
+    
+    if (userProfile) {
+      await sendEnrollmentConfirmation({
+        userName: userProfile.name || 'Student',
+        userEmail: userProfile.email,
+        courseName: 'Your Course', // TODO: Fetch from Sanity using courseId
+        courseSlug: courseId,
+        enrollmentId: enrollment.id,
+        isPending: enrollmentStatus === 'pending',
+        transactionId: paymentTransactionId || undefined,
+      });
     }
 
     return NextResponse.json({

@@ -121,7 +121,7 @@ export default function MeetingForm({
   useEffect(() => {
     if (formData.selectedCategory) {
       const filtered = subcategories.filter(
-        sub => sub.category._id === formData.selectedCategory
+        sub => sub.category && sub.category._id === formData.selectedCategory
       );
       setFilteredSubcategories(filtered);
     } else {
@@ -133,12 +133,12 @@ export default function MeetingForm({
   // Filter services based on selected category and subcategory
   useEffect(() => {
     let filtered = services.filter(
-      service => service.category._id === formData.selectedCategory
+      service => service.category && service.category._id === formData.selectedCategory
     );
 
     if (formData.selectedSubcategory) {
       filtered = filtered.filter(
-        service => service.subcategory?._id === formData.selectedSubcategory
+        service => service.subcategory && service.subcategory._id === formData.selectedSubcategory
       );
     }
 

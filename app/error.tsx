@@ -18,13 +18,12 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html>
-      <body className="bg-gradient-to-b from-black via-gray-950 to-black min-h-screen flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl w-full text-center"
-        >
+    <div className="bg-gradient-to-b from-black via-gray-950 to-black min-h-screen flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-2xl w-full text-center"
+      >
           {/* Error Icon */}
           <motion.div
             initial={{ scale: 0 }}
@@ -86,7 +85,6 @@ export default function GlobalError({
             </Link>
           </p>
         </motion.div>
-      </body>
-    </html>
+      </div>
   );
 }

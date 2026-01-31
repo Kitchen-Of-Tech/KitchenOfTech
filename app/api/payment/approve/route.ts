@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
+import { sendPaymentApprovalEmail } from '@/lib/email/notifications';
 
 // POST - Approve a payment transaction (CEO/Manager only)
 export async function POST(request: NextRequest) {
@@ -110,37 +111,81 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper function to handle course enrollment after approval
-async function handleCourseEnrollment(supabase: Awaited<ReturnType<typeof createClient>>, transaction: { user_id: string; purchase_id: string; purchase_type: string }) {
+async function handleCourseEnrollment(supabase: Awaited<ReturnType<typeof createClient>>, transaction: { id: string; user_id: string; purchase_id: string; purchase_type: string; amount: number }) {
   try {
-    // Check if enrollment already exists
-    const { data: existingEnrollment } = await supabase
+    // Check for pending enrollment linked to this payment
+    const { data: pendingEnrollment } = await supabase
       .from("course_enrollments")
       .select("id")
-      .eq("user_id", transaction.user_id)
-      .eq("course_id", transaction.purchase_id)
+      .eq("payment_transaction_id", transaction.id)
+      .eq("status", "pending")
       .single();
     
-    if (existingEnrollment) {
-      // Update enrollment to active
+    if (pendingEnrollment) {
+      // Activate the pending enrollment
       await supabase
         .from("course_enrollments")
         .update({
           status: "active",
-          payment_status: "paid",
+          updated_at: new Date().toISOString(),
         })
-        .eq("id", existingEnrollment.id);
-    } else {
-      // Create new enrollment
-      await supabase
-        .from("course_enrollments")
-        .insert({
-          user_id: transaction.user_id,
-          course_id: transaction.purchase_id,
-          status: "active",
-          payment_status: "paid",
-          enrollment_date: new Date().toISOString(),
+        .eq("id", pendingEnrollment.id);
+      
+      console.log(`Enrollment ${pendingEnrollment.id} activated via manual approval`);
+      
+      // Send welcome email to user
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('name, email')
+        .eq('id', transaction.user_id)
+        .single();
+      
+      if (userProfile) {
+        await sendPaymentApprovalEmail({
+          userName: userProfile.name || 'Student',
+          userEmail: userProfile.email,
+          courseName: 'Your Course', // TODO: Fetch from Sanity
+          courseSlug: transaction.purchase_id,
+          enrollmentId: pendingEnrollment.id,
+          isPending: false,
         });
+      }
+    } else {
+      // Check if enrollment already exists (backward compatibility)
+      const { data: existingEnrollment } = await supabase
+        .from("course_enrollments")
+        .select("id, status")
+        .eq("user_id", transaction.user_id)
+        .eq("course_id", transaction.purchase_id)
+        .single();
+      
+      if (existingEnrollment) {
+        // Update enrollment to active if not already
+        if (existingEnrollment.status !== "active") {
+          await supabase
+            .from("course_enrollments")
+            .update({
+              status: "active",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingEnrollment.id);
+        }
+      } else {
+        // Create new enrollment
+        await supabase
+          .from("course_enrollments")
+          .insert({
+            user_id: transaction.user_id,
+            course_id: transaction.purchase_id,
+            status: "active",
+            payment_transaction_id: transaction.id,
+            payment_amount: transaction.amount,
+            enrolled_at: new Date().toISOString(),
+          });
+      }
     }
+    
+    // TODO: Send welcome email to user
   } catch (error) {
     console.error("Error handling course enrollment:", error);
     // Don't throw error, as payment approval was successful
@@ -155,7 +200,8 @@ async function checkIsAdmin(supabase: Awaited<ReturnType<typeof createClient>>, 
     .eq("id", userId)
     .single();
   
-  return ((data?.role as { level: number } | undefined)?.level ?? 999) <= 2; // CEO or Manager
+  // CEO (100) and Manager (90) have admin access
+  return ((data?.role as { level: number } | undefined)?.level ?? 0) >= 90;
 }
 
 // Helper function to create accounting entry on approval

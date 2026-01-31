@@ -32,6 +32,7 @@ export default async function StudentDashboardPage() {
       course_id,
       enrolled_at,
       last_accessed_at,
+      last_accessed_lesson,
       progress,
       completed_at
     `)

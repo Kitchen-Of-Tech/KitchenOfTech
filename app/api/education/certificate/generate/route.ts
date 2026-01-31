@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { sendCertificateEmail } from "@/lib/email/notifications";
 
 export async function POST(request: NextRequest) {
   try {
@@ -121,6 +122,35 @@ export async function POST(request: NextRequest) {
         { error: "Failed to create certificate" },
         { status: 500 }
       );
+    }
+
+    // Update enrollment to mark certificate as issued
+    const { error: updateError } = await supabase
+      .from("course_enrollments")
+      .update({
+        certificate_issued: true,
+        certificate_id: certificateId,
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", enrollmentId);
+
+    if (updateError) {
+      console.error("Error updating enrollment:", updateError);
+      // Don't fail the request - certificate was created
+    }
+
+    // Send certificate email notification
+    try {
+      await sendCertificateEmail({
+        userName: studentName,
+        userEmail: user.email!,
+        courseName: "Course", // Will be replaced when we fetch course details
+        certificateId: certificateId,
+        certificateUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/education/certificate/pdf/${certificate.id}`,
+      });
+    } catch (emailError) {
+      console.error("Error sending certificate email:", emailError);
+      // Don't fail the request - certificate was created
     }
 
     return NextResponse.json({

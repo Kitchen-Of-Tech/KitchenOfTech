@@ -78,5 +78,6 @@ async function checkIsAdmin(supabase: Awaited<ReturnType<typeof createClient>>, 
     .eq("id", userId)
     .single();
   
-  return ((data?.role as { level: number } | undefined)?.level ?? 999) <= 2; // CEO or Manager
+  // CEO (100) and Manager (90) have admin access
+  return ((data?.role as { level: number } | undefined)?.level ?? 0) >= 90;
 }

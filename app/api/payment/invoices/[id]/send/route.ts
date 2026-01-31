@@ -21,7 +21,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check user role
+    // Check user role (CEO=100 or Manager=90)
     const { data: userData } = await supabaseServer
       .from('users')
       .select('role:roles(*)')
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       .single();
 
     const role = Array.isArray(userData?.role) ? userData.role[0] : userData?.role;
-    if (!role || role.level > 2) {
+    if (!role || role.level < 90) {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 

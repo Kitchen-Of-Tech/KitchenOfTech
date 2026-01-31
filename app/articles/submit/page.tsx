@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save, Eye, Upload, X, Plus } from 'lucide-react';
@@ -38,13 +38,6 @@ export default function SubmitArticlePage() {
   const [isPreview, setIsPreview] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login?callbackUrl=/articles/submit');
-    }
-  }, [status, router]);
 
   // Auto-save draft every 30 seconds
   useEffect(() => {
@@ -203,9 +196,40 @@ export default function SubmitArticlePage() {
     );
   }
 
-  // Don't render anything if not authenticated (will redirect)
+  // Show Facebook login if not authenticated
   if (!session) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-dark flex items-center justify-center px-4">
+        <div className="max-w-md w-full">
+          <div className="glass rounded-2xl p-8 md:p-10 border border-white/10 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/30">
+              <Upload className="w-10 h-10 text-blue-400" />
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+              Submit Your Article
+            </h2>
+            <p className="text-white/70 mb-8 leading-relaxed">
+              Sign in with Facebook to share your knowledge and contribute to our tech community.
+            </p>
+            <button
+              onClick={() => signIn('facebook', { callbackUrl: '/articles/submit' })}
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl"
+            >
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              Continue with Facebook
+            </button>
+            <p className="text-white/40 text-sm mt-6">
+              By signing in, you agree to our{' '}
+              <Link href="/terms" className="text-blue-400 hover:underline">Terms</Link>
+              {' '}and{' '}
+              <Link href="/privacy" className="text-blue-400 hover:underline">Privacy Policy</Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

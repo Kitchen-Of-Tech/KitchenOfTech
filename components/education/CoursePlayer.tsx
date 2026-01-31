@@ -23,6 +23,38 @@ import type {
   Assignment
 } from "@/types/education";
 
+// YouTube Player API types
+declare global {
+  interface Window {
+    YT: {
+      Player: new (elementId: string, config: {
+        videoId: string;
+        events?: {
+          onReady?: (event: { target: YTPlayer }) => void;
+          onStateChange?: (event: { target: YTPlayer; data: number }) => void;
+        };
+      }) => YTPlayer;
+      PlayerState: {
+        UNSTARTED: number;
+        ENDED: number;
+        PLAYING: number;
+        PAUSED: number;
+        BUFFERING: number;
+        CUED: number;
+      };
+    };
+    onYouTubeIframeAPIReady?: () => void;
+  }
+}
+
+interface YTPlayer {
+  getCurrentTime: () => number;
+  getDuration: () => number;
+  getPlayerState: () => number;
+  playVideo: () => void;
+  pauseVideo: () => void;
+}
+
 interface CoursePlayerProps {
   course: Course;
   enrollment: CourseEnrollment;
@@ -50,8 +82,33 @@ export default function CoursePlayer({
   const [videoProgress, setVideoProgress] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const [timeSpent, setTimeSpent] = useState(0);
-  const videoRef = useRef<HTMLIFrameElement>(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [ytPlayer, setYTPlayer] = useState<YTPlayer | null>(null);
+  const [apiReady, setApiReady] = useState(false);
+  
+  const videoRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const progressTrackerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const lastSavedProgressRef = useRef(0);
+
+  // Load YouTube IFrame API
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (!window.YT) {
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+        window.onYouTubeIframeAPIReady = () => {
+          setApiReady(true);
+        };
+      } else {
+        // Use setTimeout to avoid cascading renders
+        setTimeout(() => setApiReady(true), 0);
+      }
+    }
+  }, []);
 
   // Helper function to find lesson by ID
   const findLessonById = useCallback((lessonId: string) => {
@@ -64,9 +121,78 @@ export default function CoursePlayer({
     return null;
   }, [course.modules]);
 
+  // Handler for auto-completion at 80%
+  const handleAutoComplete = useCallback(async () => {
+    if (!currentLesson || isCompleted) return;
+
+    setIsCompleted(true);
+    
+    try {
+      await fetch("/api/education/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          enrollmentId: enrollment.id,
+          lessonId: currentLesson._id,
+          videoProgress,
+          timeSpent,
+          completed: true,
+        }),
+      });
+
+      console.log(`Lesson "${currentLesson.title}" auto-completed at ${videoProgress}%`);
+      
+      // Calculate overall course progress to check for certificate generation
+      await fetch("/api/education/calculate-progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          enrollmentId: enrollment.id,
+        }),
+      });
+    } catch (error) {
+      console.error("Error marking complete:", error);
+    }
+  }, [currentLesson, isCompleted, enrollment.id, videoProgress, timeSpent]);
+
+  // Handler for video completion (100%)
+  const handleVideoComplete = useCallback(async () => {
+    if (!currentLesson) return;
+
+    setIsCompleted(true);
+    setVideoProgress(100);
+
+    try {
+      await fetch("/api/education/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          enrollmentId: enrollment.id,
+          lessonId: currentLesson._id,
+          videoProgress: 100,
+          timeSpent,
+          completed: true,
+        }),
+      });
+
+      console.log(`Video completed for "${currentLesson.title}"`);
+      
+      // Calculate overall course progress to check for certificate generation
+      await fetch("/api/education/calculate-progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          enrollmentId: enrollment.id,
+        }),
+      });
+    } catch (error) {
+      console.error("Error marking complete:", error);
+    }
+  }, [currentLesson, enrollment.id, timeSpent]);
+
   // Initialize with first incomplete lesson or first lesson
   useEffect(() => {
-    if (course.modules.length > 0) {
+    if (course.modules.length > 0 && !currentLesson) {
       // Find last accessed lesson or first lesson
       if (enrollment.last_accessed_lesson) {
         const lesson = findLessonById(enrollment.last_accessed_lesson);
@@ -83,27 +209,105 @@ export default function CoursePlayer({
       setCurrentLesson(firstLesson);
       setCurrentModule(firstModule);
     }
-  }, [course, enrollment, findLessonById]);
+  }, [course, enrollment, findLessonById, currentLesson]);
 
   // Load lesson progress
   useEffect(() => {
     if (currentLesson) {
       const progress = lessonProgress.find(p => p.lesson_id === currentLesson._id);
-      if (progress) {
-        setVideoProgress(progress.video_progress);
-        setIsCompleted(progress.completed);
-        setTimeSpent(progress.time_spent);
-      } else {
-        setVideoProgress(0);
-        setIsCompleted(false);
-        setTimeSpent(0);
-      }
+      // Use setTimeout to avoid cascading renders
+      setTimeout(() => {
+        if (progress) {
+          setVideoProgress(progress.video_progress);
+          setIsCompleted(progress.completed);
+          setTimeSpent(progress.time_spent);
+          lastSavedProgressRef.current = progress.video_progress;
+        } else {
+          setVideoProgress(0);
+          setIsCompleted(false);
+          setTimeSpent(0);
+          lastSavedProgressRef.current = 0;
+        }
+      }, 0);
     }
   }, [currentLesson, lessonProgress]);
 
-  // Time tracking
+  // Initialize YouTube player when lesson changes
   useEffect(() => {
-    if (currentLesson) {
+    if (!apiReady || !currentLesson || !videoRef.current) return;
+
+    const videoId = currentLesson.videoUrl?.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1];
+    if (!videoId) return;
+
+    // Clean up existing player
+    if (ytPlayer) {
+      ytPlayer.pauseVideo();
+    }
+
+    // Create new player
+    const player = new window.YT.Player('youtube-player', {
+      videoId,
+      events: {
+        onReady: (event) => {
+          setYTPlayer(event.target);
+        },
+        onStateChange: (event) => {
+          // 1 = playing, 2 = paused, 0 = ended
+          setIsVideoPlaying(event.data === 1);
+          
+          if (event.data === 0) {
+            // Video ended - mark as complete
+            handleVideoComplete();
+          }
+        },
+      },
+    });
+
+    return () => {
+      if (player) {
+        try {
+          player.pauseVideo();
+        } catch {
+          // Player might already be destroyed
+        }
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiReady, currentLesson, handleVideoComplete]);
+
+  // Track video progress while playing
+  useEffect(() => {
+    if (!ytPlayer || !isVideoPlaying || !currentLesson) return;
+
+    progressTrackerRef.current = setInterval(() => {
+      try {
+        const currentTime = ytPlayer.getCurrentTime();
+        const duration = ytPlayer.getDuration();
+        
+        if (duration > 0) {
+          const progress = Math.round((currentTime / duration) * 100);
+          setVideoProgress(progress);
+
+          // Auto-complete at 80% (unless already completed)
+          if (progress >= 80 && !isCompleted) {
+            handleAutoComplete();
+          }
+        }
+      } catch (error) {
+        console.error('Error tracking progress:', error);
+      }
+    }, 1000); // Check every second
+
+    return () => {
+      if (progressTrackerRef.current) {
+        clearInterval(progressTrackerRef.current);
+      }
+    };
+  }, [ytPlayer, isVideoPlaying, currentLesson, isCompleted, handleAutoComplete]);
+
+  // Time tracking (only when video is playing)
+  useEffect(() => {
+    if (currentLesson && isVideoPlaying) {
       timerRef.current = setInterval(() => {
         setTimeSpent(prev => prev + 1);
       }, 1000);
@@ -114,13 +318,18 @@ export default function CoursePlayer({
         }
       };
     }
-  }, [currentLesson]);
+  }, [currentLesson, isVideoPlaying]);
 
-  // Save progress periodically
+  // Save progress periodically (every 30 seconds)
   useEffect(() => {
     if (!currentLesson) return;
 
     const saveProgress = async () => {
+      // Only save if progress has changed by at least 5%
+      if (Math.abs(videoProgress - lastSavedProgressRef.current) < 5 && !isCompleted) {
+        return;
+      }
+
       try {
         await fetch("/api/education/progress", {
           method: "POST",
@@ -133,6 +342,7 @@ export default function CoursePlayer({
             completed: isCompleted,
           }),
         });
+        lastSavedProgressRef.current = videoProgress;
       } catch (error) {
         console.error("Error saving progress:", error);
       }
@@ -141,6 +351,26 @@ export default function CoursePlayer({
     const interval = setInterval(saveProgress, 30000); // Save every 30 seconds
 
     return () => clearInterval(interval);
+  }, [currentLesson, enrollment.id, videoProgress, timeSpent, isCompleted]);
+
+  // Save progress when leaving lesson
+  useEffect(() => {
+    return () => {
+      if (currentLesson && videoProgress > 0) {
+        // Save on unmount
+        fetch("/api/education/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            enrollmentId: enrollment.id,
+            lessonId: currentLesson._id,
+            videoProgress,
+            timeSpent,
+            completed: isCompleted,
+          }),
+        }).catch(console.error);
+      }
+    };
   }, [currentLesson, enrollment.id, videoProgress, timeSpent, isCompleted]);
 
   const handleMarkComplete = async () => {
@@ -280,13 +510,10 @@ export default function CoursePlayer({
         {/* Video Player */}
         <div className="relative bg-black" style={{ aspectRatio: "16/9" }}>
           {videoId ? (
-            <iframe
+            <div
+              id="youtube-player"
               ref={videoRef}
-              src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&rel=0`}
-              title={currentLesson.title}
               className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
             />
           ) : (
             <div className="flex items-center justify-center h-full">

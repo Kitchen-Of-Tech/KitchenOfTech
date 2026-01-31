@@ -228,23 +228,25 @@ export async function DELETE(request: NextRequest) {
 
 // Helper functions
 async function checkIsCEO(userId: string): Promise<boolean> {
-  const adminClient = createAdminClient();
+  const adminClient = await createAdminClient();
   const { data } = await adminClient
     .from("users")
     .select("role:roles(level)")
     .eq("id", userId)
     .single();
   
-  return ((data?.role as { level: number } | undefined)?.level ?? 999) === 1;
+  // CEO has level 100
+  return ((data?.role as { level: number } | undefined)?.level ?? 0) === 100;
 }
 
 async function checkIsAdmin(userId: string): Promise<boolean> {
-  const adminClient = createAdminClient();
+  const adminClient = await createAdminClient();
   const { data } = await adminClient
     .from("users")
     .select("role:roles(level)")
     .eq("id", userId)
     .single();
   
-  return ((data?.role as { level: number } | undefined)?.level ?? 999) <= 2; // CEO or Manager
+  // CEO (100) and Manager (90) have admin access
+  return ((data?.role as { level: number } | undefined)?.level ?? 0) >= 90;
 }

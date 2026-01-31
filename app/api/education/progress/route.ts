@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { sendCertificateEmail } from "@/lib/email/notifications";
 
 export async function POST(request: NextRequest) {
   try {
@@ -103,12 +104,17 @@ export async function POST(request: NextRequest) {
     // Get updated enrollment data with overall progress
     const { data: enrollment, error: enrollmentError } = await supabase
       .from("course_enrollments")
-      .select("id, course_id, progress")
+      .select("id, course_id, progress, certificate_issued, user_id")
       .eq("id", enrollmentId)
       .single();
 
     if (enrollmentError) {
       console.error("Error fetching enrollment:", enrollmentError);
+    }
+
+    // Check if course is complete and auto-generate certificate
+    if (enrollment && !enrollment.certificate_issued && completed) {
+      await checkAndGenerateCertificate(enrollment.id, enrollment.user_id, enrollment.course_id);
     }
 
     return NextResponse.json({
@@ -122,5 +128,116 @@ export async function POST(request: NextRequest) {
       { error: "Internal server error" },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * Check if course is complete and auto-generate certificate
+ */
+async function checkAndGenerateCertificate(
+  enrollmentId: string,
+  userId: string,
+  courseId: string
+) {
+  try {
+    const adminClient = createAdminClient();
+    
+    // Check if certificate already exists
+    const { data: existingCert } = await adminClient
+      .from("certificates")
+      .select("id")
+      .eq("enrollment_id", enrollmentId)
+      .single();
+
+    if (existingCert) {
+      return; // Certificate already generated
+    }
+
+    // Check eligibility using the database function
+    const { data: eligibilityData, error: eligibilityError } = await adminClient
+      .rpc("check_certificate_eligibility", {
+        p_enrollment_id: enrollmentId,
+      });
+
+    if (eligibilityError || !eligibilityData?.eligible) {
+      return; // Not eligible yet
+    }
+
+    // Generate unique certificate ID
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const certificateId = `KOT-${new Date().getFullYear()}-${random}-${timestamp.toString().slice(-4)}`;
+
+    // Get user profile
+    const { data: profile } = await adminClient
+      .from("users")
+      .select("name, email")
+      .eq("id", userId)
+      .single();
+
+    const studentName = profile?.name || profile?.email?.split("@")[0] || "Student";
+
+    // Calculate final score (average of quiz scores)
+    const { data: quizAttempts } = await adminClient
+      .from("quiz_attempts")
+      .select("score")
+      .eq("enrollment_id", enrollmentId)
+      .eq("passed", true);
+
+    const finalScore = quizAttempts && quizAttempts.length > 0
+      ? Math.round(quizAttempts.reduce((sum, a) => sum + a.score, 0) / quizAttempts.length)
+      : 100;
+
+    // Get course skills (would need to fetch from Sanity in production)
+    const skills = ["Web Development", "Problem Solving", "Project Management"];
+
+    // Create certificate
+    const { data: certificate, error: certError } = await adminClient
+      .from("certificates")
+      .insert({
+        enrollment_id: enrollmentId,
+        user_id: userId,
+        course_id: courseId,
+        certificate_id: certificateId,
+        student_name: studentName,
+        issued_at: new Date().toISOString(),
+        final_score: finalScore,
+        skills: skills,
+      })
+      .select()
+      .single();
+
+    if (certError) {
+      console.error("Error creating certificate:", certError);
+      return;
+    }
+
+    // Update enrollment with certificate flag
+    await adminClient
+      .from("course_enrollments")
+      .update({
+        certificate_issued: true,
+        certificate_id: certificateId,
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", enrollmentId);
+
+    console.log(`✅ Certificate ${certificateId} auto-generated for enrollment ${enrollmentId}`);
+
+    // Send certificate email
+    if (profile?.email) {
+      const certificateUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/education/certificate/pdf/${certificate.id}`;
+      
+      await sendCertificateEmail({
+        userName: studentName,
+        userEmail: profile.email,
+        courseName: "Your Course", // TODO: Fetch from Sanity
+        certificateUrl,
+        certificateId,
+      });
+    }
+  } catch (error) {
+    console.error("Error in auto-certificate generation:", error);
+    // Don't throw - this is a background process
   }
 }
