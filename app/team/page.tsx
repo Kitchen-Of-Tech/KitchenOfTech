@@ -13,12 +13,44 @@ export const metadata = {
   description: 'Meet the talented team behind KitchenOfTech. Expert developers, designers, and strategists dedicated to your success.',
 };
 
+// Revalidate every 60 seconds to ensure fresh team data
+export const revalidate = 60;
+
 export default async function TeamPage() {
-  const teamMembers = await client.fetch<TeamMember[]>(TEAM_MEMBERS_QUERY);
+  let teamMembers: TeamMember[] = [];
+  
+  try {
+    teamMembers = await client.fetch<TeamMember[]>(
+      TEAM_MEMBERS_QUERY,
+      {},
+      {
+        cache: 'no-store', // Disable caching to always fetch fresh data
+        next: { revalidate: 60 } // Revalidate every 60 seconds
+      }
+    );
+    
+    console.log('✅ Team members fetched:', teamMembers.length);
+    console.log('📋 Team members data:', teamMembers.map(m => ({ 
+      name: m.name, 
+      slug: m.slug?.current,
+      featured: m.featured,
+      available: m.available 
+    })));
+  } catch (error) {
+    console.error('❌ Error fetching team members:', error);
+    teamMembers = [];
+  }
 
   const featuredMembers = teamMembers.filter(member => member.featured);
   const availableMembers = teamMembers.filter(member => member.available);
   const regularMembers = teamMembers.filter(member => !member.featured);
+  
+  console.log('📊 Team breakdown:', {
+    total: teamMembers.length,
+    featured: featuredMembers.length,
+    available: availableMembers.length,
+    regular: regularMembers.length
+  });
 
   return (
     <div className="min-h-screen">
@@ -112,13 +144,36 @@ export default async function TeamPage() {
             </h2>
           </div>
           
-          {regularMembers.length > 0 ? (
+          {/* Show all members if no one is featured, otherwise show non-featured members */}
+          {teamMembers.length === 0 ? (
+            <GlassCard className="p-12 text-center">
+              <Users className="w-16 h-16 text-white/20 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">No Team Members Yet</h3>
+              <p className="text-white/60 mb-4">Team member profiles will be added soon.</p>
+              <a 
+                href="/contact" 
+                className="inline-block px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all"
+              >
+                Contact Us
+              </a>
+            </GlassCard>
+          ) : featuredMembers.length > 0 && regularMembers.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {regularMembers.map((member, idx) => (
                 <TeamMemberCard 
                   key={member._id} 
                   member={member} 
                   index={featuredMembers.length + idx} 
+                />
+              ))}
+            </div>
+          ) : featuredMembers.length === 0 && teamMembers.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {teamMembers.map((member, idx) => (
+                <TeamMemberCard 
+                  key={member._id} 
+                  member={member} 
+                  index={idx} 
                 />
               ))}
             </div>

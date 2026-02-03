@@ -21,8 +21,15 @@ import {
   TrendingUp
 } from 'lucide-react';
 
+// Revalidate every 60 seconds to ensure fresh team data
+export const revalidate = 60;
+
 export async function generateStaticParams() {
-  const members = await client.fetch<TeamMember[]>(TEAM_MEMBERS_QUERY);
+  const members = await client.fetch<TeamMember[]>(
+    TEAM_MEMBERS_QUERY,
+    {},
+    { cache: 'no-store' }
+  );
   return members.map((member) => ({
     slug: member.slug.current,
   }));
@@ -30,7 +37,11 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const member = await client.fetch<TeamMember>(TEAM_MEMBER_QUERY, { slug });
+  const member = await client.fetch<TeamMember>(
+    TEAM_MEMBER_QUERY, 
+    { slug },
+    { cache: 'no-store' }
+  );
   
   if (!member) return { title: 'Team Member Not Found' };
 
@@ -42,7 +53,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function TeamMemberDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const member = await client.fetch<TeamMember>(TEAM_MEMBER_QUERY, { slug });
+  const member = await client.fetch<TeamMember>(
+    TEAM_MEMBER_QUERY, 
+    { slug },
+    { cache: 'no-store', next: { revalidate: 60 } }
+  );
 
   if (!member) {
     notFound();
