@@ -224,6 +224,7 @@ export default function MeetingForm({
         selectedCategory: '',
         selectedSubcategory: '',
         selectedService: '',
+        teamMember: '',
       });
 
       if (onSuccess) {

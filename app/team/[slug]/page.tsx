@@ -14,6 +14,7 @@ import { Footer } from '@/components/layout/Footer';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GradientButton } from '@/components/ui/GradientButton';
 import MeetingForm from '@/components/meetings/MeetingForm';
+import { PortableText } from '@portabletext/react';
 import { 
   Briefcase, 
   GraduationCap, 
@@ -177,16 +178,15 @@ export default function TeamMemberDetailPage({ params }: { params: Promise<{ slu
       </section>
 
       {/* Full Description/About Section */}
-      {member.fullDescription && (
+      {member.fullDescription && Array.isArray(member.fullDescription) && (
         <section className="relative py-12">
           <div className="container mx-auto px-4">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">About {member.name.split(' ')[0]}</h2>
               <GlassCard className="p-8">
                 <div className="prose prose-invert prose-lg max-w-none">
-                  <p className="text-white/80 leading-relaxed whitespace-pre-wrap">
-                    {member.fullDescription}
-                  </p>
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  <PortableText value={member.fullDescription as any} />
                 </div>
               </GlassCard>
             </div>

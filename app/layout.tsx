@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
@@ -54,8 +55,10 @@ export default function RootLayout({
         
         {/* Analytics */}
         {measurementId && <GoogleAnalytics measurementId={measurementId} />}
-        {gtmId && <GoogleTagManager gtmId={gtmId} />}
-        {facebookPixelId && <FacebookPixel pixelId={facebookPixelId} />}
+        <Suspense fallback={null}>
+          {gtmId && <GoogleTagManager gtmId={gtmId} />}
+          {facebookPixelId && <FacebookPixel pixelId={facebookPixelId} />}
+        </Suspense>
         
         <SessionWrapper>
           <ReactQueryProvider>
