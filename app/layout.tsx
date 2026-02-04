@@ -4,6 +4,8 @@ import "./globals.css";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/analytics/GoogleTagManager";
+import { FacebookPixel } from "@/components/analytics/FacebookPixel";
 import { TemplateTransition } from "@/components/transitions/TemplateTransition";
 import { generateSiteMetadata } from "@/lib/metadata";
 import { Analytics } from '@vercel/analytics/react';
@@ -30,6 +32,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "";
+  const gtmId = process.env.NEXT_PUBLIC_GTM_ID || "";
+  const facebookPixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || "";
   
   return (
     <html lang="en" className="lenis">
@@ -37,6 +41,9 @@ export default function RootLayout({
         <meta name="google-adsense-account" content="ca-pub-5440986495958060" />
       </head>
       <body className={`${inter.variable} antialiased`}>
+        {/* Google Tag Manager (noscript) */}
+        {gtmId && <GoogleTagManagerNoScript gtmId={gtmId} />}
+        
         {/* Google AdSense - Site Verification & Ownership - Must load before interactive */}
         <Script
           async
@@ -45,7 +52,11 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
         
+        {/* Analytics */}
         {measurementId && <GoogleAnalytics measurementId={measurementId} />}
+        {gtmId && <GoogleTagManager gtmId={gtmId} />}
+        {facebookPixelId && <FacebookPixel pixelId={facebookPixelId} />}
+        
         <SessionWrapper>
           <ReactQueryProvider>
             <SmoothScrollProvider>

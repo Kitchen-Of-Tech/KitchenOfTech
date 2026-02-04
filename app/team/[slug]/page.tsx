@@ -1,5 +1,8 @@
-﻿import { client } from '@/lib/sanity/client';
-import { TEAM_MEMBER_QUERY, TEAM_MEMBERS_QUERY } from '@/lib/sanity/queries';
+﻿'use client';
+
+import { useEffect, useState } from 'react';
+import { client } from '@/lib/sanity/client';
+import { TEAM_MEMBER_QUERY } from '@/lib/sanity/queries';
 import type { TeamMember } from '@/types';
 import type { Image as SanityImageSource } from 'sanity';
 import Image from 'next/image';
@@ -10,6 +13,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { GradientButton } from '@/components/ui/GradientButton';
+import MeetingForm from '@/components/meetings/MeetingForm';
 import { 
   Briefcase, 
   GraduationCap, 
@@ -21,43 +25,38 @@ import {
   TrendingUp
 } from 'lucide-react';
 
-// Revalidate every 60 seconds to ensure fresh team data
-export const revalidate = 60;
+export default function TeamMemberDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const [member, setMember] = useState<TeamMember | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showMeetingForm, setShowMeetingForm] = useState(false);
 
-export async function generateStaticParams() {
-  const members = await client.fetch<TeamMember[]>(
-    TEAM_MEMBERS_QUERY,
-    {},
-    { cache: 'no-store' }
-  );
-  return members.map((member) => ({
-    slug: member.slug.current,
-  }));
-}
+  useEffect(() => {
+    const fetchMember = async () => {
+      try {
+        const { slug } = await params;
+        const data = await client.fetch<TeamMember>(
+          TEAM_MEMBER_QUERY,
+          { slug },
+          { cache: 'no-store', next: { revalidate: 60 } }
+        );
+        setMember(data);
+      } catch (error) {
+        console.error('Error fetching team member:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const member = await client.fetch<TeamMember>(
-    TEAM_MEMBER_QUERY, 
-    { slug },
-    { cache: 'no-store' }
-  );
-  
-  if (!member) return { title: 'Team Member Not Found' };
+    fetchMember();
+  }, [params]);
 
-  return {
-    title: `${member.name} - ${member.designation} | KitchenOfTech`,
-    description: member.shortDescription || `Learn more about ${member.name}, ${member.designation} at KitchenOfTech`,
-  };
-}
-
-export default async function TeamMemberDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const member = await client.fetch<TeamMember>(
-    TEAM_MEMBER_QUERY, 
-    { slug },
-    { cache: 'no-store', next: { revalidate: 60 } }
-  );
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="animate-pulse text-white">Loading...</div>
+      </div>
+    );
+  }
 
   if (!member) {
     notFound();
@@ -66,6 +65,23 @@ export default async function TeamMemberDetailPage({ params }: { params: Promise
   return (
     <div className="min-h-screen">
       <Navbar />
+      
+      {/* Meeting Form Modal */}
+      {showMeetingForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <MeetingForm
+              preselectedTeamMember={{
+                name: member.name,
+                slug: member.slug.current,
+              }}
+              onClose={() => setShowMeetingForm(false)}
+              onSuccess={() => setShowMeetingForm(false)}
+            />
+          </div>
+        </div>
+      )}
+      
       <main className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black">
         {/* Background Effects */}
         <div className="fixed inset-0 pointer-events-none">
@@ -132,11 +148,11 @@ export default async function TeamMemberDetailPage({ params }: { params: Promise
                   </div>
                 )}
 
-                <Link href="/contact">
+                <button onClick={() => setShowMeetingForm(true)}>
                   <GradientButton size="lg">
                     Hire {member.name.split(' ')[0]}
                   </GradientButton>
-                </Link>
+                </button>
 
                 {/* Social Links */}
                 {member.socialLinks && member.socialLinks.length > 0 && (
@@ -159,6 +175,24 @@ export default async function TeamMemberDetailPage({ params }: { params: Promise
           </div>
         </div>
       </section>
+
+      {/* Full Description/About Section */}
+      {member.fullDescription && (
+        <section className="relative py-12">
+          <div className="container mx-auto px-4">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-6">About {member.name.split(' ')[0]}</h2>
+              <GlassCard className="p-8">
+                <div className="prose prose-invert prose-lg max-w-none">
+                  <p className="text-white/80 leading-relaxed whitespace-pre-wrap">
+                    {member.fullDescription}
+                  </p>
+                </div>
+              </GlassCard>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Technologies */}
       {member.technologies && member.technologies.length > 0 && (
@@ -434,11 +468,11 @@ export default async function TeamMemberDetailPage({ params }: { params: Promise
                   : `Reach out to discuss future opportunities with ${member.name.split(' ')[0]}.`
                 }
               </p>
-              <Link href="/contact">
+              <button onClick={() => setShowMeetingForm(true)}>
                 <GradientButton size="lg">
                   Hire {member.name.split(' ')[0]} Now
                 </GradientButton>
-              </Link>
+              </button>
             </GlassCard>
           </div>
         </div>

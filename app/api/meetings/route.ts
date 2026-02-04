@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail, formatMeetingNotificationEmail } from '@/lib/mail';
 import { checkRateLimit } from '@/lib/middleware/rate-limit';
+import { trackServerLead } from '@/lib/facebook/server-events';
 
 // Initialize Supabase client with service role key
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
       preferred_datetime,
       service_slug,
       service_title,
+      team_member,
     } = body;
 
     // Validate required fields
@@ -71,13 +73,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Create meeting record
+    const meetingMessage = team_member
+      ? `Requested team member: ${team_member}\n\n${message?.trim() || ''}`
+      : message?.trim() || null;
+
     const { data: meeting, error: insertError } = await supabase
       .from('meetings')
       .insert({
         name: name.trim(),
         email: hasEmail ? email.trim() : null,
         phone: hasPhone ? phone.trim() : null,
-        message: message?.trim() || null,
+        message: meetingMessage,
         preferred_datetime: preferred_datetime || null,
         service_slug: service_slug || null,
         service_title: service_title || null,
@@ -144,6 +150,23 @@ export async function POST(request: NextRequest) {
           notification_sent_at: new Date().toISOString(),
         })
         .eq('id', meeting.id);
+    }
+
+    // Track conversion with Facebook Server-Side API
+    try {
+      await trackServerLead({
+        email: meeting.email || undefined,
+        phone: meeting.phone || undefined,
+        event_source_url: request.headers.get('referer') || undefined,
+        custom_data: {
+          service: meeting.service_title || 'Not specified',
+          meeting_id: meeting.id,
+          content_category: 'Meeting Request',
+        },
+      });
+    } catch (fbError) {
+      console.error('Failed to track Facebook conversion:', fbError);
+      // Don't fail the request if tracking fails
     }
 
     return NextResponse.json({

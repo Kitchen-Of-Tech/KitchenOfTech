@@ -8,6 +8,10 @@ interface MeetingFormProps {
     slug: string;
     title: string;
   };
+  preselectedTeamMember?: {
+    name: string;
+    slug: string;
+  };
   onClose?: () => void;
   onSuccess?: () => void;
 }
@@ -44,6 +48,7 @@ interface Service {
 
 export default function MeetingForm({
   preselectedService,
+  preselectedTeamMember,
   onClose,
   onSuccess,
 }: MeetingFormProps) {
@@ -54,6 +59,7 @@ export default function MeetingForm({
     selectedCategory: '',
     selectedSubcategory: '',
     selectedService: '',
+    teamMember: preselectedTeamMember?.name || '',
   });
 
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
@@ -200,6 +206,7 @@ export default function MeetingForm({
           phone: formData.whatsapp.trim() || undefined,
           service_slug: selectedService?.slug.current,
           service_title: selectedService?.title,
+          team_member: formData.teamMember || undefined,
         }),
       });
 
