@@ -2,19 +2,37 @@
 
 import { useEffect, useRef, useState } from "react";
 import { client, urlFor } from "@/lib/sanity/client";
-import { CLIENT_LOGOS_QUERY } from "@/lib/sanity/queries";
+import { CLIENT_LOGOS_QUERY, HOME_PAGE_QUERY } from "@/lib/sanity/queries";
 import type { ClientLogo } from "@/types";
 import type { Image as SanityImageSource } from "sanity";
 import Image from "next/image";
+
+interface ClientLogoSection {
+  enabled?: boolean;
+  title?: string;
+  subtitle?: string;
+}
 
 export function BrandLogoBar() {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [logos, setLogos] = useState<ClientLogo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sectionSettings, setSectionSettings] = useState<ClientLogoSection>({
+    enabled: true,
+    title: "Trusted by Industry Leaders",
+    subtitle: "Join hundreds of satisfied clients worldwide",
+  });
 
   useEffect(() => {
-    const fetchLogos = async () => {
+    const fetchData = async () => {
       try {
+        // Fetch home page settings
+        const homeData = await client.fetch<{ clientLogoSection?: ClientLogoSection }>(HOME_PAGE_QUERY);
+        if (homeData?.clientLogoSection) {
+          setSectionSettings(homeData.clientLogoSection);
+        }
+
+        // Fetch client logos
         const clientLogos = await client.fetch<ClientLogo[]>(CLIENT_LOGOS_QUERY);
         if (clientLogos && clientLogos.length > 0) {
           setLogos(clientLogos.filter(logo => logo.featured));
@@ -26,7 +44,7 @@ export function BrandLogoBar() {
       }
     };
 
-    fetchLogos();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -44,8 +62,8 @@ export function BrandLogoBar() {
     }
   }, [logos]);
 
-  // Don't render if no logos
-  if (!loading && logos.length === 0) {
+  // Don't render if disabled or no logos
+  if (!loading && (sectionSettings.enabled === false || logos.length === 0)) {
     return null;
   }
 
@@ -58,10 +76,10 @@ export function BrandLogoBar() {
         {/* Section Header */}
         <div className="text-center mb-12 px-4">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-            Trusted by Industry Leaders
+            {sectionSettings.title}
           </h2>
           <p className="text-white/60">
-            Join hundreds of satisfied clients worldwide
+            {sectionSettings.subtitle}
           </p>
         </div>
 

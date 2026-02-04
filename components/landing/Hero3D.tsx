@@ -5,53 +5,84 @@ import { Laptop3D } from "@/components/landing/Laptop3D";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { client } from "@/lib/sanity/client";
-import { SERVICE_CATEGORIES_QUERY, SITE_SETTINGS_QUERY } from "@/lib/sanity/queries";
-import type { ServiceCategory, SiteSettings } from "@/types";
+import { HOME_PAGE_QUERY } from "@/lib/sanity/queries";
+
+interface HomePageData {
+  heroSection?: {
+    title: string;
+    subtitle: string;
+    primaryButtonText?: string;
+    primaryButtonLink?: string;
+    secondaryButtonText?: string;
+    secondaryButtonLink?: string;
+  };
+  serviceTags?: Array<{
+    tag: string;
+    order: number;
+  }>;
+}
 
 export function Hero3D() {
-  const [heroTitle, setHeroTitle] = useState("Transform Your Digital Presence");
-  const [heroSubtitle, setHeroSubtitle] = useState("Cutting-edge IT solutions and creative services that bring your vision to life");
-  const [serviceTags, setServiceTags] = useState<string[]>([
-    "Web Development",
-    "Mobile Apps",
-    "UI/UX Design",
-    "Digital Marketing",
-    "AI Solutions",
-    "Cloud Services",
-  ]);
+  const [pageData, setPageData] = useState<HomePageData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fallback data
+  const defaultData: HomePageData = {
+    heroSection: {
+      title: "Transform Your Digital Presence with Kitchen Of Tech",
+      subtitle: "Cutting-edge IT solutions and creative services that bring your vision to life with innovation, expertise, and excellence",
+      primaryButtonText: "Explore Our Services",
+      primaryButtonLink: "/services",
+      secondaryButtonText: "Schedule a Meeting",
+      secondaryButtonLink: "/meeting",
+    },
+    serviceTags: [
+      { tag: "Web Development", order: 1 },
+      { tag: "Mobile Apps", order: 2 },
+      { tag: "UI/UX Design", order: 3 },
+      { tag: "Digital Marketing", order: 4 },
+      { tag: "AI Solutions", order: 5 },
+      { tag: "Cloud Services", order: 6 },
+    ],
+  };
 
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        // Fetch site settings for hero content
-        const settings = await client.fetch<SiteSettings>(SITE_SETTINGS_QUERY);
-        if (settings) {
-          // Use seo.metaTitle and siteDescription as hero content if available
-          if (settings.seo?.metaTitle) {
-            setHeroTitle(settings.seo.metaTitle);
-          } else if (settings.siteName) {
-            setHeroTitle(`Transform Your Digital Presence with ${settings.siteName}`);
-          }
-          
-          if (settings.siteDescription) {
-            setHeroSubtitle(settings.siteDescription);
-          }
-        }
-
-        // Fetch service categories for tags
-        const categories = await client.fetch<ServiceCategory[]>(SERVICE_CATEGORIES_QUERY);
-        if (categories && categories.length > 0) {
-          const tags = categories.slice(0, 6).map(cat => cat.title);
-          setServiceTags(tags);
+        const data = await client.fetch<HomePageData>(HOME_PAGE_QUERY);
+        if (data && data.heroSection) {
+          setPageData(data);
+        } else {
+          setPageData(defaultData);
         }
       } catch (error) {
-        console.error("Error fetching hero content:", error);
-        // Keep default fallback values
+        console.error("Error fetching home page content:", error);
+        setPageData(defaultData);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchContent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const heroData = pageData?.heroSection || defaultData.heroSection!;
+  const serviceTags = pageData?.serviceTags || defaultData.serviceTags!;
+
+  // Split title intelligently for gradient effect
+  const titleWords = heroData.title.split(' ');
+  const splitIndex = Math.ceil(titleWords.length * 0.4); // First 40% normal, rest gradient
+  const normalTitle = titleWords.slice(0, splitIndex).join(' ');
+  const gradientTitle = titleWords.slice(splitIndex).join(' ');
+
+  if (isLoading) {
+    return (
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <div className="text-white text-xl">Loading...</div>
+      </section>
+    );
+  }
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Background Gradient */}
@@ -68,37 +99,41 @@ export function Hero3D() {
           <div className="space-y-8 text-center lg:text-left">
             <div className="space-y-4 animate-fade-up">
               <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight">
-                <span className="text-white">{heroTitle.split(' ').slice(0, 2).join(' ')}</span>
-                <br />
-                <span className="text-gradient">{heroTitle.split(' ').slice(2).join(' ')}</span>
+                <span className="text-white">{normalTitle}</span>
+                {gradientTitle && (
+                  <>
+                    <br />
+                    <span className="text-gradient">{gradientTitle}</span>
+                  </>
+                )}
               </h1>
-              <p className="text-lg md:text-xl lg:text-2xl text-white/70 max-w-2xl mx-auto lg:mx-0">
-                {heroSubtitle}
+              <p className="text-lg md:text-xl lg:text-2xl text-white/70 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                {heroData.subtitle}
               </p>
             </div>
 
             {/* Services Tags */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-3 animate-fade-up" style={{ animationDelay: "0.2s" }}>
-              {serviceTags.map((service) => (
+              {serviceTags.map((service, index) => (
                 <span
-                  key={service}
+                  key={index}
                   className="px-4 py-2 glass rounded-full text-sm text-white/80 hover:text-white hover:bg-white/10 transition-all cursor-default"
                 >
-                  {service}
+                  {service.tag}
                 </span>
               ))}
             </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center animate-fade-up" style={{ animationDelay: "0.4s" }}>
-              <Link href="/services">
+              <Link href={heroData.primaryButtonLink || "/services"}>
                 <GradientButton variant="primary" size="lg">
-                  Explore Our Services
+                  {heroData.primaryButtonText || "Explore Our Services"}
                 </GradientButton>
               </Link>
-              <Link href="/meeting">
+              <Link href={heroData.secondaryButtonLink || "/meeting"}>
                 <GradientButton variant="outline" size="lg">
-                  Schedule a Meeting
+                  {heroData.secondaryButtonText || "Schedule a Meeting"}
                 </GradientButton>
               </Link>
             </div>

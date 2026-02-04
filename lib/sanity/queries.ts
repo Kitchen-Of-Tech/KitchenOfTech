@@ -825,3 +825,49 @@ export const CONTACT_PAGE_QUERY = groq`
     }
   }
 `;
+
+// Home Page Query
+export const HOME_PAGE_QUERY = groq`
+  *[_type == "homePage"][0] {
+    _id,
+    heroSection {
+      title,
+      subtitle,
+      primaryButtonText,
+      primaryButtonLink,
+      secondaryButtonText,
+      secondaryButtonLink
+    },
+    serviceTags[] {
+      tag,
+      order
+    } | order(order asc),
+    clientLogoSection {
+      enabled,
+      title,
+      subtitle
+    },
+    stats {
+      enabled,
+      items[] {
+        number,
+        label,
+        icon
+      }
+    },
+    featuredSection {
+      enabled,
+      title,
+      description,
+      image,
+      buttonText,
+      buttonLink
+    },
+    seo {
+      title,
+      description,
+      keywords,
+      ogImage
+    }
+  }
+`;

@@ -2,6 +2,7 @@ import { branding } from "./branding";
 import { siteSettings } from "./siteSettings";
 import { footerSettings } from "./footerSettings";
 import { contactPage } from "./contactPage";
+import { homePage } from "./homePage";
 import { service } from "./service";
 import { serviceCategory } from "./serviceCategory";
 import { serviceSubcategory } from "./serviceSubcategory";
@@ -30,6 +31,7 @@ export const schemaTypes = [
   siteSettings,
   footerSettings,
   contactPage,
+  homePage,
   // Services
   serviceCategory,
   serviceSubcategory,
