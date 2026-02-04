@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, MoreHorizontal, Home, Briefcase, GraduationCap, FolderOpen, BookOpen, Star, Users, ShieldCheck, LogIn, Calendar, FileText } from "lucide-react";
+import { Menu, X, MoreHorizontal, Home, Briefcase, GraduationCap, FolderOpen, BookOpen, Star, Users, ShieldCheck, LogIn, Calendar, FileText, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { client, urlFor } from "@/lib/sanity/client";
 import { SITE_SETTINGS_QUERY } from "@/lib/sanity/queries";
@@ -27,6 +27,7 @@ const navItems: NavItem[] = [
 const dropdownItems: NavItem[] = [
   { label: "Testimonials", href: "/testimonials", icon: Star },
   { label: "Team Members", href: "/team", icon: Users },
+  { label: "Contact Us", href: "/contact", icon: MessageSquare },
   { label: "Certificate Verify", href: "/certificate-verify", icon: ShieldCheck },
 ];
 

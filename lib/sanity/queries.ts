@@ -774,3 +774,54 @@ export const AVAILABLE_TEAM_MEMBERS_QUERY = groq`
     technologies
   }
 `;
+
+// Contact Page Query
+export const CONTACT_PAGE_QUERY = groq`
+  *[_type == "contactPage"][0] {
+    _id,
+    heroSection {
+      badge,
+      title,
+      description
+    },
+    contactInfo[] {
+      icon,
+      title,
+      value,
+      link,
+      description
+    },
+    formSettings {
+      title,
+      description,
+      successMessage,
+      submitButtonText
+    },
+    whyChooseUs {
+      title,
+      items[] {
+        title,
+        description
+      }
+    },
+    socialLinks[] {
+      platform,
+      url,
+      label
+    },
+    quote {
+      text,
+      author
+    },
+    mapSettings {
+      enabled,
+      embedUrl,
+      placeholderText
+    },
+    seo {
+      title,
+      description,
+      keywords
+    }
+  }
+`;
