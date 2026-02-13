@@ -10,6 +10,14 @@ interface TemplateTransitionProps {
 
 export function TemplateTransition({ children }: TemplateTransitionProps) {
   const pathname = usePathname();
+  
+  // Disable transitions for Sanity Studio
+  const isStudioRoute = pathname?.startsWith('/studio');
+
+  // If in Studio, just return children without transitions
+  if (isStudioRoute) {
+    return <>{children}</>;
+  }
 
   return (
     <>

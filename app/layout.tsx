@@ -37,11 +37,11 @@ export default function RootLayout({
   const facebookPixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || "";
   
   return (
-    <html lang="en" className="lenis">
+    <html lang="en" className="lenis" suppressHydrationWarning>
       <head>
         <meta name="google-adsense-account" content="ca-pub-5440986495958060" />
       </head>
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${inter.variable} antialiased`} suppressHydrationWarning>
         {/* Google Tag Manager (noscript) */}
         {gtmId && <GoogleTagManagerNoScript gtmId={gtmId} />}
         

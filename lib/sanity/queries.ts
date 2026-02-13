@@ -71,30 +71,6 @@ export const BRANDING_QUERY = groq`
   }
 `;
 
-// Navbar Query
-export const NAVBAR_QUERY = groq`
-  *[_type == "navbar"][0] {
-    _id,
-    items[] {
-      label,
-      href,
-      order
-    },
-    ctaButton {
-      label,
-      href
-    },
-    dropdownItems[] {
-      label,
-      items[] {
-        label,
-        href,
-        order
-      }
-    }
-  }
-`;
-
 // Service Categories Query
 export const SERVICE_CATEGORIES_QUERY = groq`
   *[_type == "serviceCategory"] | order(order asc) {

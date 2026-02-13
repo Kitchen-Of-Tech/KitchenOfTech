@@ -73,25 +73,6 @@ export interface Branding {
   };
 }
 
-export interface NavbarItem {
-  label: string;
-  href: string;
-  order: number;
-}
-
-export interface Navbar {
-  _id: string;
-  items: NavbarItem[];
-  ctaButton: {
-    label: string;
-    href: string;
-  };
-  dropdownItems: {
-    label: string;
-    items: NavbarItem[];
-  }[];
-}
-
 export interface ClientLogo {
   _id: string;
   name: string;
