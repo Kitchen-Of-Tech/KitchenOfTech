@@ -40,6 +40,7 @@ export default function RootLayout({
     <html lang="en" className="lenis" suppressHydrationWarning>
       <head>
         <meta name="google-adsense-account" content="ca-pub-5440986495958060" />
+        <meta name="facebook-domain-verification" content="dmg4cikafzt7pk12ndr4jtyu1565gm" />
       </head>
       <body className={`${inter.variable} antialiased`} suppressHydrationWarning>
         {/* Google Tag Manager (noscript) */}
