@@ -41,6 +41,7 @@ export default function RootLayout({
       <head>
         <meta name="google-adsense-account" content="ca-pub-5440986495958060" />
         <meta name="facebook-domain-verification" content="tmpin48vno7ppm67u2fdjgq9h5adjd" />
+        <meta name="facebook-domain-verification" content="tmpin48vno7ppm67u2fdjgq9h5adjd" />
       </head>
       <body className={`${inter.variable} antialiased`} suppressHydrationWarning>
         {/* Google Tag Manager (noscript) */}
