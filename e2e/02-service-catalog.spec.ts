@@ -39,7 +39,7 @@ test.describe('Service Catalog', () => {
       
       // Verify URL or content changed
       const url = page.url();
-      expect(url).toContain('development' || 'services');
+      expect(url.includes('development') || url.includes('services')).toBeTruthy();
     }
   });
 

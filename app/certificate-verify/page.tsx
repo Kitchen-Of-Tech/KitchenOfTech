@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Search, Award, CheckCircle, XCircle, Calendar, User, BookOpen } from "lucide-react";
-import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
@@ -91,7 +90,6 @@ export default function CertificateVerifyPage() {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
       <main>
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">

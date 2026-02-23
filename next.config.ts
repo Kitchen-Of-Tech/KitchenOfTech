@@ -1,6 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Prevent Turbopack bundling Sanity packages server-side.
+  // Stops the sanity → next-sanity → history (CJS) crash on the server.
+  // 'history' is excluded intentionally — Turbopack bundles it client-side fine.
+  serverExternalPackages: [
+    "sanity",
+    "next-sanity",
+    "@sanity/client",
+    "@sanity/ui",
+    "@sanity/icons",
+    "@sanity/vision",
+    "@sanity/color-input",
+    "@sanity/code-input",
+    "styled-components",
+  ],
   images: {
     remotePatterns: [
       {
@@ -24,6 +38,13 @@ const nextConfig: NextConfig = {
     // Temporarily ignore build errors for faster iteration
     ignoreBuildErrors: false,
   },
+  // Expose a public flag to the browser to silence Sanity's client-side
+  // update/version checks which can cause noisy `Failed to fetch` logs
+  // in local/dev environments where the module CDN requests may fail.
+  env: {
+    NEXT_PUBLIC_SANITY_STUDIO_DISABLE_UPDATE_NOTIFIER:
+      process.env.NEXT_PUBLIC_SANITY_STUDIO_DISABLE_UPDATE_NOTIFIER ?? 'true',
+  },
   async headers() {
     return [
       {
@@ -42,8 +63,8 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https://cdn.sanity.io https://*.sanity.io https://i.pravatar.cc https://www.google-analytics.com https://ssl.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://*.facebook.com",
               // Fonts: self, Google Fonts
               "font-src 'self' https://fonts.gstatic.com data:",
-              // Connect: self, Sanity API, Supabase, Sentry, Analytics, Facebook
-              "connect-src 'self' https://cdn.sanity.io https://*.sanity.io https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://www.google-analytics.com https://ssl.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://vercel.live",
+              // Connect: self, Sanity API + CDN (incl sanity-cdn.com for auto-update checks), Supabase, Sentry, Analytics, Facebook
+              "connect-src 'self' https://cdn.sanity.io https://*.sanity.io https://sanity-cdn.com https://sanity-cdn.work https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://www.google-analytics.com https://ssl.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://stats.g.doubleclick.net https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://vercel.live",
               // Frames: YouTube, Vimeo (for embedded videos if any)
               "frame-src 'self' https://www.youtube.com https://player.vimeo.com https://www.facebook.com https://vercel.live https://td.doubleclick.net",
               // Object and embed: none

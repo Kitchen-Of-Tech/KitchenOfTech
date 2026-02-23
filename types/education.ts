@@ -2,6 +2,19 @@
 // EDUCATION PLATFORM TYPES
 // =====================================================
 
+// Portable Text block type (lightweight — avoids @portabletext/types dependency in shared types)
+type PortableTextBlock = {
+  _type: string;
+  _key?: string;
+  children?: Array<{ _key?: string; _type?: string; text?: string; marks?: string[] }>;
+  markDefs?: Array<{ _key: string; _type: string; [key: string]: unknown }>;
+  style?: string;
+  [key: string]: unknown;
+};
+
+// Generic answer map: question id → answer value (string, number, boolean, or array of strings)
+type QuizAnswerMap = Record<string, string | number | boolean | string[]>;
+
 export interface Instructor {
   _id: string;
   _type: "instructor";
@@ -64,7 +77,7 @@ export interface Assignment {
   _id: string;
   _type: "assignment";
   title: string;
-  description: any[]; // Portable Text
+  description: PortableTextBlock[]; // Portable Text
   instructions?: string;
   facebookGroupUrl: string;
   dueDate?: string;
@@ -98,7 +111,7 @@ export interface Lesson {
   isFree: boolean;
   transcript?: string;
   resources?: LessonResource[];
-  notes?: any[]; // Portable Text
+  notes?: PortableTextBlock[]; // Portable Text
 }
 
 export interface Module {
@@ -119,11 +132,11 @@ export interface Course {
   slug: { current: string };
   subtitle?: string;
   description: string;
-  fullDescription: any[]; // Portable Text
-  thumbnail: {
-    asset: {
-      _ref: string;
-      url: string;
+  fullDescription: PortableTextBlock[]; // Portable Text
+  thumbnail?: {
+    asset?: {
+      _ref?: string;
+      url?: string;
     };
   };
   promoVideo?: string;
@@ -190,7 +203,7 @@ export interface QuizAttempt {
   enrollment_id: string;
   quiz_id: string;
   attempt_number: number;
-  answers: Record<string, any>;
+  answers: QuizAnswerMap;
   score: number;
   passed: boolean;
   time_taken?: number;
@@ -355,7 +368,7 @@ export interface ValidateCouponResponse {
 export interface SubmitQuizRequest {
   enrollmentId: string;
   quizId: string;
-  answers: Record<string, any>;
+  answers: QuizAnswerMap;
   timeTaken?: number;
 }
 
@@ -364,7 +377,7 @@ export interface SubmitQuizResponse {
   score: number;
   passed: boolean;
   attempt: QuizAttempt;
-  correctAnswers?: Record<string, any>;
+  correctAnswers?: QuizAnswerMap;
 }
 
 export interface SubmitAssignmentRequest {

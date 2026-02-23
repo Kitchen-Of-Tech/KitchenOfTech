@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
@@ -55,7 +54,6 @@ export default async function ServicesPage() {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
       <ErrorBoundary>
         <main>
         {/* Hero Section */}

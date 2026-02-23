@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, MoreHorizontal, Home, Briefcase, GraduationCap, FolderOpen, BookOpen, Star, Users, ShieldCheck, LogIn, Calendar, FileText, MessageSquare } from "lucide-react";
+import { Menu, X, MoreHorizontal, Home, Briefcase, GraduationCap, FolderOpen, BookOpen, Star, Users, ShieldCheck, LogIn, Calendar, FileText, MessageSquare, Rocket } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { client, urlFor } from "@/lib/sanity/client";
 import { SITE_SETTINGS_QUERY } from "@/lib/sanity/queries";
 import type { SiteSettings } from "@/types";
+import type { Image as SanityImageSource } from "sanity";
 
 interface NavItem {
   label: string;
@@ -25,6 +26,7 @@ const navItems: NavItem[] = [
 ];
 
 const dropdownItems: NavItem[] = [
+  { label: "BootKot", href: "/bootkot", icon: Rocket },
   { label: "Testimonials", href: "/testimonials", icon: Star },
   { label: "Team Members", href: "/team", icon: Users },
   { label: "Contact Us", href: "/contact", icon: MessageSquare },
@@ -36,6 +38,16 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleDropdownEnter = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setDropdownOpen(true);
+  };
+
+  const handleDropdownLeave = () => {
+    closeTimer.current = setTimeout(() => setDropdownOpen(false), 150);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -78,7 +90,7 @@ export function Navbar() {
               <>
                 <div className="relative w-8 h-8 md:w-10 md:h-10 lg:w-11 lg:h-11 flex-shrink-0">
                   <Image
-                    src={urlFor(siteSettings.logo as any).width(100).height(100).url()}
+                    src={urlFor(siteSettings.logo as SanityImageSource).width(100).height(100).url()}
                     alt={siteSettings.logo.alt || siteSettings.siteName || 'Kitchen of Tech'}
                     fill
                     sizes="(max-width: 768px) 32px, (max-width: 1024px) 40px, 44px"
@@ -116,8 +128,8 @@ export function Navbar() {
             {/* Dropdown - More Options */}
             <div
               className="relative"
-              onMouseEnter={() => setDropdownOpen(true)}
-              onMouseLeave={() => setDropdownOpen(false)}
+              onMouseEnter={handleDropdownEnter}
+              onMouseLeave={handleDropdownLeave}
             >
               <button className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300">
                 <MoreHorizontal className="w-5 h-5" />
@@ -125,20 +137,22 @@ export function Navbar() {
               </button>
 
               {dropdownOpen && (
-                <div className="absolute top-full right-0 mt-2 glass rounded-xl p-2 min-w-[220px] shadow-2xl border border-white/20 animate-fade-down">
-                  {dropdownItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className="flex items-center gap-3 px-4 py-2.5 text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 group"
-                      >
-                        <Icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                        <span className="font-medium">{item.label}</span>
-                      </Link>
-                    );
-                  })}
+                <div className="absolute top-full right-0 pt-2">
+                  <div className="glass rounded-xl p-2 min-w-[220px] shadow-2xl border border-white/20 animate-fade-down">
+                    {dropdownItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className="flex items-center gap-3 px-4 py-2.5 text-white/90 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 group"
+                        >
+                          <Icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                          <span className="font-medium">{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

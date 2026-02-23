@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import CourseCatalog from "@/components/education/CourseCatalog";
 import { sanityFetch } from "@/lib/sanity/client";
@@ -11,12 +10,19 @@ export const metadata: Metadata = {
 };
 
 async function getCourses(): Promise<Course[]> {
-  const query = `*[_type == "course" && status == "published"] | order(publishedAt desc) {
+  const query = `*[_type == "course"] | order(publishedAt desc) {
     _id,
     title,
     slug,
     description,
-    "thumbnail": thumbnail.asset->url,
+    "thumbnail": select(
+      defined(thumbnail.asset) => {
+        "asset": {
+          "_ref": thumbnail.asset._ref,
+          "url": thumbnail.asset->url
+        }
+      }
+    ),
     category,
     level,
     price,
@@ -52,7 +58,6 @@ export default async function EducationPage() {
 
   return (
     <>
-      <Navbar />
       <main className="min-h-screen bg-dark pt-20">
         <CourseCatalog courses={courses} />
       </main>

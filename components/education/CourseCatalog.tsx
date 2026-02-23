@@ -298,16 +298,22 @@ function CourseCard({ course, featured = false }: { course: Course; featured?: b
     <Link href={`/education/${course.slug.current}`}>
       <GlassCard className={`group overflow-hidden hover:scale-105 transition-all duration-300 ${featured ? "border-primary/50" : ""}`}>
         {/* Thumbnail */}
-        <div className="relative aspect-video overflow-hidden">
-          <Image
-            src={course.thumbnail.asset.url}
-            alt={course.title}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover group-hover:scale-110 transition-transform duration-300"
-            placeholder="blur"
-            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iOSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iOSIgZmlsbD0iIzFhMWExYSIvPjwvc3ZnPg=="
-          />
+        <div className="relative aspect-video overflow-hidden bg-white/5">
+          {course.thumbnail?.asset?.url ? (
+            <Image
+              src={course.thumbnail.asset.url}
+              alt={course.title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover group-hover:scale-110 transition-transform duration-300"
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iOSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTYiIGhlaWdodD0iOSIgZmlsbD0iIzFhMWExYSIvPjwvc3ZnPg=="
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Play className="w-12 h-12 text-white/20" />
+            </div>
+          )}
           {course.isFree && (
             <div className="absolute top-3 left-3 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
               FREE

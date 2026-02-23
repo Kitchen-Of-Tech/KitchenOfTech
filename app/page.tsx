@@ -1,5 +1,4 @@
-﻿import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
+﻿import { Footer } from '@/components/layout/Footer';
 import { Hero3D } from '@/components/landing/Hero3D';
 import { ServicesGrid } from '@/components/landing/ServicesGrid';
 import { BrandLogoBar } from '@/components/landing/BrandLogoBar';
@@ -10,7 +9,6 @@ import { MeetingRequestSection } from '@/components/landing/MeetingRequestSectio
 export default function Home() {
   return (
     <div className="min-h-screen">
-      <Navbar />
       <SocialMediaFloat />
       <main>
         <Hero3D />

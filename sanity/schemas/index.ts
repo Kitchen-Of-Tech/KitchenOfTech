@@ -12,6 +12,7 @@ import { clientLogo } from "./clientLogo";
 import { blog } from "./blog";
 import { team } from "./team";
 import { certificate } from "./certificate";
+import { bootcamp } from "./bootcamp";
 // Education Platform Schemas
 import { instructor } from "./instructor";
 import { course } from "./course";
@@ -43,6 +44,8 @@ export const schemaTypes = [
   blog,
   team,
   certificate,
+  // Bootcamp
+  bootcamp,
   // Articles System
   article,
   articleAuthor,

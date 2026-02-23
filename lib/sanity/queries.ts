@@ -847,3 +847,80 @@ export const HOME_PAGE_QUERY = groq`
     }
   }
 `;
+
+// ─── BOOTCAMP QUERIES ────────────────────────────────────────────────────────
+
+const BOOTCAMP_FIELDS = groq`
+  _id,
+  name,
+  slug,
+  shortDescription,
+  fullDescription,
+  startDate,
+  endDate,
+  duration,
+  location,
+  level,
+  maxParticipants,
+  registeredParticipants,
+  technologies,
+  prerequisites,
+  outcomes,
+  price,
+  currency,
+  featured,
+  certificateIncluded,
+  status,
+  registrationDeadline,
+  registrationOpenDate,
+  registrationCloseDate,
+  googleFormUrl,
+  "bannerImage": bannerImage {
+    "asset": asset->{_id, _ref, url},
+    alt,
+    hotspot,
+    crop,
+    "_type": "image"
+  },
+  instructors[] {
+    name,
+    title,
+    bio,
+    specialization,
+    "image": image {
+      "asset": asset->{_id, _ref, url},
+      alt,
+      hotspot,
+      crop,
+      "_type": "image"
+    }
+  },
+  syllabus[] {
+    week,
+    title,
+    topics
+  },
+  seo
+`;
+
+export const ACTIVE_BOOTCAMPS_QUERY = groq`
+  *[_type == "bootcamp" && status in ["open", "planning", "running"]] | order(startDate asc) {
+    ${BOOTCAMP_FIELDS}
+  }
+`;
+
+export const ALL_BOOTCAMPS_QUERY = groq`
+  *[_type == "bootcamp"] | order(startDate desc) {
+    ${BOOTCAMP_FIELDS}
+  }
+`;
+
+export const BOOTCAMP_DETAIL_QUERY = groq`
+  *[_type == "bootcamp" && slug.current == $slug][0] {
+    ${BOOTCAMP_FIELDS},
+    googleSheets {
+      spreadsheetId,
+      apiKey
+    }
+  }
+`;

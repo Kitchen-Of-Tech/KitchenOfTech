@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ExternalLink, Filter } from "lucide-react";
-import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
@@ -31,7 +30,6 @@ export default async function PortfolioPage() {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
       <ErrorBoundary>
       <main>
         {/* Hero Section */}

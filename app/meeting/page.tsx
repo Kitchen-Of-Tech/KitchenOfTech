@@ -1,6 +1,5 @@
 'use client';
 
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import MeetingForm from '@/components/meetings/MeetingForm';
 import { Calendar, CheckCircle2, Clock, Users } from 'lucide-react';
@@ -9,7 +8,6 @@ import { GlassCard } from '@/components/ui/GlassCard';
 export default function MeetingPage() {
   return (
     <>
-      <Navbar />
       <main className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black pt-24 pb-16">
         {/* Background Effects */}
         <div className="fixed inset-0 pointer-events-none">

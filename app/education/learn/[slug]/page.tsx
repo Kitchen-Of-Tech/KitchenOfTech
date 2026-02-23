@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import CoursePlayer from "@/components/education/CoursePlayer";
 import { sanityFetch } from "@/lib/sanity/client";
@@ -148,7 +147,6 @@ export default async function LearnPage({ params }: LearnPageProps) {
 
   return (
     <>
-      <Navbar />
       <main className="min-h-screen bg-dark">
         <CoursePlayer
           course={data.course}

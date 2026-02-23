@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Star, Quote, Filter, Building2, Calendar, Loader2, User } from "lucide-react";
-import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
@@ -96,7 +95,6 @@ export default function TestimonialsPage() {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
       <main>
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">

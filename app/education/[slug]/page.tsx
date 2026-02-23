@@ -117,7 +117,7 @@ export async function generateMetadata({ params }: CoursePageProps): Promise<Met
     openGraph: {
       title: course.title,
       description: course.description,
-      images: [course.thumbnail.asset.url],
+      images: course.thumbnail?.asset?.url ? [course.thumbnail.asset.url] : [],
       type: "website",
     },
   };

@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Tag } from "lucide-react";
-import { Navbar } from "@/components/layout/Navbar";
+import Image from "next/image";
+import { Tag, Calendar, Clock, User } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { GradientButton } from "@/components/ui/GradientButton";
-import { sanityFetch } from "@/lib/sanity/client";
+import { sanityFetch, urlFor } from "@/lib/sanity/client";
 import { BLOG_POSTS_QUERY, BRANDING_QUERY } from "@/lib/sanity/queries";
 import type { BlogPost, Branding } from "@/types";
 
@@ -28,7 +28,6 @@ export default async function BlogPage() {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
       <main>
         <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent" />
@@ -47,6 +46,83 @@ export default async function BlogPage() {
             </ScrollReveal>
           </div>
         </section>
+
+        {posts.length > 0 && (
+          <section className="py-20">
+            <div className="container-custom">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {posts.map((post) => (
+                  <ScrollReveal key={post._id} animation="fade-up">
+                    <Link href={`/blog/${post.slug.current}`} className="block h-full group">
+                      <GlassCard className="overflow-hidden h-full flex flex-col hover:border-white/30 transition-all duration-300 group-hover:-translate-y-1">
+                        {/* Featured Image */}
+                        <div className="relative h-52 w-full overflow-hidden bg-white/5 flex-shrink-0">
+                          {post.featuredImage?.asset ? (
+                            <Image
+                              src={urlFor(post.featuredImage as Parameters<typeof urlFor>[0]).width(600).height(340).url()}
+                              alt={post.featuredImage.alt || post.title}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-500"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Tag className="w-10 h-10 text-white/20" />
+                            </div>
+                          )}
+                          {post.category && (
+                            <span className="absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full bg-primary/80 backdrop-blur-sm text-white">
+                              {post.category}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex flex-col flex-1 p-6 gap-3">
+                          <h2 className="text-lg font-bold text-white leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">
+                            {post.title}
+                          </h2>
+
+                          {post.excerpt && (
+                            <p className="text-sm text-white/60 line-clamp-3 flex-1">
+                              {post.excerpt}
+                            </p>
+                          )}
+
+                          {/* Meta */}
+                          <div className="flex items-center gap-4 text-xs text-white/50 mt-auto pt-3 border-t border-white/10 flex-wrap">
+                            {post.author?.name && (
+                              <span className="flex items-center gap-1.5">
+                                <User className="w-3.5 h-3.5" />
+                                {post.author.name}
+                              </span>
+                            )}
+                            {post.publishedDate && (
+                              <span className="flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5" />
+                                {new Date(post.publishedDate).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })}
+                              </span>
+                            )}
+                            {post.readTime && (
+                              <span className="flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5" />
+                                {post.readTime} min read
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </GlassCard>
+                    </Link>
+                  </ScrollReveal>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {posts.length === 0 && (
           <section className="py-20">

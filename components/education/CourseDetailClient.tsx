@@ -281,7 +281,7 @@ export default function CourseDetailClient({ course }: CourseDetailClientProps) 
                         />
                       ) : (
                         <Image
-                          src={course.thumbnail.asset.url}
+                          src={course.thumbnail?.asset?.url ?? '/placeholder-course.jpg'}
                           alt={course.title}
                           fill
                           className="object-cover"

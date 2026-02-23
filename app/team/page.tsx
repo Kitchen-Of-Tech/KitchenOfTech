@@ -1,7 +1,6 @@
 ﻿import { client } from '@/lib/sanity/client';
 import { TEAM_MEMBERS_QUERY } from '@/lib/sanity/queries';
 import type { TeamMember } from '@/types';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { TeamMemberCard } from '@/components/team/TeamMemberCard';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -24,37 +23,20 @@ export default async function TeamPage() {
       TEAM_MEMBERS_QUERY,
       {},
       {
-        cache: 'no-store', // Disable caching to always fetch fresh data
-        next: { revalidate: 60 } // Revalidate every 60 seconds
+        next: { revalidate: 60, tags: ['team'] }
       }
     );
-    
-    console.log('✅ Team members fetched:', teamMembers.length);
-    console.log('📋 Team members data:', teamMembers.map(m => ({ 
-      name: m.name, 
-      slug: m.slug?.current,
-      featured: m.featured,
-      available: m.available 
-    })));
   } catch (error) {
-    console.error('❌ Error fetching team members:', error);
+    console.error('Error fetching team members:', error);
     teamMembers = [];
   }
 
   const featuredMembers = teamMembers.filter(member => member.featured);
   const availableMembers = teamMembers.filter(member => member.available);
   const regularMembers = teamMembers.filter(member => !member.featured);
-  
-  console.log('📊 Team breakdown:', {
-    total: teamMembers.length,
-    featured: featuredMembers.length,
-    available: availableMembers.length,
-    regular: regularMembers.length
-  });
 
   return (
     <div className="min-h-screen">
-      <Navbar />
       <ErrorBoundary>
       <main className="min-h-screen bg-gradient-to-b from-black via-gray-950 to-black">
         {/* Background Effects */}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Link2, Copy, Check, Mail } from 'lucide-react';
 
@@ -50,7 +49,6 @@ export default function GenerateTestimonialLinkPage() {
 
   return (
     <div className="min-h-screen bg-gradient-dark overflow-x-hidden">
-      <Navbar />
 
       <main className="pt-32 pb-20">
         <div className="container-custom">

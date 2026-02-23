@@ -1,9 +1,14 @@
 export interface SanityImage {
+  _type?: string;
   asset: {
-    _ref: string;
-    _type: "reference";
+    _ref?: string;
+    _type?: "reference";
+    _id?: string;
+    url?: string;
   };
   alt?: string;
+  hotspot?: { x: number; y: number; height: number; width: number };
+  crop?: { top: number; bottom: number; left: number; right: number };
 }
 
 export interface SiteSettings {
@@ -474,5 +479,74 @@ export interface ArticleVote {
   voteType: 'upvote' | 'downvote';
   votedAt: string;
   ipAddress?: string;
+}
+
+// ─── BOOTCAMP TYPES ──────────────────────────────────────────────────────────
+
+export interface BootcampInstructor {
+  name: string;
+  title: string;
+  bio?: string;
+  specialization?: string;
+  image?: SanityImage;
+}
+
+export interface BootcampSyllabusWeek {
+  week: number;
+  title: string;
+  topics: string[] | null;
+}
+
+export interface Bootcamp {
+  _id: string;
+  name: string;
+  slug: { current: string };
+  shortDescription: string;
+  fullDescription?: unknown[]; // Portable Text
+  startDate: string;
+  endDate?: string;
+  duration?: number;
+  location?: 'online' | 'offline' | 'hybrid';
+  level?: 'beginner' | 'intermediate' | 'advanced';
+  maxParticipants?: number;
+  registeredParticipants?: number;
+  technologies?: string[];
+  syllabus?: BootcampSyllabusWeek[];
+  prerequisites?: string;
+  outcomes?: string[];
+  price?: number;
+  currency?: string;
+  bannerImage?: SanityImage;
+  instructors?: BootcampInstructor[];
+  status: 'planning' | 'open' | 'running' | 'completed' | 'cancelled';
+  registrationDeadline?: string;
+  registrationOpenDate?: string;
+  registrationCloseDate?: string;
+  googleFormUrl?: string;
+  featured?: boolean;
+  certificateIncluded?: boolean;
+  googleSheets?: {
+    spreadsheetId: string;
+    apiKey: string;
+  };
+  seo?: {
+    metaTitle?: string;
+    metaDescription?: string;
+    keywords?: string[];
+  };
+}
+
+export interface BootcampRegistration {
+  bootcampId: string;
+  bootcampName: string;
+  name: string;
+  dateOfBirth: string;
+  occupation: string;
+  institute?: string;
+  phoneNumber: string;
+  whatsappNumber: string;
+  email: string;
+  interests?: string;
+  registrationReason: string;
 }
 
