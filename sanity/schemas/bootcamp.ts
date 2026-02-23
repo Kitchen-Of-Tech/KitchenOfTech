@@ -287,6 +287,13 @@ export const bootcamp = defineType({
       description: "Optional: Link to an external Google Form for registration. If set, form submissions redirect here instead.",
     }),
     defineField({
+      name: "facebookGroupUrl",
+      title: "Facebook Group URL",
+      type: "url",
+      group: "settings",
+      description: "Link to the official Facebook group for this bootcamp. Shown to participants after successful registration.",
+    }),
+    defineField({
       name: "featured",
       title: "Featured Bootcamp",
       type: "boolean",

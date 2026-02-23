@@ -79,7 +79,30 @@ export function Hero3D() {
   if (isLoading) {
     return (
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="container-custom relative z-10 py-12 md:py-20 w-full">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left skeleton */}
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <div className="skeleton h-12 w-3/4 rounded-xl" />
+                <div className="skeleton h-12 w-full rounded-xl" />
+                <div className="skeleton h-6 w-5/6 rounded-lg mt-4" />
+                <div className="skeleton h-6 w-4/6 rounded-lg" />
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="skeleton h-9 w-28 rounded-full" />
+                ))}
+              </div>
+              <div className="flex gap-4">
+                <div className="skeleton h-14 w-48 rounded-xl" />
+                <div className="skeleton h-14 w-48 rounded-xl" />
+              </div>
+            </div>
+            {/* Right skeleton */}
+            <div className="skeleton h-[400px] md:h-[500px] lg:h-[600px] w-full rounded-2xl" />
+          </div>
+        </div>
       </section>
     );
   }

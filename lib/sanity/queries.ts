@@ -875,6 +875,7 @@ const BOOTCAMP_FIELDS = groq`
   registrationOpenDate,
   registrationCloseDate,
   googleFormUrl,
+  facebookGroupUrl,
   "bannerImage": bannerImage {
     "asset": asset->{_id, _ref, url},
     alt,

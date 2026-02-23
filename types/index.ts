@@ -523,6 +523,7 @@ export interface Bootcamp {
   registrationOpenDate?: string;
   registrationCloseDate?: string;
   googleFormUrl?: string;
+  facebookGroupUrl?: string;
   featured?: boolean;
   certificateIncluded?: boolean;
   googleSheets?: {

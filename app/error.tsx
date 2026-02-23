@@ -84,7 +84,7 @@ export default function GlobalError({
               Contact our support team
             </Link>
           </p>
-        </motion.div>
-      </div>
+      </motion.div>
+    </div>
   );
 }

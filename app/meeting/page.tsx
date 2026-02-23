@@ -37,7 +37,7 @@ export default function MeetingPage() {
 
           {/* Features */}
           <div className="grid md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
-            <GlassCard className="p-6 text-center hover:scale-105 transition-transform">
+            <GlassCard className="p-6 text-center md:hover:scale-105 transition-transform">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center mx-auto mb-4 border border-blue-500/30">
                 <Clock className="w-7 h-7 text-blue-400" />
               </div>
@@ -45,7 +45,7 @@ export default function MeetingPage() {
               <p className="text-white/60 text-sm">We&apos;ll get back to you within 24 hours</p>
             </GlassCard>
 
-            <GlassCard className="p-6 text-center hover:scale-105 transition-transform">
+            <GlassCard className="p-6 text-center md:hover:scale-105 transition-transform">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mx-auto mb-4 border border-purple-500/30">
                 <Users className="w-7 h-7 text-purple-400" />
               </div>
@@ -53,7 +53,7 @@ export default function MeetingPage() {
               <p className="text-white/60 text-sm">Meet with experienced professionals</p>
             </GlassCard>
 
-            <GlassCard className="p-6 text-center hover:scale-105 transition-transform">
+            <GlassCard className="p-6 text-center md:hover:scale-105 transition-transform">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center mx-auto mb-4 border border-green-500/30">
                 <CheckCircle2 className="w-7 h-7 text-green-400" />
               </div>

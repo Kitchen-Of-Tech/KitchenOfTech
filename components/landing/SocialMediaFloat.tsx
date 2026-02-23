@@ -36,7 +36,7 @@ export function SocialMediaFloat() {
   if (!links.length) return null;
 
   return (
-    <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-col gap-4">
+    <div className="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-4">
       {links.map((social, index) => {
         const key = social.platform?.toLowerCase() ?? "";
         const match = ICON_MAP[key];
@@ -48,7 +48,7 @@ export function SocialMediaFloat() {
             href={social.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="group w-12 h-12 glass-hover rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all animate-float"
+            className="group relative w-12 h-12 glass-hover rounded-full flex items-center justify-center text-white/70 hover:text-white transition-all animate-float"
             style={{ animationDelay: `${index * 0.1}s`, color }}
             aria-label={social.platform}
           >

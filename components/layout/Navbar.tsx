@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, startTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Menu, X, MoreHorizontal, Home, Briefcase, GraduationCap, FolderOpen, BookOpen, Star, Users, ShieldCheck, LogIn, Calendar, FileText, MessageSquare, Rocket } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { client, urlFor } from "@/lib/sanity/client";
@@ -34,6 +35,7 @@ const dropdownItems: NavItem[] = [
 ];
 
 export function Navbar() {
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -55,6 +57,30 @@ export function Navbar() {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    startTransition(() => setMobileMenuOpen(false));
+  }, [pathname]);
+
+  // Clean up dropdown close timer on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+    };
   }, []);
 
   // Fetch site settings for logo
@@ -113,14 +139,23 @@ export function Navbar() {
           <div className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
+              const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="relative group flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
+                  className={cn(
+                    "relative group flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-300",
+                    isActive
+                      ? "text-white bg-white/15"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
+                  )}
                 >
                   <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   <span className="text-xs font-medium whitespace-nowrap">{item.label}</span>
+                  {isActive && (
+                    <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                  )}
                 </Link>
               );
             })}
@@ -180,7 +215,9 @@ export function Navbar() {
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="lg:hidden p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
-            aria-label="Toggle menu"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -188,16 +225,22 @@ export function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden mt-4 glass rounded-xl p-4 animate-fade-down border border-white/10">
+          <div id="mobile-menu" className="lg:hidden mt-4 glass rounded-xl p-4 animate-fade-down border border-white/10">
             <div className="space-y-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
+                const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-white/90 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group"
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
+                      isActive
+                        ? "text-white bg-white/15 border-l-2 border-primary"
+                        : "text-white/90 hover:text-white hover:bg-white/10"
+                    )}
                   >
                     <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
                     <span className="font-medium">{item.label}</span>
@@ -209,12 +252,18 @@ export function Navbar() {
 
               {dropdownItems.map((item) => {
                 const Icon = item.icon;
+                const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-white/90 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 group"
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
+                      isActive
+                        ? "text-white bg-white/15 border-l-2 border-primary"
+                        : "text-white/90 hover:text-white hover:bg-white/10"
+                    )}
                   >
                     <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
                     <span className="font-medium">{item.label}</span>

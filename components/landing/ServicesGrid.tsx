@@ -122,7 +122,7 @@ export function ServicesGrid() {
               >
                 <GlassCard
                   hover
-                  className="group p-6 md:p-8 h-full flex flex-col transition-all duration-300 hover:scale-105"
+                  className="group p-6 md:p-8 h-full flex flex-col transition-all duration-300 md:hover:scale-105"
                 >
                   {/* Icon */}
                   <div className="mb-6 w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center group-hover:shadow-glow-md transition-shadow">

@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { SearchX, Home, ArrowLeft } from 'lucide-react';
 import { GradientButton } from '@/components/ui/GradientButton';
@@ -43,13 +45,13 @@ export default function NotFound() {
               Go Home
             </GradientButton>
           </Link>
-          <Link
-            href="/"
+          <button
+            onClick={() => window.history.back()}
             className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition-all"
           >
             <ArrowLeft className="w-5 h-5" />
             Go Back
-          </Link>
+          </button>
         </div>
 
         {/* Quick Links */}

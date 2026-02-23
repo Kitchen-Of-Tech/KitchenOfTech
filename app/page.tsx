@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <SocialMediaFloat />
-      <main>
+      <main id="main-content">
         <Hero3D />
         <ServicesGrid />
         <BrandLogoBar />

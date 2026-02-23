@@ -38,10 +38,15 @@ export function ScrollReveal({
       observer.observe(currentRef);
     }
 
+    // Fallback: if the element is never intersected (e.g. JS disabled or observer blocked),
+    // make it visible after a generous timeout so content is never permanently hidden
+    const fallbackTimer = setTimeout(() => setIsVisible(true), 2000 + delay);
+
     return () => {
       if (currentRef) {
         observer.unobserve(currentRef);
       }
+      clearTimeout(fallbackTimer);
     };
   }, [delay]);
 
@@ -58,7 +63,7 @@ export function ScrollReveal({
       ref={ref}
       className={cn(
         "transition-all duration-700",
-        !isVisible && "opacity-0",
+        !isVisible && "opacity-0 translate-y-4",
         isVisible && animations[animation],
         className
       )}

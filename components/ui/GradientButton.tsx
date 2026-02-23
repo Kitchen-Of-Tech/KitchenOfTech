@@ -26,9 +26,9 @@ export function GradientButton({
 
   const variants = {
     primary:
-      "bg-gradient-primary text-white hover:shadow-glow-md hover:scale-105",
+      "bg-gradient-primary text-white hover:shadow-glow-md md:hover:scale-105",
     secondary:
-      "bg-gradient-secondary text-white hover:shadow-glow-purple hover:scale-105",
+      "bg-gradient-secondary text-white hover:shadow-glow-purple md:hover:scale-105",
     outline:
       "glass border-2 border-primary text-white hover:bg-primary/10 hover:border-primary-light",
   };

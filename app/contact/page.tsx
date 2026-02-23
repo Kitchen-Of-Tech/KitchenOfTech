@@ -115,8 +115,17 @@ export default function ContactPage() {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call - you can integrate with your backend
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send message. Please try again.');
+      }
       
       setSubmitSuccess(true);
       setFormData({
@@ -129,8 +138,8 @@ export default function ContactPage() {
 
       // Reset success message after 5 seconds
       setTimeout(() => setSubmitSuccess(false), 5000);
-    } catch {
-      setError('Failed to send message. Please try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -186,7 +195,18 @@ export default function ContactPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="w-full max-w-4xl mx-auto px-4 py-32 space-y-8">
+          <div className="text-center space-y-4">
+            <div className="skeleton h-8 w-32 rounded-full mx-auto" />
+            <div className="skeleton h-12 w-3/4 rounded-xl mx-auto" />
+            <div className="skeleton h-6 w-2/3 rounded-lg mx-auto" />
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 mt-12">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="skeleton h-36 rounded-2xl" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

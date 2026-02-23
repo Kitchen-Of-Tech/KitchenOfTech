@@ -39,7 +39,8 @@ export default async function BootKotPage() {
         {/* Hero */}
         <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-transparent to-transparent" />
-          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />
+          {/* CSS grid pattern instead of missing SVG file */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.04)_1px,transparent_1px)] bg-[size:60px_60px]" />
           <div className="container-custom relative z-10">
             <ScrollReveal animation="fade-up">
               <div className="text-center max-w-3xl mx-auto space-y-4">

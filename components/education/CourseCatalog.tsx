@@ -296,7 +296,7 @@ function CourseCard({ course, featured = false }: { course: Course; featured?: b
 
   return (
     <Link href={`/education/${course.slug.current}`}>
-      <GlassCard className={`group overflow-hidden hover:scale-105 transition-all duration-300 ${featured ? "border-primary/50" : ""}`}>
+      <GlassCard className={`group overflow-hidden md:hover:scale-105 transition-all duration-300 ${featured ? "border-primary/50" : ""}`}>
         {/* Thumbnail */}
         <div className="relative aspect-video overflow-hidden bg-white/5">
           {course.thumbnail?.asset?.url ? (

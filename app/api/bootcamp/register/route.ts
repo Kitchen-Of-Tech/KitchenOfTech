@@ -1,38 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { BootcampRegistration } from '@/types';
+import { createClient } from '@supabase/supabase-js';
 import { client } from '@/lib/sanity/client';
 import { groq } from 'next-sanity';
+import type { BootcampRegistration } from '@/types';
 
 /**
  * POST /api/bootcamp/register
  *
- * Registers a participant for a bootcamp and appends the row to Google Sheets.
- * The Google Sheets credentials (spreadsheetId + apiKey) come from the Sanity
- * bootcamp document, so each bootcamp can use a different sheet.
+ * Validates and saves a bootcamp registration to the Supabase
+ * `bootcamp_registrations` table using the service-role key (server-side only).
  *
- * Columns written (AM):
- *  A  Timestamp
- *  B  Bootcamp ID
- *  C  Bootcamp Name
- *  D  Full Name
- *  E  Date of Birth
- *  F  Occupation
- *  G  Institute
- *  H  Phone Number
- *  I  WhatsApp Number
- *  J  Email
- *  K  Interests
- *  L  Why Register
- *  M  Status (pending)
+ * Note: The previous Google Sheets integration was replaced because:
+ *   - API keys with HTTP-referrer restrictions block server-side calls (no Referer header)
+ *   - The Sheets `values:append` endpoint requires OAuth2; API keys are rejected with HTTP 401
  */
+
+// Service-role client — bypasses RLS, never exposed to the browser.
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error('Supabase environment variables are not configured.');
+  }
+  return createClient(url, key, {
+    auth: { persistSession: false },
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as BootcampRegistration;
 
     // ── Required field validation ───────────────────────────────────────────
-    if (!body.bootcampId || !body.bootcampName || !body.name || !body.dateOfBirth ||
-        !body.occupation || !body.phoneNumber || !body.whatsappNumber ||
-        !body.email || !body.registrationReason) {
+    if (
+      !body.bootcampId || !body.bootcampName || !body.name || !body.dateOfBirth ||
+      !body.occupation || !body.phoneNumber || !body.whatsappNumber ||
+      !body.email || !body.registrationReason
+    ) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -42,96 +46,78 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
     }
 
-    //  Phone format (basic: digits/+/-/spaces/parens, min 6 digits) 
+    // ── Phone format (digits/+/-/spaces/parens, min 6 digits) ───────────────
     const phoneRegex = /^[\d+\-\s()]+$/;
     const digitsOnly = body.phoneNumber.replace(/\D/g, '');
     if (!phoneRegex.test(body.phoneNumber) || digitsOnly.length < 6) {
       return NextResponse.json({ error: 'Invalid phone number format' }, { status: 400 });
     }
 
-    //  Fetch Google Sheets config from Sanity 
-    const bootcampDoc = await client.fetch(
-      groq`*[_type == "bootcamp" && _id == $bootcampId][0] {
-        googleSheets { spreadsheetId, apiKey }
-      }`,
-      { bootcampId: body.bootcampId }
-    );
+    // ── Save to Supabase ────────────────────────────────────────────────────
+    const supabase = getSupabaseAdmin();
 
-    if (!bootcampDoc?.googleSheets?.spreadsheetId || !bootcampDoc?.googleSheets?.apiKey) {
-      // Log and return a clear error
-      console.error('Google Sheets config missing for bootcamp:', body.bootcampId);
-      return NextResponse.json(
-        { error: 'Registration storage is not configured for this bootcamp. Please contact support.' },
-        { status: 503 }
-      );
-    }
+    const { error: dbError } = await supabase
+      .from('bootcamp_registrations')
+      .insert({
+        bootcamp_id:         body.bootcampId,
+        bootcamp_name:       body.bootcampName,
+        name:                body.name,
+        date_of_birth:       body.dateOfBirth,   // ISO date string "YYYY-MM-DD"
+        occupation:          body.occupation,
+        institute:           body.institute ?? null,
+        phone_number:        body.phoneNumber,
+        whatsapp_number:     body.whatsappNumber,
+        email:               body.email,
+        interests:           body.interests ?? null,
+        registration_reason: body.registrationReason,
+        status:              'pending',
+      });
 
-    const { spreadsheetId, apiKey } = bootcampDoc.googleSheets;
-
-    //  Build the row 
-    const timestamp = new Date().toISOString();
-    // Sheet tab name: sanitised bootcamp name (Google Sheets tab names  100 chars, no [:/?*[\]])
-    const sheetTab = body.bootcampName
-      .substring(0, 80)
-      .replace(/[/:?*[\]]/g, '')
-      .trim();
-    const range = `'${sheetTab}'!A:M`;
-
-    const row = [
-      timestamp,
-      body.bootcampId,
-      body.bootcampName,
-      body.name,
-      body.dateOfBirth,
-      body.occupation,
-      body.institute ?? '',
-      body.phoneNumber,
-      body.whatsappNumber,
-      body.email,
-      body.interests ?? '',
-      body.registrationReason,
-      'pending',
-    ];
-
-    //  Append to Google Sheets via REST API 
-    const sheetsUrl =
-      `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}` +
-      `/values/${encodeURIComponent(range)}:append` +
-      `?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS&key=${apiKey}`;
-
-    const sheetsRes = await fetch(sheetsUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ values: [row], majorDimension: 'ROWS' }),
-    });
-
-    if (!sheetsRes.ok) {
-      const detail = await sheetsRes.text();
-      console.error('Google Sheets API error:', sheetsRes.status, detail);
-      // 403 usually means the API key lacks write access.
-      // Google Sheets API keys are READ-ONLY by default.
-      // To enable writes, share the sheet with a Service Account and use
-      // OAuth2 Bearer token instead of an API key in the Authorization header.
-      if (sheetsRes.status === 403) {
-        throw new Error(
-          'Registration storage is temporarily unavailable. Please contact support.'
+    if (dbError) {
+      // Unique constraint violation → already registered
+      if (dbError.code === '23505') {
+        return NextResponse.json(
+          { error: 'You have already registered for this bootcamp with this email address.' },
+          { status: 409 }
         );
       }
-      throw new Error('Failed to save registration data');
+      console.error('Supabase insert error:', dbError.message, dbError.code);
+      throw new Error(dbError.message);
+    }
+
+    const timestamp = new Date().toISOString();
+
+    // ── Fetch facebookGroupUrl fresh from Sanity (bypasses page cache) ──────
+    let facebookGroupUrl: string | null = null;
+    try {
+      const doc = await client.fetch<{ facebookGroupUrl?: string } | null>(
+        groq`*[_type == "bootcamp" && _id == $id][0]{ facebookGroupUrl }`,
+        { id: body.bootcampId },
+        { cache: 'no-store' }
+      );
+      facebookGroupUrl = doc?.facebookGroupUrl ?? null;
+    } catch {
+      // Non-fatal — modal will show without the Facebook button
     }
 
     return NextResponse.json(
       {
         success: true,
         message: 'Registration successful! We will contact you soon.',
-        data: { bootcampId: body.bootcampId, email: body.email, timestamp },
+        data: { bootcampId: body.bootcampId, email: body.email, timestamp, facebookGroupUrl },
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Registration error:', error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('Registration error:', msg);
     return NextResponse.json(
-      { error: 'Failed to process registration. Please try again later.' },
+      {
+        error:
+          process.env.NODE_ENV === 'development'
+            ? `Registration failed: ${msg}`
+            : 'Failed to process registration. Please try again later.',
+      },
       { status: 500 }
     );
   }

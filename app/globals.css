@@ -157,11 +157,10 @@ body:has([data-sanity]) * {
   border-radius: 4px;
 }
 
-/* Remove default button styles */
+/* Reset bare button styles — only for buttons that have no additional classes applied.
+   Styled buttons (those with explicit class attributes) override these via Tailwind. */
 button {
   cursor: pointer;
-  border: none;
-  background: none;
   font-family: inherit;
 }
 

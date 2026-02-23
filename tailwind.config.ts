@@ -12,6 +12,8 @@ const config: Config = {
       colors: {
         background: "#0a0a0f",
         foreground: "#ffffff",
+        dark: "#0a0a0f",
+        "dark-secondary": "#111118",
         border: "rgba(255, 255, 255, 0.1)",
         primary: {
           DEFAULT: "#3b82f6",

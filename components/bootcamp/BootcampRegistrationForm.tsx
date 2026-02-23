@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ExternalLink, Clock, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { ExternalLink, Clock, CheckCircle2, XCircle, Loader2, PartyPopper, Users } from 'lucide-react';
 import { GradientButton } from '@/components/ui/GradientButton';
 import { GlassCard } from '@/components/ui/GlassCard';
 import type { Bootcamp } from '@/types';
@@ -89,6 +89,131 @@ function CountdownBlock({ value, label }: { value: number; label: string }) {
   );
 }
 
+// ── Congratulations Modal ────────────────────────────────────────────────────
+
+interface CongratsModalProps {
+  bootcampName: string;
+  facebookGroupUrl?: string;
+  onClose: () => void;
+}
+
+function CongratsModal({ bootcampName, facebookGroupUrl, onClose }: CongratsModalProps) {
+  // Close on backdrop click
+  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  // Close on Escape key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  // Prevent body scroll while open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+      onClick={handleBackdrop}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="congrats-title"
+    >
+      <div className="relative w-full max-w-md mx-auto">
+        {/* Glow ring */}
+        <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/60 via-purple-500/40 to-pink-500/40 blur-sm" />
+
+        <div className="relative rounded-2xl bg-[#0d0d1a] border border-white/10 p-8 text-center space-y-6 overflow-hidden">
+          {/* Decorative background blobs */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-40 h-40 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Icon */}
+          <div className="relative flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/30 to-purple-500/30 border border-primary/40 flex items-center justify-center">
+              <PartyPopper className="w-9 h-9 text-primary" />
+            </div>
+            {/* Orbiting checkmark badge */}
+            <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-green-500 border-2 border-[#0d0d1a] flex items-center justify-center">
+              <CheckCircle2 className="w-4 h-4 text-white" />
+            </div>
+          </div>
+
+          {/* Text */}
+          <div className="relative space-y-2">
+            <h2 id="congrats-title" className="text-2xl font-extrabold text-white tracking-tight">
+              🎉 Congratulations!
+            </h2>
+            <p className="text-white/80 text-sm leading-relaxed">
+              You have successfully registered for{' '}
+              <span className="text-primary font-semibold">{bootcampName}</span>!
+              We&apos;re thrilled to have you on board.
+            </p>
+            <p className="text-white/60 text-xs">
+              Our team will review your application and reach out to you soon with next steps.
+            </p>
+          </div>
+
+          {/* Facebook Group CTA — always shown; disabled if URL not yet configured */}
+          <div className="relative space-y-3">
+            <div className="p-4 rounded-xl bg-[#1877F2]/10 border border-[#1877F2]/30">
+              <div className="flex items-center gap-2 justify-center mb-2">
+                <Users className="w-4 h-4 text-[#1877F2]" />
+                <span className="text-[#1877F2] font-semibold text-sm">Join Our Community</span>
+              </div>
+              <p className="text-white/60 text-xs leading-relaxed">
+                Join our official Facebook group to get the latest updates, resources,
+                announcements, and connect with fellow participants!
+              </p>
+            </div>
+
+            {facebookGroupUrl ? (
+              <a
+                href={facebookGroupUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-xl font-semibold text-sm text-white transition-all duration-200 hover:opacity-90 active:scale-95"
+                style={{ background: 'linear-gradient(135deg, #1877F2 0%, #0a5dc4 100%)' }}
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                Join Our Facebook Group
+                <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+              </a>
+            ) : (
+              /* URL not yet set in Sanity — show a clearly labelled placeholder */
+              <div
+                className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-xl font-semibold text-sm text-white/40 border border-white/10 cursor-not-allowed select-none"
+                title="Facebook group link not configured yet"
+              >
+                <svg className="w-5 h-5 opacity-40" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                Facebook Group Link Coming Soon
+              </div>
+            )}
+          </div>
+
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="relative w-full py-2.5 px-6 rounded-xl text-white/60 text-sm font-medium border border-white/10 hover:border-white/20 hover:text-white/80 transition-all duration-200"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 //  Main Component 
 
 interface BootcampRegistrationFormProps {
@@ -97,7 +222,11 @@ interface BootcampRegistrationFormProps {
 
 export default function BootcampRegistrationForm({ bootcamp }: BootcampRegistrationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [showCongrats, setShowCongrats] = useState(false);
+  // facebookGroupUrl from API response — always fresh, not from cached page prop
+  const [facebookGroupUrl, setFacebookGroupUrl] = useState<string | null>(
+    bootcamp.facebookGroupUrl ?? null
+  );
   const [submitError, setSubmitError] = useState<string | null>(null);
   // mounted: prevents server/client mismatch on time-dependent rendering
   const [mounted, setMounted] = useState(false);
@@ -165,9 +294,14 @@ export default function BootcampRegistrationForm({ bootcamp }: BootcampRegistrat
         throw new Error(err.error || 'Registration failed');
       }
 
-      setSubmitSuccess(true);
+      const json = await res.json();
+      // Use the freshly fetched URL from the API (bypasses the 1-hour page cache)
+      if (json.data?.facebookGroupUrl) {
+        setFacebookGroupUrl(json.data.facebookGroupUrl);
+      }
+
       reset();
-      setTimeout(() => setSubmitSuccess(false), 8000);
+      setShowCongrats(true);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -306,48 +440,45 @@ export default function BootcampRegistrationForm({ bootcamp }: BootcampRegistrat
   const errorClass = 'text-red-400 text-xs mt-1';
 
   return (
-    <GlassCard className="p-6 md:p-8 space-y-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <h3 className="text-2xl font-bold text-white">Register Now</h3>
-        {spotsLeft !== null && spotsLeft > 0 && (
-          <p className="text-primary text-sm font-medium">
-            Only {spotsLeft} spot{spotsLeft !== 1 ? 's' : ''} remaining!
-          </p>
-        )}
-        {closeCountdown && (
-          <div className="flex items-center gap-2 text-white/60 text-sm">
-            <Clock className="w-4 h-4 text-yellow-400" />
-            <span>
-              Form closes in {closeCountdown.days}d {closeCountdown.hours}h {closeCountdown.minutes}m
-            </span>
-          </div>
-        )}
-      </div>
+    <>
+      {/* Congratulations modal — rendered in a portal above everything */}
+      {showCongrats && (
+        <CongratsModal
+          bootcampName={bootcamp.name}
+          facebookGroupUrl={facebookGroupUrl ?? undefined}
+          onClose={() => setShowCongrats(false)}
+        />
+      )}
 
-      {/* Success */}
-      {submitSuccess && (
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/40">
-          <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-green-400 font-semibold text-sm">Registration Successful!</p>
-            <p className="text-white/60 text-xs mt-0.5">
-              We have received your registration and will get in touch soon.
+      <GlassCard className="p-6 md:p-8 space-y-6">
+        {/* Header */}
+        <div className="space-y-2">
+          <h3 className="text-2xl font-bold text-white">Register Now</h3>
+          {spotsLeft !== null && spotsLeft > 0 && (
+            <p className="text-primary text-sm font-medium">
+              Only {spotsLeft} spot{spotsLeft !== 1 ? 's' : ''} remaining!
             </p>
+          )}
+          {closeCountdown && (
+            <div className="flex items-center gap-2 text-white/60 text-sm">
+              <Clock className="w-4 h-4 text-yellow-400" />
+              <span>
+                Form closes in {closeCountdown.days}d {closeCountdown.hours}h {closeCountdown.minutes}m
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Error */}
+        {submitError && (
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/40">
+            <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <p className="text-red-400 text-sm">{submitError}</p>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Error */}
-      {submitError && (
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/40">
-          <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-          <p className="text-red-400 text-sm">{submitError}</p>
-        </div>
-      )}
-
-      {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+        {/* Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
         {/* Name */}
         <div>
           <label className={labelClass}>
@@ -511,6 +642,7 @@ export default function BootcampRegistrationForm({ bootcamp }: BootcampRegistrat
           . Your data is kept secure and confidential.
         </p>
       </form>
-    </GlassCard>
+      </GlassCard>
+    </>
   );
 }

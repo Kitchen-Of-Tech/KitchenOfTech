@@ -41,18 +41,17 @@ export default function RootLayout({
       <head>
         <meta name="google-adsense-account" content="ca-pub-5440986495958060" />
         <meta name="facebook-domain-verification" content="tmpin48vno7ppm67u2fdjgq9h5adjd" />
-        <meta name="facebook-domain-verification" content="tmpin48vno7ppm67u2fdjgq9h5adjd" />
       </head>
       <body className={`${inter.variable} antialiased`} suppressHydrationWarning>
         {/* Google Tag Manager (noscript) */}
         {gtmId && <GoogleTagManagerNoScript gtmId={gtmId} />}
         
-        {/* Google AdSense - Site Verification & Ownership - Must load before interactive */}
+        {/* Google AdSense - Site Verification & Ownership */}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5440986495958060"
           crossOrigin="anonymous"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
         />
         
         {/* Analytics */}
@@ -66,6 +65,13 @@ export default function RootLayout({
           <ReactQueryProvider>
             <SmoothScrollProvider>
               <AnalyticsProvider>
+                {/* Skip to main content - screen reader / keyboard accessibility */}
+                <a
+                  href="#main-content"
+                  className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:rounded-lg focus:font-semibold"
+                >
+                  Skip to main content
+                </a>
                 <ConditionalNavbar />
                 <TemplateTransition>
                   {children}
