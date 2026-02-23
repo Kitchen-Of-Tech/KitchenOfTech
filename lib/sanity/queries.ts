@@ -127,6 +127,29 @@ export const SERVICES_QUERY = groq`
       slug
     },
     pricingType,
+    "subscriptionTiers": subscriptionTiers[] {
+      _key,
+      name,
+      price,
+      currency,
+      billingPeriod,
+      popular
+    },
+    "projectPricing": projectPricing {
+      startingPrice,
+      priceRangeLow,
+      priceRangeHigh,
+      currency
+    },
+    "hourlyPricing": hourlyPricing {
+      rateLow,
+      rateHigh,
+      currency,
+      rateType
+    },
+    "customPricing": customPricing {
+      displayText
+    },
     order,
     featured
   }

@@ -28,7 +28,7 @@ export async function generateMetadata() {
   };
 }
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 0; // Always fetch fresh — services are seeded/updated via scripts
 
 export default async function ServicesPage() {
   // Fetch all data in parallel
@@ -36,14 +36,17 @@ export default async function ServicesPage() {
     sanityFetch<Service[]>({ 
       query: SERVICES_QUERY,
       tags: ["service"],
+      revalidate: 0,
     }),
     sanityFetch<ServiceCategory[]>({
       query: SERVICE_CATEGORIES_QUERY,
       tags: ["serviceCategory"],
+      revalidate: 0,
     }),
     sanityFetch<ServiceSubcategory[]>({
       query: SERVICE_SUBCATEGORIES_QUERY,
       tags: ["serviceSubcategory"],
+      revalidate: 0,
     }),
   ]);
 
