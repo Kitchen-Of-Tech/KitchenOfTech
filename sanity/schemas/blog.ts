@@ -38,7 +38,6 @@ export const blog = defineType({
       title: "Excerpt",
       type: "text",
       rows: 3,
-      validation: (Rule) => Rule.max(200),
     }),
     defineField({
       name: "content",
@@ -89,14 +88,12 @@ export const blog = defineType({
           name: "metaTitle",
           title: "Meta Title",
           type: "string",
-          validation: (Rule) => Rule.max(60),
         },
         {
           name: "metaDescription",
           title: "Meta Description",
           type: "text",
           rows: 2,
-          validation: (Rule) => Rule.max(160),
         },
         {
           name: "ogImage",

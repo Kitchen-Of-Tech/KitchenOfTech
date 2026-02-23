@@ -36,7 +36,7 @@ export const bootcamp = defineType({
       type: "text",
       group: "basic",
       rows: 3,
-      validation: (Rule) => Rule.required().max(200),
+      validation: (Rule) => Rule.required(),
       description: "Brief summary for listings",
     }),
 
@@ -340,14 +340,12 @@ export const bootcamp = defineType({
           name: "metaTitle",
           title: "Meta Title",
           type: "string",
-          validation: (Rule) => Rule.max(60),
         },
         {
           name: "metaDescription",
           title: "Meta Description",
           type: "text",
           rows: 2,
-          validation: (Rule) => Rule.max(160),
         },
         {
           name: "keywords",

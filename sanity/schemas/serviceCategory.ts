@@ -27,7 +27,6 @@ export const serviceCategory = defineType({
       title: "Description",
       type: "text",
       rows: 3,
-      validation: (Rule) => Rule.max(300),
     }),
     defineField({
       name: "icon",
@@ -73,14 +72,12 @@ export const serviceCategory = defineType({
           name: "metaTitle",
           title: "Meta Title",
           type: "string",
-          validation: (Rule) => Rule.max(60),
         },
         {
           name: "metaDescription",
           title: "Meta Description",
           type: "text",
           rows: 2,
-          validation: (Rule) => Rule.max(160),
         },
       ],
     }),

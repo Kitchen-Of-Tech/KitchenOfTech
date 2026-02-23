@@ -9,7 +9,7 @@ export const article = defineType({
       name: "title",
       title: "Article Title",
       type: "string",
-      validation: (Rule) => Rule.required().min(10).max(200),
+      validation: (Rule) => Rule.required().min(10),
       description: "Compelling title for the article",
     }),
     defineField({
@@ -51,7 +51,6 @@ export const article = defineType({
       title: "Excerpt",
       type: "text",
       rows: 3,
-      validation: (Rule) => Rule.max(300),
       description: "Short summary for article cards (auto-generated if empty)",
     }),
     defineField({

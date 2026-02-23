@@ -72,7 +72,7 @@ export const team = defineType({
       type: "text",
       description: "Brief description for team card (2-3 lines)",
       rows: 3,
-      validation: (Rule) => Rule.required().max(200),
+      validation: (Rule) => Rule.required(),
       group: "basic",
     }),
     defineField({

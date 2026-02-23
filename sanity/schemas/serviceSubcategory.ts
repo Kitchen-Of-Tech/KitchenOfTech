@@ -34,7 +34,6 @@ export const serviceSubcategory = defineType({
       title: "Description",
       type: "text",
       rows: 3,
-      validation: (Rule) => Rule.max(300),
     }),
     defineField({
       name: "icon",

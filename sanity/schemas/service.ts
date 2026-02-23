@@ -38,7 +38,7 @@ export const service = defineType({
       type: "text",
       group: "basic",
       rows: 3,
-      validation: (Rule) => Rule.required().max(200),
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "fullDescription",
@@ -532,14 +532,12 @@ export const service = defineType({
           name: "metaTitle",
           title: "Meta Title",
           type: "string",
-          validation: (Rule) => Rule.max(60),
         },
         {
           name: "metaDescription",
           title: "Meta Description",
           type: "text",
           rows: 2,
-          validation: (Rule) => Rule.max(160),
         },
         {
           name: "ogImage",

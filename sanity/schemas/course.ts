@@ -43,7 +43,7 @@ export const course = defineType({
       type: "text",
       group: "basic",
       rows: 3,
-      validation: (Rule) => Rule.required().max(200),
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "fullDescription",
@@ -265,7 +265,6 @@ export const course = defineType({
       title: "SEO Title",
       type: "string",
       group: "seo",
-      validation: (Rule) => Rule.max(60),
     }),
     defineField({
       name: "seoDescription",
@@ -273,7 +272,6 @@ export const course = defineType({
       type: "text",
       group: "seo",
       rows: 3,
-      validation: (Rule) => Rule.max(160),
     }),
     defineField({
       name: "seoKeywords",

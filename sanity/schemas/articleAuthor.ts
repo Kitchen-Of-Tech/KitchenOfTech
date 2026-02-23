@@ -46,7 +46,6 @@ export const articleAuthor = defineType({
       title: "Biography",
       type: "text",
       rows: 3,
-      validation: (Rule) => Rule.max(300),
       description: "Short author bio",
     }),
     defineField({

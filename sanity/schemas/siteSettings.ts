@@ -106,14 +106,12 @@ export const siteSettings = defineType({
           name: "metaTitle",
           title: "Meta Title",
           type: "string",
-          validation: (Rule) => Rule.max(60),
         },
         {
           name: "metaDescription",
           title: "Meta Description",
           type: "text",
           rows: 2,
-          validation: (Rule) => Rule.max(160),
         },
         {
           name: "keywords",
