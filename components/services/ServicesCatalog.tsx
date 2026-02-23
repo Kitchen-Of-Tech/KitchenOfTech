@@ -30,22 +30,6 @@ export function ServicesCatalog({ services, categories, subcategories }: Service
     return matchesSearch && matchesCategory && matchesSubcategory;
   });
 
-  // Group services by category and subcategory
-  const groupedServices = filteredServices.reduce((acc, service) => {
-    const categoryId = service.category?._id || 'uncategorized';
-    const subcategoryId = service.subcategory?._id || 'uncategorized';
-    
-    if (!acc[categoryId]) {
-      acc[categoryId] = {};
-    }
-    if (!acc[categoryId][subcategoryId]) {
-      acc[categoryId][subcategoryId] = [];
-    }
-    acc[categoryId][subcategoryId].push(service);
-    
-    return acc;
-  }, {} as Record<string, Record<string, Service[]>>);
-
   // Get active subcategories for selected category
   const activeSubcategories = selectedCategory
     ? subcategories.filter((sub) => sub.category._id === selectedCategory)
@@ -195,8 +179,8 @@ export function ServicesCatalog({ services, categories, subcategories }: Service
       </div>
 
       {/* Services Grid */}
-      <div className="space-y-16">
-        {Object.entries(groupedServices).length === 0 ? (
+      <div>
+        {filteredServices.length === 0 ? (
           <GlassCard className="p-12 text-center">
             <div className="space-y-4">
               <p className="text-white/60 text-lg">No services found matching your criteria</p>
@@ -209,63 +193,32 @@ export function ServicesCatalog({ services, categories, subcategories }: Service
             </div>
           </GlassCard>
         ) : (
-          Object.entries(groupedServices).map(([categoryId, subcategoryGroups]) => {
-            const category = categories.find((c) => c._id === categoryId);
-
-            return (
-              <motion.div
-                key={categoryId}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="space-y-8"
-              >
-                {/* Category Header */}
-                {category && (
-                  <div className="text-center space-y-2">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gradient">
-                      {category.title}
-                    </h2>
-                    {category.description && (
-                      <p className="text-white/60 max-w-2xl mx-auto">{category.description}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Subcategory Groups */}
-                {Object.entries(subcategoryGroups).map(([subcategoryId, servicesInSub]) => {
-                  const subcategory = subcategories.find((s) => s._id === subcategoryId);
-
-                  return (
-                    <div key={subcategoryId} className="space-y-6">
-                      {/* Subcategory Header */}
-                      {subcategory && subcategory._id !== 'uncategorized' && (
-                        <div className="flex items-center gap-4">
-                          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                          <h3 className="text-xl font-semibold text-white/90">
-                            {subcategory.title}
-                          </h3>
-                          <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                        </div>
-                      )}
-
-                      {/* Services Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {servicesInSub.map((service, index) => (
-                          <ServiceCard
-                            key={service._id}
-                            service={service}
-                            index={index}
-                            categoryColor={category?.color?.hex}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </motion.div>
-            );
-          })
+          <motion.div
+            layout
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredServices.map((service, index) => {
+                const category = categories.find((c) => c._id === service.category?._id);
+                return (
+                  <motion.div
+                    key={service._id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3, delay: index * 0.04 }}
+                  >
+                    <ServiceCard
+                      service={service}
+                      index={index}
+                      categoryColor={category?.color?.hex}
+                    />
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
     </div>
