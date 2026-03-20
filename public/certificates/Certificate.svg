@@ -89,7 +89,7 @@
 	
 		.st83{clip-path:url(#SVGID_00000180356429157841772490000003937081031849306013_);fill:url(#SVGID_00000083051482921186319690000015188154307168798850_);}
 	.st84{fill:#120842;}
-	.st85{font-family:'Montserrat-Regular';}
+	.st85{font-family:'Arial','Helvetica','sans-serif';}
 	.st86{font-size:12.0385px;}
 	.st87{fill:none;stroke:#120842;stroke-width:0.9336;stroke-miterlimit:10;}
 	
@@ -117,19 +117,19 @@
 	.st109{fill:url(#SVGID_00000022549382391439836370000006213349064354580880_);}
 	.st110{fill:url(#SVGID_00000102535431311493674060000015237668345814760598_);}
 	.st111{fill:#FFFFFF;}
-	.st112{font-family:'Poppins-Bold';}
+	.st112{font-family:'Arial','Helvetica','sans-serif';font-weight:bold;}
 	.st113{font-size:6.6872px;}
 	.st114{font-size:28px;}
-	.st115{font-family:'Poppins-Regular';}
+	.st115{font-family:'Arial','Helvetica','sans-serif';}
 	.st116{font-size:22px;}
 	.st117{font-size:36px;}
 	.st118{fill:url(#SVGID_00000160185640737339242720000004966673424146334886_);}
 	.st119{fill:url(#SVGID_00000098215809260912537070000009250455574904934824_);}
 	.st120{fill:#FCFDFD;}
 	.st121{fill:url(#SVGID_00000015327888203117413330000009411578875704753816_);}
-	.st122{font-family:'Poppins-Medium';}
+	.st122{font-family:'Arial','Helvetica','sans-serif';}
 	.st123{font-size:12.3389px;}
-	.st124{font-family:'MyriadPro-Regular';}
+	.st124{font-family:'Arial','Helvetica','sans-serif';}
 	.st125{font-size:16px;}
 	.st126{font-size:10.4184px;}
 	.st127{font-size:7.4443px;}

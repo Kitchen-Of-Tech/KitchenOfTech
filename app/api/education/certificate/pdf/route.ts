@@ -55,6 +55,10 @@ export async function GET(request: NextRequest) {
     svgContent = svgContent.replace(/\[ISSUED DATE\]/g, issueDateStr);
     svgContent = svgContent.replace(/\[CERTIFICATE ID\]/g, certificateId);
 
+    // Ensure Arial font is used by replacing any remaining custom font references
+    svgContent = svgContent.replace(/font-family:\s*'[^']*'/g, "font-family: 'Arial'");
+    svgContent = svgContent.replace(/font-family:\s*"[^"]*"/g, 'font-family: "Arial"');
+
     // Convert modified SVG to PNG for embedding in PDF
     const svgBuffer = Buffer.from(svgContent);
 
