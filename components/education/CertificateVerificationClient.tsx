@@ -37,10 +37,6 @@ export function CertificateVerificationClient({
       .catch(console.error);
   }, [certificate.certificate_id]);
 
-  const handleDownload = () => {
-    window.open(`/api/education/certificate/pdf?certificateId=${certificate.certificate_id}`, "_blank");
-  };
-
   return (
     <div className="max-w-5xl mx-auto px-4">
       {/* Header */}
@@ -246,13 +242,15 @@ export function CertificateVerificationClient({
             <h3 className="text-lg font-semibold text-white mb-4">Actions</h3>
             
             <div className="space-y-3">
-              <button
-                onClick={handleDownload}
+              <a
+                href={`/api/education/certificate/pdf?certificateId=${certificate.certificate_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-full px-4 py-3 bg-primary hover:bg-primary/80 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <Download className="w-5 h-5" />
                 Download Certificate PDF
-              </button>
+              </a>
 
               <button
                 onClick={() => {
