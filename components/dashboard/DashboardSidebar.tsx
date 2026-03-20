@@ -12,7 +12,8 @@ import {
   LogOut,
   ChevronLeft,
   Shield,
-  CreditCard
+  CreditCard,
+  Trophy
 } from 'lucide-react';
 import { useState } from 'react';
 import type { User } from '@/types/auth';
@@ -70,6 +71,12 @@ export default function DashboardSidebar({ user }: DashboardSidebarProps) {
       href: '/dashboard/payment',
       icon: CreditCard,
       show: canManageUsers, // CEO and Manager
+    },
+    {
+      name: 'Certificates',
+      href: '/dashboard/certificates',
+      icon: Trophy,
+      show: canManageUsers, // CEO and Manager can manage certificates
     },
   ];
 
