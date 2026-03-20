@@ -32,6 +32,7 @@ interface BatchCertificateRequest {
     // Optional
     grade?: number;
     institution?: string;
+    instructorName?: string;
     instructorNotes?: string;
   }>;
 }
@@ -108,6 +109,7 @@ export async function POST(request: NextRequest) {
         course_id: courseId,
         enrollment_id: cert.enrollmentId || null,
         user_id: cert.userId || null,
+        instructor_name: cert.instructorName || 'Not specified',
         issue_date: issueDate.toISOString(),
         valid_until: validUntil ? validUntil.toISOString() : null,
         credential_code: cert.credentialCode,

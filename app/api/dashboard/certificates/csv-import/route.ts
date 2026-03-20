@@ -165,6 +165,7 @@ export async function POST(request: NextRequest) {
         student_name: row.studentName.trim(),
         course_name: row.courseName.trim(),
         course_id: courseId,
+        instructor_name: row.instructorName?.trim() || 'Not specified',
         credential_code: row.credentialCode.trim(),
         level: row.level.trim(),
         enrollment_id: row.enrollmentId?.trim() || null,

@@ -31,6 +31,7 @@ interface CertificateInsertRequest {
   // Optional fields
   grade?: number; // 0-100
   institution?: string;
+  instructorName?: string; // Optional instructor name
   instructorNotes?: string;
 }
 
@@ -114,6 +115,7 @@ export async function POST(request: NextRequest) {
         course_id: courseId,
         enrollment_id: body.enrollmentId || null,
         user_id: body.userId || null,
+        instructor_name: body.instructorName || 'Not specified',
         issue_date: issueDate.toISOString(),
         valid_until: validUntil ? validUntil.toISOString() : null,
         credential_code: body.credentialCode,
