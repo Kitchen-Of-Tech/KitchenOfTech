@@ -1,0 +1,248 @@
+/* components/certificate/CertificateTemplateDisplay.module.css */
+
+.certificateWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 1rem;
+}
+
+.certificateContainer {
+  position: relative;
+  width: 100%;
+  max-width: 841.9px;
+  aspect-ratio: 841.9 / 595.3;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.templateSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* QR Code Container - Positioned where red box was */
+/* Red box was at: x="166.6" y="358.1" width="109.8" height="109.8" */
+/* Converting to percentages based on SVG viewBox: 841.9 x 595.3 */
+.qrcodeContainer {
+  position: absolute;
+  /* x: 166.6 / 841.9 = 19.78% */
+  left: 19.78%;
+  /* y: 358.1 / 595.3 = 60.15% */
+  top: 60.15%;
+  width: 13.04%; /* 109.8 / 841.9 */
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.qrcodeContainer canvas {
+  width: 100%;
+  height: 100%;
+  max-width: 110px;
+  max-height: 110px;
+  image-rendering: crisp-edges;
+}
+
+/* Text Overlays Container */
+.textOverlays {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Student Name */
+.studentName {
+  position: absolute;
+  /* Positioned based on SVG layout - adjust these values */
+  left: 35%;
+  top: 35%;
+  width: 50%;
+  text-align: center;
+  font-size: calc(2.5vw);
+  font-weight: bold;
+  font-family: 'Georgia', serif;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Course Name */
+.courseName {
+  position: absolute;
+  left: 35%;
+  top: 42%;
+  width: 50%;
+  text-align: center;
+  font-size: calc(1.8vw);
+  font-weight: 600;
+  font-family: 'Georgia', serif;
+  color: #2a2a2a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Grade Info */
+.gradeInfo {
+  position: absolute;
+  left: 35%;
+  top: 49%;
+  width: 50%;
+  text-align: center;
+  font-size: calc(1.2vw);
+  font-family: 'Arial', sans-serif;
+  color: #3a3a3a;
+}
+
+/* Level Info */
+.levelInfo {
+  position: absolute;
+  left: 35%;
+  top: 52%;
+  width: 50%;
+  text-align: center;
+  font-size: calc(1.2vw);
+  font-family: 'Arial', sans-serif;
+  color: #3a3a3a;
+}
+
+/* Issue Date */
+.issueDate {
+  position: absolute;
+  left: 55%;
+  top: 24%;
+  font-size: calc(0.9vw);
+  font-family: 'Arial', sans-serif;
+  color: #555;
+}
+
+/* Expiration Date */
+.expirationDate {
+  position: absolute;
+  left: 55%;
+  top: 28%;
+  font-size: calc(0.9vw);
+  font-family: 'Arial', sans-serif;
+  color: #555;
+}
+
+/* Certificate ID */
+.certificateId {
+  position: absolute;
+  left: 20%;
+  top: 60%;
+  font-size: calc(0.75vw);
+  font-family: 'Courier New', monospace;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* Credential Code */
+.credentialCode {
+  position: absolute;
+  left: 20%;
+  top: 64%;
+  font-size: calc(0.75vw);
+  font-family: 'Courier New', monospace;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* Instructor Name */
+.instructorName {
+  position: absolute;
+  left: 48%;
+  top: 84%;
+  font-size: calc(0.9vw);
+  font-family: 'Georgia', serif;
+  color: #2a2a2a;
+  font-weight: 600;
+}
+
+/* Institution */
+.institution {
+  position: absolute;
+  left: 48%;
+  top: 87%;
+  font-size: calc(0.85vw);
+  font-family: 'Arial', sans-serif;
+  color: #3a3a3a;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .certificateContainer {
+    max-width: 600px;
+  }
+
+  .studentName {
+    font-size: 24px;
+  }
+
+  .courseName {
+    font-size: 18px;
+  }
+
+  .gradeInfo,
+  .levelInfo {
+    font-size: 12px;
+  }
+
+  .issueDate,
+  .expirationDate {
+    font-size: 10px;
+  }
+
+  .certificateId,
+  .credentialCode {
+    font-size: 9px;
+  }
+
+  .instructorName {
+    font-size: 10px;
+  }
+
+  .institution {
+    font-size: 9px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .certificateWrapper {
+    padding: 0;
+  }
+
+  .certificateContainer {
+    max-width: 8.5in;
+    width: 8.5in;
+    height: 11in;
+    box-shadow: none;
+    aspect-ratio: auto;
+  }
+
+  .templateSvg {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .qrcodeContainer {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
