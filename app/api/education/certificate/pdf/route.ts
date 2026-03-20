@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
+import sharp from "sharp";
+import fs from "fs";
+import path from "path";
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,177 +34,82 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Generate QR code
-    const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/education/verify-certificate/${certificateId}`;
-    const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, {
-      width: 300,
-      margin: 2,
-      color: {
-        dark: "#1f2937",
-        light: "#ffffff",
-      },
-    });
+    // Read SVG template
+    const svgPath = path.join(process.cwd(), "public/certificates/Certificate.svg");
+    let svgContent = fs.readFileSync(svgPath, "utf-8");
 
-    // Create PDF using jsPDF
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-
-    // Set background - elegant gradient-like effect
-    pdf.setFillColor(245, 245, 245);
-    pdf.rect(0, 0, pageWidth, pageHeight, "F");
-
-    // Add decorative header
-    pdf.setFillColor(99, 102, 241); // indigo
-    pdf.rect(0, 0, pageWidth, 25, "F");
-
-    // Certificate title
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(24);
-    pdf.setTextColor(255, 255, 255);
-    pdf.text("Certificate of Achievement", pageWidth / 2, 15, {
-      align: "center",
-    });
-
-    // Add decorative line
-    pdf.setDrawColor(99, 102, 241);
-    pdf.setLineWidth(0.5);
-    pdf.line(15, 35, pageWidth - 15, 35);
-
-    // Congratulations text
-    pdf.setFontSize(11);
-    pdf.setTextColor(100, 100, 100);
-    pdf.setFont("helvetica", "normal");
-    pdf.text("This is to certify that", pageWidth / 2, 45, { align: "center" });
-
-    // Student name - LARGE AND BOLD
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(22);
-    pdf.setTextColor(31, 41, 55); // dark gray
-    const studentName = (certificate.student_name || "Student Name").toUpperCase();
-    pdf.text(studentName, pageWidth / 2, 60, { align: "center" });
-
-    // Decorative line under name
-    pdf.setDrawColor(99, 102, 241);
-    pdf.setLineWidth(1);
-    pdf.line(20, 65, pageWidth - 20, 65);
-
-    // Achievement text
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(11);
-    pdf.setTextColor(100, 100, 100);
-    pdf.text("has successfully completed the course", pageWidth / 2, 75, {
-      align: "center",
-    });
-
-    // Course name
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(16);
-    pdf.setTextColor(99, 102, 241);
-    const courseName = certificate.course_name || "Course Name";
-    pdf.text(courseName, pageWidth / 2, 85, { align: "center" });
-
-    // Certificate details section
-    const detailsStartY = 100;
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(10);
-    pdf.setTextColor(80, 80, 80);
-
-    // Issue date
-    const issueDate = certificate.issue_date
+    // Prepare replacement values
+    const issueDateStr = certificate.issue_date
       ? new Date(certificate.issue_date).toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
           day: "numeric",
         })
       : "Date";
-    pdf.text(`Issued on: ${issueDate}`, 20, detailsStartY);
 
-    // Grade
-    if (certificate.grade !== undefined && certificate.grade !== null) {
-      const gradeText = `Grade: ${typeof certificate.grade === "number" ? certificate.grade.toFixed(2) : certificate.grade}%`;
-      pdf.text(gradeText, pageWidth - 60, detailsStartY);
-    }
+    const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/education/verify-certificate/${certificateId}`;
 
-    // Level
-    if (certificate.level) {
-      pdf.text(`Level: ${certificate.level}`, 20, detailsStartY + 8);
-    }
+    // Replace placeholders in SVG
+    svgContent = svgContent.replace(/\[NAME\]/g, certificate.student_name || "Student Name");
+    svgContent = svgContent.replace(/\[Course Name\]/g, certificate.course_name || "Course Name");
+    svgContent = svgContent.replace(/\[ISSUED DATE\]/g, issueDateStr);
+    svgContent = svgContent.replace(/\[CERTIFICATE ID\]/g, certificateId);
 
-    // Credential code
-    if (certificate.credential_code) {
-      pdf.text(
-        `Credential Code: ${certificate.credential_code}`,
-        pageWidth - 100,
-        detailsStartY + 8
-      );
-    }
+    // Convert modified SVG to PNG for embedding in PDF
+    const svgBuffer = Buffer.from(svgContent);
 
-    // Expiration date
-    if (certificate.valid_until) {
-      const expDate = new Date(certificate.valid_until).toLocaleDateString(
-        "en-US",
-        {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }
-      );
-      pdf.text(`Valid Until: ${expDate}`, 20, detailsStartY + 16);
-    }
+    // SVG viewBox is 841.9 x 595.3px (landscape A4)
+    // We need to convert to landscape orientation in PDF
+    const pngBuffer = await sharp(svgBuffer)
+      .resize(1190, 842, {
+        fit: "contain",
+        background: { r: 255, g: 255, b: 255 },
+      })
+      .png({ quality: 100 })
+      .toBuffer();
 
-    // Institution
-    if (certificate.institution) {
-      pdf.text(`Institution: ${certificate.institution}`, 20, detailsStartY + 24);
-    }
+    // Convert PNG to base64 data URL
+    const pngBase64 = pngBuffer.toString("base64");
+    const pngDataUrl = `data:image/png;base64,${pngBase64}`;
 
-    // Instructor
-    if (certificate.instructor_name) {
-      pdf.text(
-        `Instructor: ${certificate.instructor_name}`,
-        pageWidth - 100,
-        detailsStartY + 24
-      );
-    }
-
-    // Add QR code section
-    const qrY = detailsStartY + 35;
-    pdf.setFontSize(9);
-    pdf.setTextColor(100, 100, 100);
-    pdf.text("Scan to verify this certificate:", pageWidth / 2 - 35, qrY);
-
-    // Add QR code image
-    try {
-      pdf.addImage(qrCodeDataUrl, "PNG", pageWidth / 2 - 20, qrY + 3, 40, 40);
-    } catch (err) {
-      console.error("Error adding QR code to PDF:", err);
-      // Continue without QR if it fails
-    }
-
-    // Footer
-    const footerY = pageHeight - 15;
-    pdf.setFontSize(8);
-    pdf.setTextColor(150, 150, 150);
-    pdf.setFont("helvetica", "normal");
-    pdf.text("KitchenOfTech - Excellence in Education", pageWidth / 2, footerY, {
-      align: "center",
+    // Generate QR code
+    const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, {
+      width: 300,
+      margin: 2,
+      color: {
+        dark: "#000000",
+        light: "#ffffff",
+      },
     });
-    pdf.text(
-      `Certificate ID: ${certificateId}`,
-      pageWidth / 2,
-      footerY + 5,
-      { align: "center" }
-    );
 
-    // Add decorative footer line
-    pdf.setDrawColor(99, 102, 241);
-    pdf.setLineWidth(0.5);
-    pdf.line(15, footerY - 5, pageWidth - 15, footerY - 5);
+    // Create PDF in LANDSCAPE orientation (A4)
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const pageWidth = pdf.internal.pageSize.getWidth(); // 297mm for landscape
+    const pageHeight = pdf.internal.pageSize.getHeight(); // 210mm for landscape
+
+    // Add the modified SVG template image (fills entire page)
+    pdf.addImage(pngDataUrl, "PNG", 0, 0, pageWidth, pageHeight);
+
+    // QR code position (where the red box was: x="166.6" y="358.1" width="109.8" height="109.8")
+    // Scale to PDF dimensions: SVG is 841.9 x 595.3, PDF landscape is 297 x 210mm
+    // x: 166.6 / 841.9 * 297 = 58.99mm (approximately)
+    // y: 358.1 / 595.3 * 210 = 126.17mm (approximately)
+    // size: 109.8 / 841.9 * 297 = 38.79mm
+
+    const qrX = (166.6 / 841.9) * pageWidth; // Scale X coordinate
+    const qrY = (358.1 / 595.3) * pageHeight; // Scale Y coordinate
+    const qrSize = (109.8 / 841.9) * pageWidth; // Scale QR size
+
+    try {
+      pdf.addImage(qrCodeDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
+    } catch (err) {
+      console.error("Error adding QR code:", err);
+    }
 
     // Generate PDF buffer
     const pdfBuffer = Buffer.from(pdf.output("arraybuffer"));
@@ -211,7 +119,9 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="Certificate-${certificateId}.pdf"`,
-        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
       },
     });
   } catch (error) {

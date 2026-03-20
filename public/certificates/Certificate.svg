@@ -1022,7 +1022,7 @@
 	<text transform="matrix(1 0 0 1 597.4471 211.9475)" class="st111 st122 st123">ISSUED DATE: [ISSUED DATE]</text>
 </g>
 <text transform="matrix(1 0 0 1 166.6223 326.1075)" class="st124 st125">CERTIFICATE ID: [CERTIFICATE ID]</text>
-<text transform="matrix(1 0 0 1 166.6222 482.2604)"><tspan x="0" y="0" class="st124 st126">SCAN OR VISIT TO VERIFY:</tspan><tspan x="0" y="12.5" class="st124 st126">[Verifcatio Link]</tspan></text>
+<text transform="matrix(1 0 0 1 166.6222 482.2604)" class="st124 st126">SCAN TO VERIFY:</text>
 <line class="st87" x1="387.1" y1="417.6" x2="549.2" y2="417.6"/>
 <text transform="matrix(1 0 0 1 399.1534 432.0538)" class="st85 st127">FOUNDER &amp; CEO, KITCHEN OF TECH</text>
 <!-- Red box removed - replaced with QR code via React component -->
