@@ -49,15 +49,9 @@ export async function GET(request: NextRequest) {
 
     const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/education/verify-certificate/${certificateId}`;
 
-    // Replace placeholders in SVG
-    svgContent = svgContent.replace(/\[NAME\]/g, certificate.student_name || "Student Name");
-    svgContent = svgContent.replace(/\[Course Name\]/g, certificate.course_name || "Course Name");
-    svgContent = svgContent.replace(/\[ISSUED DATE\]/g, issueDateStr);
-    svgContent = svgContent.replace(/\[CERTIFICATE ID\]/g, certificateId);
-
-    // Ensure Arial font is used by replacing any remaining custom font references
-    svgContent = svgContent.replace(/font-family:\s*'[^']*'/g, "font-family: 'Arial'");
-    svgContent = svgContent.replace(/font-family:\s*"[^"]*"/g, 'font-family: "Arial"');
+  // Remove all text nodes from SVG to avoid font rendering issues in production
+  // We'll render all text using jsPDF built-in fonts for consistency.
+  svgContent = svgContent.replace(/<text[\s\S]*?<\/text>/g, "");
 
     // Convert modified SVG to PNG for embedding in PDF
     const svgBuffer = Buffer.from(svgContent);
@@ -96,7 +90,7 @@ export async function GET(request: NextRequest) {
     const pageWidth = pdf.internal.pageSize.getWidth(); // 297mm for landscape
     const pageHeight = pdf.internal.pageSize.getHeight(); // 210mm for landscape
 
-    // Add the modified SVG template image (fills entire page)
+  // Add the modified SVG template image (fills entire page)
     pdf.addImage(pngDataUrl, "PNG", 0, 0, pageWidth, pageHeight);
 
     // QR code position (where the red box was: x="166.6" y="358.1" width="109.8" height="109.8")
@@ -114,6 +108,94 @@ export async function GET(request: NextRequest) {
     } catch (err) {
       console.error("Error adding QR code:", err);
     }
+
+    // Draw text using jsPDF built-in fonts (avoids missing font issues in production)
+    const svgWidth = 841.9;
+    const svgHeight = 595.3;
+    const scaleX = pageWidth / svgWidth;
+    const scaleY = pageHeight / svgHeight;
+
+    const toMmX = (x: number) => x * scaleX;
+    const toMmY = (y: number) => y * scaleY;
+
+    const darkText = "#120842";
+    const whiteText = "#ffffff";
+
+    const setFont = (size: number, style: "normal" | "bold", color: string) => {
+      pdf.setFont("helvetica", style);
+      pdf.setFontSize(size);
+      pdf.setTextColor(color);
+    };
+
+    const contentX = toMmX(166.6226);
+    const contentMaxWidth = pageWidth - contentX - 20;
+
+    // Title
+    setFont(28, "bold", darkText);
+    pdf.text("Certificate of Completion", contentX, toMmY(148.8042));
+
+    // Course name (wrap if too long)
+    const courseName = certificate.course_name || "Course Name";
+    let courseFontSize = 22;
+    setFont(courseFontSize, "normal", darkText);
+    let courseLines = pdf.splitTextToSize(courseName, contentMaxWidth);
+    if (courseLines.length > 1) {
+      courseFontSize = 18;
+      setFont(courseFontSize, "normal", darkText);
+      courseLines = pdf.splitTextToSize(courseName, contentMaxWidth);
+    }
+    pdf.text(courseLines, contentX, toMmY(148.8042 + 26.4));
+
+    // Label: awarded to
+    setFont(12.0385, "normal", darkText);
+    pdf.text("THIS CERTIFICATE AWARDED TO :", toMmX(166.5743), toMmY(232.9318));
+
+    // Student name (wrap if too long)
+    const studentName = certificate.student_name || "Student Name";
+    let nameFontSize = 36;
+    setFont(nameFontSize, "bold", darkText);
+    let nameLines = pdf.splitTextToSize(studentName, contentMaxWidth);
+    if (nameLines.length > 1) {
+      nameFontSize = 28;
+      setFont(nameFontSize, "bold", darkText);
+      nameLines = pdf.splitTextToSize(studentName, contentMaxWidth);
+    }
+    if (nameLines.length > 2) {
+      nameLines = nameLines.slice(0, 2);
+    }
+    pdf.text(nameLines, toMmX(166.6222), toMmY(281.9073));
+
+    // Issued date (white text on blue bar)
+    setFont(12.3389, "normal", whiteText);
+    pdf.text(
+      `ISSUED DATE: ${issueDateStr}`,
+      toMmX(597.4471),
+      toMmY(211.9475)
+    );
+
+    // Certificate ID
+    setFont(16, "normal", darkText);
+    pdf.text(
+      `CERTIFICATE ID: ${certificateId}`,
+      toMmX(166.6223),
+      toMmY(326.1075)
+    );
+
+    // Scan to verify label
+    setFont(10.4184, "normal", darkText);
+    pdf.text("SCAN TO VERIFY:", toMmX(166.6222), toMmY(482.2604));
+
+    // Signature line label
+    setFont(7.4443, "normal", darkText);
+    pdf.text(
+      "FOUNDER & CEO, KITCHEN OF TECH",
+      toMmX(399.1534),
+      toMmY(432.0538)
+    );
+
+    // Logo text
+    setFont(6.6872, "bold", whiteText);
+    pdf.text("KITCHEN OF TECH", toMmX(641.0333), toMmY(417.7838));
 
     // Generate PDF buffer
     const pdfBuffer = Buffer.from(pdf.output("arraybuffer"));
