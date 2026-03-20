@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
     const headerLine = lines[0];
     const headers = parseCSVLine(headerLine);
 
-    // Validate required columns
-    const requiredColumns = ['studentName', 'courseName', 'credentialCode', 'level', 'enrollmentId', 'userId'];
+    // Validate required columns (enrollmentId and userId are now optional)
+    const requiredColumns = ['studentName', 'courseName', 'credentialCode', 'level'];
     const missingColumns = requiredColumns.filter((col) => !headers.includes(col));
 
     if (missingColumns.length > 0) {
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate rows
+    // Validate rows (enrollmentId and userId are optional)
     const validationErrors: string[] = [];
     rows.forEach((row, index) => {
       // Required fields
@@ -109,8 +109,6 @@ export async function POST(request: NextRequest) {
       if (!row.courseName?.trim()) validationErrors.push(`Row ${index + 2}: Missing or empty courseName`);
       if (!row.credentialCode?.trim()) validationErrors.push(`Row ${index + 2}: Missing or empty credentialCode`);
       if (!row.level?.trim()) validationErrors.push(`Row ${index + 2}: Missing or empty level`);
-      if (!row.enrollmentId?.trim()) validationErrors.push(`Row ${index + 2}: Missing or empty enrollmentId`);
-      if (!row.userId?.trim()) validationErrors.push(`Row ${index + 2}: Missing or empty userId`);
 
       // Optional date validations
       if (row.issueDate && isNaN(new Date(row.issueDate).getTime())) {
@@ -156,8 +154,8 @@ export async function POST(request: NextRequest) {
         course_name: row.courseName.trim(),
         credential_code: row.credentialCode.trim(),
         level: row.level.trim(),
-        enrollment_id: row.enrollmentId.trim(),
-        user_id: row.userId.trim(),
+        enrollment_id: row.enrollmentId?.trim() || null,
+        user_id: row.userId?.trim() || null,
         issue_date: issueDate.toISOString(),
         valid_until: validUntilDate ? validUntilDate.toISOString() : null,
         grade: grade,

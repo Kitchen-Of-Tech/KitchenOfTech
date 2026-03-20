@@ -17,9 +17,10 @@ interface CertificateData {
   courseName: string;
   credentialCode: string;
   level: string;
-  enrollmentId: string;
-  userId: string;
-  // Optional
+  // Optional references
+  enrollmentId?: string;
+  userId?: string;
+  // Optional dates and fields
   issueDate?: string;
   validUntil?: string;
   grade?: string;
@@ -444,36 +445,34 @@ export function CertificateManagementClient() {
                   </div>
                 </div>
 
-                {/* Required Fields Row 3 */}
+                {/* Optional Fields Row 0 - References */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label htmlFor="enrollment-id" className="block text-sm font-medium text-gray-200">
-                      Enrollment ID *
+                      Enrollment ID
                     </label>
                     <input
                       id="enrollment-id"
-                      placeholder="550e8400-e29b-41d4-a716-446655440000"
-                      value={singleForm.enrollmentId}
+                      placeholder="550e8400-e29b-41d4-a716-446655440000 (optional)"
+                      value={singleForm.enrollmentId || ''}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setSingleForm({ ...singleForm, enrollmentId: e.target.value })
                       }
-                      required
                       className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                     />
                   </div>
 
                   <div className="space-y-2">
                     <label htmlFor="user-id" className="block text-sm font-medium text-gray-200">
-                      User ID *
+                      User ID
                     </label>
                     <input
                       id="user-id"
-                      placeholder="550e8400-e29b-41d4-a716-446655440001"
-                      value={singleForm.userId}
+                      placeholder="550e8400-e29b-41d4-a716-446655440001 (optional)"
+                      value={singleForm.userId || ''}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setSingleForm({ ...singleForm, userId: e.target.value })
                       }
-                      required
                       className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                     />
                   </div>
@@ -661,8 +660,8 @@ export function CertificateManagementClient() {
               <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4">
                 <h4 className="font-semibold text-sm text-blue-200 mb-2">CSV Requirements:</h4>
                 <ul className="text-sm space-y-1 ml-4 text-blue-100">
-                  <li>• <strong>Required columns:</strong> studentName, courseName, credentialCode, level, enrollmentId, userId</li>
-                  <li>• <strong>Optional columns:</strong> issueDate, validUntil, grade, institution, instructorNotes</li>
+                  <li>• <strong>Required columns:</strong> studentName, courseName, credentialCode, level</li>
+                  <li>• <strong>Optional columns:</strong> enrollmentId, userId, issueDate, validUntil, grade, institution, instructorNotes</li>
                   <li>• Date format: YYYY-MM-DD</li>
                   <li>• Grade range: 0-100</li>
                   <li>• First row must be header</li>

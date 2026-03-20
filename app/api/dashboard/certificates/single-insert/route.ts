@@ -9,12 +9,12 @@ interface CertificateInsertRequest {
   credentialCode: string;
   level: string;
   
-  // References
-  enrollmentId: string;
-  userId: string;
+  // Optional references
+  enrollmentId?: string;
+  userId?: string;
   
   // Dates
-  issueDate: string;
+  issueDate?: string;
   validUntil?: string; // Optional expiration date
   
   // Optional fields
@@ -29,12 +29,12 @@ export async function POST(request: NextRequest) {
 
     const body = (await request.json()) as CertificateInsertRequest;
 
-    // Validate required fields
-    if (!body.studentName || !body.courseName || !body.enrollmentId || !body.userId || !body.credentialCode || !body.level) {
+    // Validate required fields (enrollmentId and userId are now optional)
+    if (!body.studentName || !body.courseName || !body.credentialCode || !body.level) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Missing required fields: studentName, courseName, enrollmentId, userId, credentialCode, level',
+          error: 'Missing required fields: studentName, courseName, credentialCode, level',
         },
         { status: 400 }
       );
@@ -74,18 +74,22 @@ export async function POST(request: NextRequest) {
     const random = randomBytes(8).toString('hex').toUpperCase();
     const certificateId = `KOT-${year}-${random}`;
 
-    // Check if enrollment exists
-    const { data: enrollment, error: enrollmentError } = await adminClient
-      .from('course_enrollments')
-      .select('id, course_id')
-      .eq('id', body.enrollmentId)
-      .single();
+    // Optional: Check if enrollment exists (only if enrollmentId provided)
+    let enrollmentCourseId = null;
+    if (body.enrollmentId) {
+      const { data: enrollment, error: enrollmentError } = await adminClient
+        .from('course_enrollments')
+        .select('id, course_id')
+        .eq('id', body.enrollmentId)
+        .single();
 
-    if (enrollmentError || !enrollment) {
-      return NextResponse.json(
-        { success: false, error: 'Enrollment not found' },
-        { status: 404 }
-      );
+      if (enrollmentError || !enrollment) {
+        return NextResponse.json(
+          { success: false, error: 'Enrollment not found' },
+          { status: 404 }
+        );
+      }
+      enrollmentCourseId = enrollment.course_id;
     }
 
     // Insert certificate
@@ -95,8 +99,8 @@ export async function POST(request: NextRequest) {
         certificate_id: certificateId,
         student_name: body.studentName,
         course_name: body.courseName,
-        enrollment_id: body.enrollmentId,
-        user_id: body.userId,
+        enrollment_id: body.enrollmentId || null,
+        user_id: body.userId || null,
         issue_date: issueDate.toISOString(),
         valid_until: validUntil ? validUntil.toISOString() : null,
         credential_code: body.credentialCode,

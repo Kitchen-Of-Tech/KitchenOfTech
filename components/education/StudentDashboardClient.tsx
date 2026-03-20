@@ -424,7 +424,7 @@ export function StudentDashboardClient({
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {certificates.map((cert) => {
-              const course = courses[cert.course_id];
+              const course = cert.course_id ? courses[cert.course_id] : undefined;
               return (
                 <GlassCard 
                   key={cert.id} 

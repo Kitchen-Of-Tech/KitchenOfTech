@@ -260,9 +260,9 @@ export interface CourseDiscussion {
 export interface Certificate {
   id: string;
   certificate_id: string;
-  enrollment_id: string;
-  user_id: string;
-  course_id: string;
+  enrollment_id?: string;
+  user_id?: string;
+  course_id?: string;
   student_name: string;
   course_name: string;
   credential_code: string;

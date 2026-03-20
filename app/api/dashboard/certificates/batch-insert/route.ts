@@ -9,8 +9,10 @@ interface BatchCertificateRequest {
     courseName: string;
     credentialCode: string;
     level: string;
-    enrollmentId: string;
-    userId: string;
+    
+    // Optional references
+    enrollmentId?: string;
+    userId?: string;
     
     // Dates
     issueDate?: string;
@@ -50,15 +52,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate all records before inserting
+    // Validate all records before inserting (enrollmentId and userId are now optional)
     const validationErrors: string[] = [];
     body.certificates.forEach((cert, index) => {
       if (!cert.studentName) validationErrors.push(`Row ${index + 1}: Missing studentName`);
       if (!cert.courseName) validationErrors.push(`Row ${index + 1}: Missing courseName`);
       if (!cert.credentialCode) validationErrors.push(`Row ${index + 1}: Missing credentialCode`);
       if (!cert.level) validationErrors.push(`Row ${index + 1}: Missing level`);
-      if (!cert.enrollmentId) validationErrors.push(`Row ${index + 1}: Missing enrollmentId`);
-      if (!cert.userId) validationErrors.push(`Row ${index + 1}: Missing userId`);
       if (cert.issueDate && isNaN(new Date(cert.issueDate).getTime())) {
         validationErrors.push(`Row ${index + 1}: Invalid issueDate format`);
       }
@@ -93,8 +93,8 @@ export async function POST(request: NextRequest) {
         certificate_id: certificateId,
         student_name: cert.studentName,
         course_name: cert.courseName,
-        enrollment_id: cert.enrollmentId,
-        user_id: cert.userId,
+        enrollment_id: cert.enrollmentId || null,
+        user_id: cert.userId || null,
         issue_date: issueDate.toISOString(),
         valid_until: validUntil ? validUntil.toISOString() : null,
         credential_code: cert.credentialCode,
