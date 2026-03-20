@@ -7,77 +7,54 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { GradientButton } from "@/components/ui/GradientButton";
 
-// Demo certificates database
-const demoCertificates = [
-  {
-    certificateId: "KOT-2024-WD-001",
-    studentName: "John Doe",
-    courseName: "Advanced Web Development with React & Next.js",
-    issueDate: "2024-01-15",
-    validUntil: "2026-01-15",
-    grade: "A+",
-    instructor: "Sarah Chen",
-    skills: ["React", "Next.js", "TypeScript", "Node.js"],
-  },
-  {
-    certificateId: "KOT-2024-AI-002",
-    studentName: "Jane Smith",
-    courseName: "Machine Learning & AI Fundamentals",
-    issueDate: "2024-01-10",
-    validUntil: "2026-01-10",
-    grade: "A",
-    instructor: "David Park",
-    skills: ["Python", "TensorFlow", "Machine Learning", "Data Science"],
-  },
-  {
-    certificateId: "KOT-2024-UI-003",
-    studentName: "Michael Brown",
-    courseName: "UI/UX Design Mastery",
-    issueDate: "2024-01-05",
-    validUntil: "2026-01-05",
-    grade: "A+",
-    instructor: "Michael Rodriguez",
-    skills: ["Figma", "UI Design", "UX Research", "Prototyping"],
-  },
-];
-
 interface CertificateData {
-  certificateId: string;
-  studentName: string;
-  courseName: string;
-  issueDate: string;
-  validUntil: string;
-  grade: string;
-  instructor: string;
-  skills: string[];
+  id: string;
+  certificate_id: string;
+  student_name: string;
+  course_name: string;
+  issue_date: string;
+  user_id: string;
 }
 
 export default function CertificateVerifyPage() {
   const [certificateId, setCertificateId] = useState("");
-  const [verificationStatus, setVerificationStatus] = useState<"idle" | "valid" | "invalid">("idle");
+  const [verificationStatus, setVerificationStatus] = useState<"idle" | "valid" | "invalid" | "error">("idle");
   const [certificateData, setCertificateData] = useState<CertificateData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setVerificationStatus("idle");
     setCertificateData(null);
+    setErrorMessage("");
 
-    // Simulate API call
-    setTimeout(() => {
-      const foundCertificate = demoCertificates.find(
-        (cert) => cert.certificateId.toLowerCase() === certificateId.toLowerCase().trim()
-      );
+    try {
+      // Call the real certificate verification endpoint
+      const response = await fetch(`/api/education/certificate/verify?certificateId=${encodeURIComponent(certificateId.trim())}`);
+      const data = await response.json();
 
-      if (foundCertificate) {
-        setVerificationStatus("valid");
-        setCertificateData(foundCertificate);
-      } else {
-        setVerificationStatus("invalid");
+      if (!response.ok) {
+        if (response.status === 404) {
+          setVerificationStatus("invalid");
+          setErrorMessage("Certificate not found. Please check the ID and try again.");
+        } else {
+          setVerificationStatus("error");
+          setErrorMessage(data.error || "An error occurred during verification.");
+        }
+        return;
       }
+
+      setVerificationStatus("valid");
+      setCertificateData(data.certificate);
+    } catch (error) {
+      console.error("Verification error:", error);
+      setVerificationStatus("error");
+      setErrorMessage("Network error. Please try again later.");
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -170,7 +147,7 @@ export default function CertificateVerifyPage() {
                             <User className="w-4 h-4" />
                             <span>Student Name</span>
                           </div>
-                          <p className="text-white font-semibold">{certificateData.studentName}</p>
+                          <p className="text-white font-semibold">{certificateData.student_name}</p>
                         </div>
 
                         <div className="space-y-1">
@@ -178,7 +155,7 @@ export default function CertificateVerifyPage() {
                             <Award className="w-4 h-4" />
                             <span>Certificate ID</span>
                           </div>
-                          <p className="text-white font-semibold font-mono">{certificateData.certificateId}</p>
+                          <p className="text-white font-semibold font-mono text-xs">{certificateData.certificate_id}</p>
                         </div>
 
                         <div className="space-y-1">
@@ -186,15 +163,7 @@ export default function CertificateVerifyPage() {
                             <BookOpen className="w-4 h-4" />
                             <span>Course Name</span>
                           </div>
-                          <p className="text-white font-semibold">{certificateData.courseName}</p>
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-white/50 text-sm">
-                            <User className="w-4 h-4" />
-                            <span>Instructor</span>
-                          </div>
-                          <p className="text-white font-semibold">{certificateData.instructor}</p>
+                          <p className="text-white font-semibold">{certificateData.course_name}</p>
                         </div>
 
                         <div className="space-y-1">
@@ -202,39 +171,27 @@ export default function CertificateVerifyPage() {
                             <Calendar className="w-4 h-4" />
                             <span>Issue Date</span>
                           </div>
-                          <p className="text-white font-semibold">{formatDate(certificateData.issueDate)}</p>
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-white/50 text-sm">
-                            <Calendar className="w-4 h-4" />
-                            <span>Valid Until</span>
-                          </div>
-                          <p className="text-white font-semibold">{formatDate(certificateData.validUntil)}</p>
+                          <p className="text-white font-semibold">{formatDate(certificateData.issue_date)}</p>
                         </div>
 
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-white/50 text-sm">
                             <Award className="w-4 h-4" />
-                            <span>Grade</span>
+                            <span>Certificate ID</span>
                           </div>
-                          <p className="text-white font-semibold">{certificateData.grade}</p>
+                          <p className="text-white font-semibold font-mono text-xs">{certificateData.certificate_id}</p>
                         </div>
                       </div>
 
-                      {/* Skills */}
-                      <div className="pt-4 border-t border-white/10">
-                        <p className="text-white/50 text-sm mb-3">Skills Covered</p>
-                        <div className="flex flex-wrap gap-2">
-                          {certificateData.skills.map((skill) => (
-                            <span
-                              key={skill}
-                              className="px-3 py-1 bg-primary/20 text-primary text-sm font-medium rounded-full"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
+                      <div className="pt-4 border-t border-white/10 text-center">
+                        <a
+                          href={`/api/education/certificate/pdf?certificateId=${certificateData.certificate_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block px-4 py-2 bg-primary/20 text-primary hover:bg-primary/30 rounded-lg text-sm font-medium transition-colors"
+                        >
+                          Download PDF
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -255,28 +212,44 @@ export default function CertificateVerifyPage() {
                     </div>
                   </div>
                 )}
+
+                {verificationStatus === "error" && (
+                  <div className="mt-8 animate-fade-up">
+                    <div className="flex items-center gap-3 p-6 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+                      <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
+                        <XCircle className="w-6 h-6 text-yellow-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-yellow-400 mb-1">Verification Error</h3>
+                        <p className="text-white/70 text-sm">
+                          {errorMessage || "An error occurred while verifying the certificate. Please try again."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </GlassCard>
             </ScrollReveal>
 
-            {/* Sample Certificates */}
+            {/* Sample Certificates - Remove since we're using real data */}
             <ScrollReveal animation="fade-up" delay={200}>
               <div className="mt-12">
                 <h3 className="text-xl font-bold text-white mb-6 text-center">
-                  Try Sample Certificate IDs
+                  How It Works
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {demoCertificates.map((cert) => (
-                    <button
-                      key={cert.certificateId}
-                      onClick={() => setCertificateId(cert.certificateId)}
-                      className="p-4 glass-hover rounded-xl text-left group"
-                    >
-                      <p className="text-primary font-mono text-sm mb-2 group-hover:text-primary-light transition-colors">
-                        {cert.certificateId}
-                      </p>
-                      <p className="text-white/70 text-xs">{cert.courseName}</p>
-                    </button>
-                  ))}
+                  <GlassCard className="p-4 text-center">
+                    <div className="text-3xl font-bold text-primary mb-2">1</div>
+                    <p className="text-white/70 text-sm">Enter your certificate ID from your certificate document</p>
+                  </GlassCard>
+                  <GlassCard className="p-4 text-center">
+                    <div className="text-3xl font-bold text-primary mb-2">2</div>
+                    <p className="text-white/70 text-sm">Click verify to authenticate your certificate in real-time</p>
+                  </GlassCard>
+                  <GlassCard className="p-4 text-center">
+                    <div className="text-3xl font-bold text-primary mb-2">3</div>
+                    <p className="text-white/70 text-sm">View details and download your certificate PDF</p>
+                  </GlassCard>
                 </div>
               </div>
             </ScrollReveal>

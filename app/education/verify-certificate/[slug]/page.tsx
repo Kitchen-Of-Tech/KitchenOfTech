@@ -26,7 +26,7 @@ export default async function VerifyCertificatePage({ params }: PageProps) {
   
   const { data: certificate, error } = await supabase
     .from("certificates")
-    .select("*")
+    .select("id, certificate_id, student_name, course_name, issue_date, user_id, enrollment_id, course_id")
     .eq("certificate_id", certificateId)
     .single();
 
@@ -34,28 +34,18 @@ export default async function VerifyCertificatePage({ params }: PageProps) {
     notFound();
   }
 
-  // Get user profile
+  // Get user profile for additional info
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name")
     .eq("id", certificate.user_id)
     .single();
 
-  // Get enrollment for course details
-  const { data: _enrollment } = await supabase
-    .from("course_enrollments")
-    .select("course_id")
-    .eq("id", certificate.enrollment_id)
-    .single();
-
-  // Note: In production, you'd fetch course name from Sanity using enrollment.course_id
-  const courseName = "Course Name"; // TODO: Fetch from Sanity using enrollment?.course_id
-
   const certificateData = {
     ...certificate,
     student_name: profile?.full_name || certificate.student_name,
-    course_name: courseName,
-  };
+    course_name: certificate.course_name || "Course",
+  } as typeof certificate & { course_name: string };
 
   return (
     <div className="min-h-screen pt-20 pb-12">

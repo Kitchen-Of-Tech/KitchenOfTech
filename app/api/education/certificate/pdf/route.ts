@@ -20,12 +20,7 @@ export async function GET(request: NextRequest) {
     
     const { data: certificate, error: certError } = await supabase
       .from("certificates")
-      .select(`
-        *,
-        course_enrollments (
-          course_id
-        )
-      `)
+      .select("id, certificate_id, student_name, course_name, issue_date, user_id, enrollment_id")
       .eq("certificate_id", certificateId)
       .single();
 
@@ -36,9 +31,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get course name from Sanity (simplified - you'd fetch from Sanity in production)
-    // For now, we'll use a placeholder
-    const courseName = "Course Name"; // TODO: Fetch from Sanity
+    // Use actual course name from database (or fallback)
+    const courseName = certificate.course_name || "Course";
 
     // Generate QR code for verification URL
     const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/education/verify-certificate/${certificateId}`;

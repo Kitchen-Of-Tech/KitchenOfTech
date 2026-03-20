@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   try {
@@ -49,81 +50,31 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Check eligibility
-    const { error: enrollmentError } = await supabase
-      .from("course_enrollments")
-      .select(`
-        id,
-        course_id,
-        progress,
-        completed_at
-      `)
-      .eq("id", enrollmentId)
-      .eq("user_id", user.id)
-      .single();
+    // Check eligibility using database RPC function (single source of truth)
+    const adminClient = createAdminClient();
+    const { data: eligibilityData, error: eligibilityError } = await adminClient
+      .rpc("check_certificate_eligibility", {
+        p_enrollment_id: enrollmentId,
+      });
 
-    if (enrollmentError) {
+    if (eligibilityError) {
+      console.error("Error checking eligibility:", eligibilityError);
       return NextResponse.json(
-        { error: "Enrollment not found" },
-        { status: 404 }
+        { error: "Failed to check eligibility" },
+        { status: 500 }
       );
     }
 
-    // Get lesson progress
-    const { data: lessonProgress } = await supabase
-      .from("lesson_progress")
-      .select("completed")
-      .eq("enrollment_id", enrollmentId);
-
-    const totalLessons = lessonProgress?.length || 0;
-    const completedLessons = lessonProgress?.filter(l => l.completed).length || 0;
-    const videosCompleted = totalLessons > 0 && completedLessons === totalLessons;
-
-    // Get quiz attempts
-    const { data: quizAttempts } = await supabase
-      .from("quiz_attempts")
-      .select("quiz_id, passed")
-      .eq("enrollment_id", enrollmentId);
-
-    // Group by quiz_id and check if at least one attempt passed
-    const quizzesPassed = quizAttempts?.reduce((acc: Record<string, boolean>, attempt) => {
-      if (!acc[attempt.quiz_id]) {
-        acc[attempt.quiz_id] = attempt.passed;
-      } else {
-        acc[attempt.quiz_id] = acc[attempt.quiz_id] || attempt.passed;
-      }
-      return acc;
-    }, {});
-
-    const allQuizzesPassed = quizzesPassed 
-      ? Object.values(quizzesPassed).every(passed => passed)
-      : true; // If no quizzes, consider as passed
-
-    // Get assignments
-    const { data: assignments } = await supabase
-      .from("assignment_submissions")
-      .select("completed")
-      .eq("enrollment_id", enrollmentId);
-
-    const allAssignmentsCompleted = assignments?.every(a => a.completed) ?? true;
-
-    const isEligible = videosCompleted && allQuizzesPassed && allAssignmentsCompleted;
+    const result = eligibilityData?.[0] || {};
 
     return NextResponse.json({
       hasCertificate: false,
-      eligible: isEligible,
+      eligible: result.eligible || false,
+      message: result.message || "Complete all requirements to earn your certificate",
       requirements: {
-        videosCompleted,
-        quizzesPassed: allQuizzesPassed,
-        assignmentsCompleted: allAssignmentsCompleted,
-      },
-      progress: {
-        completedLessons,
-        totalLessons,
-        totalQuizzes: quizzesPassed ? Object.keys(quizzesPassed).length : 0,
-        passedQuizzes: quizzesPassed ? Object.values(quizzesPassed).filter(p => p).length : 0,
-        totalAssignments: assignments?.length || 0,
-        completedAssignments: assignments?.filter(a => a.completed).length || 0,
+        videosCompleted: result.videos_completed || false,
+        quizzesPassed: result.quizzes_passed || false,
+        assignmentsCompleted: result.assignments_completed || false,
       },
     });
   } catch (error) {

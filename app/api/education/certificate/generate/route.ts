@@ -3,6 +3,9 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sendCertificateEmail } from "@/lib/email/notifications";
+import { client as sanityClient } from "@/lib/sanity/client";
+import { groq } from "next-sanity";
+import { randomBytes } from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
@@ -88,10 +91,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique certificate ID
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const certificateId = `KOT-${new Date().getFullYear()}-${random}-${timestamp.toString().slice(-4)}`;
+    // Generate unique certificate ID with cryptographically secure random
+    const random = randomBytes(8).toString('hex').toUpperCase();
+    const certificateId = `KOT-${new Date().getFullYear()}-${random}`;
 
     // Get user profile for full name
     const { data: profile } = await supabase
@@ -102,7 +104,20 @@ export async function POST(request: NextRequest) {
 
     const studentName = profile?.full_name || user.email?.split("@")[0] || "Student";
 
-    // Create certificate record
+    // Fetch course name from Sanity
+    let courseName = "Course";
+    try {
+      const query = groq`*[_type == "course" && _id == $courseId][0] { title }`;
+      const courseData = await sanityClient.fetch(query, { courseId: enrollment.course_id });
+      if (courseData?.title) {
+        courseName = courseData.title;
+      }
+    } catch (error) {
+      console.warn("Failed to fetch course name from Sanity:", error);
+      // Continue with fallback
+    }
+
+    // Create certificate record with course name
     const { data: certificate, error: insertError } = await supabase
       .from("certificates")
       .insert({
@@ -111,6 +126,7 @@ export async function POST(request: NextRequest) {
         course_id: enrollment.course_id,
         certificate_id: certificateId,
         student_name: studentName,
+        course_name: courseName,
         issue_date: new Date().toISOString(),
       })
       .select()
@@ -139,12 +155,12 @@ export async function POST(request: NextRequest) {
       // Don't fail the request - certificate was created
     }
 
-    // Send certificate email notification
+    // Send certificate email notification with actual course name
     try {
       await sendCertificateEmail({
         userName: studentName,
         userEmail: user.email!,
-        courseName: "Course", // Will be replaced when we fetch course details
+        courseName: courseName,
         certificateId: certificateId,
         certificateUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/api/education/certificate/pdf/${certificate.id}`,
       });
