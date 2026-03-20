@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import puppeteer from "puppeteer";
+import jsPDF from "jspdf";
 import QRCode from "qrcode";
-import fs from "fs";
-import path from "path";
 
 export async function GET(request: NextRequest) {
-  let browser = null;
   try {
     const { searchParams } = new URL(request.url);
     const certificateId = searchParams.get("certificateId");
@@ -37,7 +34,7 @@ export async function GET(request: NextRequest) {
     // Generate QR code
     const verificationUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/education/verify-certificate/${certificateId}`;
     const qrCodeDataUrl = await QRCode.toDataURL(verificationUrl, {
-      width: 200,
+      width: 300,
       margin: 2,
       color: {
         dark: "#1f2937",
@@ -45,205 +42,172 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Read SVG template
-    const svgPath = path.join(process.cwd(), "public/certificates/Certificate.svg");
-    const svgContent = fs.readFileSync(svgPath, "utf-8");
-
-    // Prepare text data
-    const textData = {
-      studentName: certificate.student_name || "Student Name",
-      courseName: certificate.course_name || "Course Name",
-      grade: certificate.grade ? `${certificate.grade}%` : "N/A",
-      level: certificate.level || "N/A",
-      issueDate: certificate.issue_date 
-        ? new Date(certificate.issue_date).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
-        : "Date",
-      expirationDate: certificate.valid_until
-        ? new Date(certificate.valid_until).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
-        : "N/A",
-      certificateId: certificate.certificate_id,
-      credentialCode: certificate.credential_code || "N/A",
-      instructorName: certificate.instructor_name || "Instructor",
-      institution: certificate.institution || "KitchenOfTech",
-    };
-
-    // Create HTML with SVG + QR overlay
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <style>
-          * { margin: 0; padding: 0; }
-          body { font-family: 'Arial', sans-serif; background: white; }
-          .certificate-container {
-            position: relative;
-            width: 841.9px;
-            height: 595.3px;
-            margin: 0 auto;
-          }
-          svg { width: 100%; height: 100%; }
-          
-          .overlay-text {
-            position: absolute;
-            font-family: 'Arial', sans-serif;
-            color: #1f2937;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-          
-          .student-name {
-            top: 240px;
-            left: 200px;
-            width: 441.9px;
-            font-size: 48px;
-            font-weight: bold;
-            text-align: center;
-          }
-          
-          .course-name {
-            top: 310px;
-            left: 150px;
-            width: 541.9px;
-            font-size: 36px;
-            text-align: center;
-            font-weight: 600;
-          }
-          
-          .grade {
-            top: 380px;
-            left: 150px;
-            font-size: 24px;
-            font-weight: 600;
-          }
-          
-          .level {
-            top: 380px;
-            left: 350px;
-            font-size: 24px;
-            font-weight: 600;
-          }
-          
-          .issue-date {
-            top: 430px;
-            left: 150px;
-            font-size: 18px;
-          }
-          
-          .expiration-date {
-            top: 430px;
-            left: 550px;
-            font-size: 18px;
-          }
-          
-          .certificate-id {
-            top: 470px;
-            left: 150px;
-            font-size: 14px;
-            color: #666;
-          }
-          
-          .credential-code {
-            top: 470px;
-            left: 550px;
-            font-size: 14px;
-            color: #666;
-          }
-          
-          .instructor-name {
-            top: 510px;
-            left: 150px;
-            font-size: 18px;
-          }
-          
-          .institution {
-            top: 510px;
-            left: 550px;
-            font-size: 18px;
-          }
-          
-          .qr-code {
-            position: absolute;
-            top: 358px;
-            left: 166px;
-            width: 110px;
-            height: 110px;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #e5e7eb;
-          }
-          
-          .qr-code img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-          }
-          
-          @media print {
-            body { margin: 0; padding: 0; }
-            .certificate-container { margin: 0; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="certificate-container">
-          ${svgContent}
-          
-          <div class="overlay-text student-name">${textData.studentName}</div>
-          <div class="overlay-text course-name">${textData.courseName}</div>
-          <div class="overlay-text grade">Grade: ${textData.grade}</div>
-          <div class="overlay-text level">Level: ${textData.level}</div>
-          <div class="overlay-text issue-date">Issued: ${textData.issueDate}</div>
-          <div class="overlay-text expiration-date">Valid Until: ${textData.expirationDate}</div>
-          <div class="overlay-text certificate-id">ID: ${textData.certificateId}</div>
-          <div class="overlay-text credential-code">Code: ${textData.credentialCode}</div>
-          <div class="overlay-text instructor-name">Instructor: ${textData.instructorName}</div>
-          <div class="overlay-text institution">${textData.institution}</div>
-          
-          <div class="qr-code">
-            <img src="${qrCodeDataUrl}" alt="QR Code">
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    // Use Puppeteer to generate PDF
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    // Create PDF using jsPDF
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
     });
 
-    const page = await browser.newPage();
-    
-    // Set viewport to match certificate dimensions
-    await page.setViewport({
-      width: 842,
-      height: 596,
-      deviceScaleFactor: 2, // For better quality
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    // Set background - elegant gradient-like effect
+    pdf.setFillColor(245, 245, 245);
+    pdf.rect(0, 0, pageWidth, pageHeight, "F");
+
+    // Add decorative header
+    pdf.setFillColor(99, 102, 241); // indigo
+    pdf.rect(0, 0, pageWidth, 25, "F");
+
+    // Certificate title
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(24);
+    pdf.setTextColor(255, 255, 255);
+    pdf.text("Certificate of Achievement", pageWidth / 2, 15, {
+      align: "center",
     });
 
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    // Add decorative line
+    pdf.setDrawColor(99, 102, 241);
+    pdf.setLineWidth(0.5);
+    pdf.line(15, 35, pageWidth - 15, 35);
 
-    const pdfBuffer = await page.pdf({
-      width: "841.9px",
-      height: "595.3px",
-      margin: { top: 0, right: 0, bottom: 0, left: 0 },
-      printBackground: true,
+    // Congratulations text
+    pdf.setFontSize(11);
+    pdf.setTextColor(100, 100, 100);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("This is to certify that", pageWidth / 2, 45, { align: "center" });
+
+    // Student name - LARGE AND BOLD
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(22);
+    pdf.setTextColor(31, 41, 55); // dark gray
+    const studentName = (certificate.student_name || "Student Name").toUpperCase();
+    pdf.text(studentName, pageWidth / 2, 60, { align: "center" });
+
+    // Decorative line under name
+    pdf.setDrawColor(99, 102, 241);
+    pdf.setLineWidth(1);
+    pdf.line(20, 65, pageWidth - 20, 65);
+
+    // Achievement text
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(11);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text("has successfully completed the course", pageWidth / 2, 75, {
+      align: "center",
     });
 
-    return new NextResponse(Buffer.from(pdfBuffer), {
+    // Course name
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(16);
+    pdf.setTextColor(99, 102, 241);
+    const courseName = certificate.course_name || "Course Name";
+    pdf.text(courseName, pageWidth / 2, 85, { align: "center" });
+
+    // Certificate details section
+    const detailsStartY = 100;
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    pdf.setTextColor(80, 80, 80);
+
+    // Issue date
+    const issueDate = certificate.issue_date
+      ? new Date(certificate.issue_date).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : "Date";
+    pdf.text(`Issued on: ${issueDate}`, 20, detailsStartY);
+
+    // Grade
+    if (certificate.grade !== undefined && certificate.grade !== null) {
+      const gradeText = `Grade: ${typeof certificate.grade === "number" ? certificate.grade.toFixed(2) : certificate.grade}%`;
+      pdf.text(gradeText, pageWidth - 60, detailsStartY);
+    }
+
+    // Level
+    if (certificate.level) {
+      pdf.text(`Level: ${certificate.level}`, 20, detailsStartY + 8);
+    }
+
+    // Credential code
+    if (certificate.credential_code) {
+      pdf.text(
+        `Credential Code: ${certificate.credential_code}`,
+        pageWidth - 100,
+        detailsStartY + 8
+      );
+    }
+
+    // Expiration date
+    if (certificate.valid_until) {
+      const expDate = new Date(certificate.valid_until).toLocaleDateString(
+        "en-US",
+        {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }
+      );
+      pdf.text(`Valid Until: ${expDate}`, 20, detailsStartY + 16);
+    }
+
+    // Institution
+    if (certificate.institution) {
+      pdf.text(`Institution: ${certificate.institution}`, 20, detailsStartY + 24);
+    }
+
+    // Instructor
+    if (certificate.instructor_name) {
+      pdf.text(
+        `Instructor: ${certificate.instructor_name}`,
+        pageWidth - 100,
+        detailsStartY + 24
+      );
+    }
+
+    // Add QR code section
+    const qrY = detailsStartY + 35;
+    pdf.setFontSize(9);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text("Scan to verify this certificate:", pageWidth / 2 - 35, qrY);
+
+    // Add QR code image
+    try {
+      pdf.addImage(qrCodeDataUrl, "PNG", pageWidth / 2 - 20, qrY + 3, 40, 40);
+    } catch (err) {
+      console.error("Error adding QR code to PDF:", err);
+      // Continue without QR if it fails
+    }
+
+    // Footer
+    const footerY = pageHeight - 15;
+    pdf.setFontSize(8);
+    pdf.setTextColor(150, 150, 150);
+    pdf.setFont("helvetica", "normal");
+    pdf.text("KitchenOfTech - Excellence in Education", pageWidth / 2, footerY, {
+      align: "center",
+    });
+    pdf.text(
+      `Certificate ID: ${certificateId}`,
+      pageWidth / 2,
+      footerY + 5,
+      { align: "center" }
+    );
+
+    // Add decorative footer line
+    pdf.setDrawColor(99, 102, 241);
+    pdf.setLineWidth(0.5);
+    pdf.line(15, footerY - 5, pageWidth - 15, footerY - 5);
+
+    // Generate PDF buffer
+    const pdfBuffer = Buffer.from(pdf.output("arraybuffer"));
+
+    // Return PDF
+    return new NextResponse(pdfBuffer, {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="Certificate-${certificateId}.pdf"`,
@@ -253,12 +217,8 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("PDF generation error:", error);
     return NextResponse.json(
-      { error: "Failed to generate PDF" },
+      { error: "Failed to generate PDF", details: String(error) },
       { status: 500 }
     );
-  } finally {
-    if (browser) {
-      await browser.close();
-    }
   }
 }
