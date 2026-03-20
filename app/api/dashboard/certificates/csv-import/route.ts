@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { randomBytes } from 'crypto';
 
+// Helper function to convert course name to slug format for course_id
+function generateCourseId(courseName: string): string {
+  return courseName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+}
+
 interface CSVRow {
   [key: string]: string;
 }
@@ -146,12 +157,14 @@ export async function POST(request: NextRequest) {
       const year = issueDate.getFullYear();
       const random = randomBytes(8).toString('hex').toUpperCase();
       const certificateId = `KOT-${year}-${random}`;
+      const courseId = generateCourseId(row.courseName);
       const grade = row.grade ? parseFloat(row.grade) : null;
 
       return {
         certificate_id: certificateId,
         student_name: row.studentName.trim(),
         course_name: row.courseName.trim(),
+        course_id: courseId,
         credential_code: row.credentialCode.trim(),
         level: row.level.trim(),
         enrollment_id: row.enrollmentId?.trim() || null,

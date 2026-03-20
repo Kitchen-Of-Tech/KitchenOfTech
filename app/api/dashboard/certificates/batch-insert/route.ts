@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { randomBytes } from 'crypto';
 
+// Helper function to convert course name to slug format for course_id
+function generateCourseId(courseName: string): string {
+  return courseName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+}
+
 interface BatchCertificateRequest {
   certificates: Array<{
     // Required
@@ -88,11 +99,13 @@ export async function POST(request: NextRequest) {
       const year = issueDate.getFullYear();
       const random = randomBytes(8).toString('hex').toUpperCase();
       const certificateId = `KOT-${year}-${random}`;
+      const courseId = generateCourseId(cert.courseName);
 
       return {
         certificate_id: certificateId,
         student_name: cert.studentName,
         course_name: cert.courseName,
+        course_id: courseId,
         enrollment_id: cert.enrollmentId || null,
         user_id: cert.userId || null,
         issue_date: issueDate.toISOString(),

@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { randomBytes } from 'crypto';
 
+// Helper function to convert course name to slug format for course_id
+function generateCourseId(courseName: string): string {
+  return courseName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, '') // Remove special characters
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+}
+
 interface CertificateInsertRequest {
   // Required fields
   studentName: string;
@@ -74,12 +85,14 @@ export async function POST(request: NextRequest) {
     const random = randomBytes(8).toString('hex').toUpperCase();
     const certificateId = `KOT-${year}-${random}`;
 
+    // Generate course_id from course name (slug format)
+    const courseId = generateCourseId(body.courseName);
+
     // Optional: Check if enrollment exists (only if enrollmentId provided)
-    let enrollmentCourseId = null;
     if (body.enrollmentId) {
       const { data: enrollment, error: enrollmentError } = await adminClient
         .from('course_enrollments')
-        .select('id, course_id')
+        .select('id')
         .eq('id', body.enrollmentId)
         .single();
 
@@ -89,7 +102,6 @@ export async function POST(request: NextRequest) {
           { status: 404 }
         );
       }
-      enrollmentCourseId = enrollment.course_id;
     }
 
     // Insert certificate
@@ -99,6 +111,7 @@ export async function POST(request: NextRequest) {
         certificate_id: certificateId,
         student_name: body.studentName,
         course_name: body.courseName,
+        course_id: courseId,
         enrollment_id: body.enrollmentId || null,
         user_id: body.userId || null,
         issue_date: issueDate.toISOString(),
