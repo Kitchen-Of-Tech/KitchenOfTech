@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const headers = parseCSVLine(headerLine);
 
     // Validate required columns
-    const requiredColumns = ['studentName', 'courseName', 'enrollmentId', 'userId'];
+    const requiredColumns = ['studentName', 'courseName', 'credentialCode', 'level', 'enrollmentId', 'userId'];
     const missingColumns = requiredColumns.filter((col) => !headers.includes(col));
 
     if (missingColumns.length > 0) {
@@ -104,12 +104,28 @@ export async function POST(request: NextRequest) {
     // Validate rows
     const validationErrors: string[] = [];
     rows.forEach((row, index) => {
+      // Required fields
       if (!row.studentName?.trim()) validationErrors.push(`Row ${index + 2}: Missing or empty studentName`);
       if (!row.courseName?.trim()) validationErrors.push(`Row ${index + 2}: Missing or empty courseName`);
+      if (!row.credentialCode?.trim()) validationErrors.push(`Row ${index + 2}: Missing or empty credentialCode`);
+      if (!row.level?.trim()) validationErrors.push(`Row ${index + 2}: Missing or empty level`);
       if (!row.enrollmentId?.trim()) validationErrors.push(`Row ${index + 2}: Missing or empty enrollmentId`);
       if (!row.userId?.trim()) validationErrors.push(`Row ${index + 2}: Missing or empty userId`);
+
+      // Optional date validations
       if (row.issueDate && isNaN(new Date(row.issueDate).getTime())) {
-        validationErrors.push(`Row ${index + 2}: Invalid issueDate format`);
+        validationErrors.push(`Row ${index + 2}: Invalid issueDate format (use YYYY-MM-DD)`);
+      }
+      if (row.validUntil && isNaN(new Date(row.validUntil).getTime())) {
+        validationErrors.push(`Row ${index + 2}: Invalid validUntil format (use YYYY-MM-DD)`);
+      }
+
+      // Optional grade validation (0-100)
+      if (row.grade) {
+        const gradeNum = parseFloat(row.grade);
+        if (isNaN(gradeNum) || gradeNum < 0 || gradeNum > 100) {
+          validationErrors.push(`Row ${index + 2}: Grade must be a number between 0 and 100`);
+        }
       }
     });
 
@@ -128,17 +144,25 @@ export async function POST(request: NextRequest) {
     // Prepare certificates for insertion
     const certificatesToInsert = rows.map((row) => {
       const issueDate = row.issueDate ? new Date(row.issueDate) : new Date();
+      const validUntilDate = row.validUntil ? new Date(row.validUntil) : null;
       const year = issueDate.getFullYear();
       const random = randomBytes(8).toString('hex').toUpperCase();
       const certificateId = `KOT-${year}-${random}`;
+      const grade = row.grade ? parseFloat(row.grade) : null;
 
       return {
         certificate_id: certificateId,
         student_name: row.studentName.trim(),
         course_name: row.courseName.trim(),
+        credential_code: row.credentialCode.trim(),
+        level: row.level.trim(),
         enrollment_id: row.enrollmentId.trim(),
         user_id: row.userId.trim(),
         issue_date: issueDate.toISOString(),
+        valid_until: validUntilDate ? validUntilDate.toISOString() : null,
+        grade: grade,
+        institution: row.institution?.trim() || null,
+        instructor_notes: row.instructorNotes?.trim() || null,
       };
     });
 

@@ -26,7 +26,7 @@ export default async function VerifyCertificatePage({ params }: PageProps) {
   
   const { data: certificate, error } = await supabase
     .from("certificates")
-    .select("id, certificate_id, student_name, course_name, issue_date, user_id, enrollment_id, course_id")
+    .select("id, certificate_id, student_name, course_name, credential_code, level, issue_date, valid_until, grade, institution, instructor_notes, user_id, enrollment_id, course_id")
     .eq("certificate_id", certificateId)
     .single();
 

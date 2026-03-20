@@ -12,7 +12,13 @@ interface CertificateData {
   certificate_id: string;
   student_name: string;
   course_name: string;
+  credential_code: string;
+  level: string;
   issue_date: string;
+  valid_until?: string;
+  grade?: number;
+  institution?: string;
+  instructor_notes?: string;
   user_id: string;
 }
 
@@ -152,18 +158,26 @@ export default function CertificateVerifyPage() {
 
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-white/50 text-sm">
-                            <Award className="w-4 h-4" />
-                            <span>Certificate ID</span>
-                          </div>
-                          <p className="text-white font-semibold font-mono text-xs">{certificateData.certificate_id}</p>
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-white/50 text-sm">
                             <BookOpen className="w-4 h-4" />
                             <span>Course Name</span>
                           </div>
                           <p className="text-white font-semibold">{certificateData.course_name}</p>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-white/50 text-sm">
+                            <Award className="w-4 h-4" />
+                            <span>Credential Code</span>
+                          </div>
+                          <p className="text-white font-semibold font-mono">{certificateData.credential_code}</p>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-white/50 text-sm">
+                            <Award className="w-4 h-4" />
+                            <span>Level</span>
+                          </div>
+                          <p className="text-white font-semibold">{certificateData.level}</p>
                         </div>
 
                         <div className="space-y-1">
@@ -173,6 +187,46 @@ export default function CertificateVerifyPage() {
                           </div>
                           <p className="text-white font-semibold">{formatDate(certificateData.issue_date)}</p>
                         </div>
+
+                        {certificateData.valid_until && (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-white/50 text-sm">
+                              <Calendar className="w-4 h-4" />
+                              <span>Valid Until</span>
+                            </div>
+                            <p className="text-white font-semibold">{formatDate(certificateData.valid_until)}</p>
+                          </div>
+                        )}
+
+                        {certificateData.grade !== undefined && certificateData.grade !== null && (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-white/50 text-sm">
+                              <Award className="w-4 h-4" />
+                              <span>Grade</span>
+                            </div>
+                            <p className="text-white font-semibold">{certificateData.grade.toFixed(2)}/100</p>
+                          </div>
+                        )}
+
+                        {certificateData.institution && (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-white/50 text-sm">
+                              <BookOpen className="w-4 h-4" />
+                              <span>Institution</span>
+                            </div>
+                            <p className="text-white font-semibold">{certificateData.institution}</p>
+                          </div>
+                        )}
+
+                        {certificateData.instructor_notes && (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-white/50 text-sm">
+                              <User className="w-4 h-4" />
+                              <span>Instructor Notes</span>
+                            </div>
+                            <p className="text-white font-semibold">{certificateData.instructor_notes}</p>
+                          </div>
+                        )}
 
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-white/50 text-sm">

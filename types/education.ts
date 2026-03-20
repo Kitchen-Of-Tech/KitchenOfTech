@@ -264,11 +264,16 @@ export interface Certificate {
   user_id: string;
   course_id: string;
   student_name: string;
+  course_name: string;
+  credential_code: string;
+  level: string;
   issue_date: string;
-  course_name?: string;
   instructor_name?: string;
   valid_until?: string;
   final_score?: number;
+  grade?: number;
+  institution?: string;
+  instructor_notes?: string;
   skills?: string[];
   certificate_url?: string;
 }

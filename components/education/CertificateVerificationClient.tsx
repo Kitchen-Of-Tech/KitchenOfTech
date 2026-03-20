@@ -102,6 +102,24 @@ export function CertificateVerificationClient({
                 </div>
               </div>
 
+              {certificate.credential_code && (
+                <div>
+                  <div className="text-white/60 text-sm mb-1">Credential Code</div>
+                  <div className="text-white font-medium font-mono">
+                    {certificate.credential_code}
+                  </div>
+                </div>
+              )}
+
+              {certificate.level && (
+                <div>
+                  <div className="text-white/60 text-sm mb-1">Level</div>
+                  <div className="text-white font-medium">
+                    {certificate.level}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <div className="text-white/60 text-sm mb-1">Issue Date</div>
                 <div className="text-white font-medium flex items-center gap-2">
@@ -113,6 +131,47 @@ export function CertificateVerificationClient({
                   })}
                 </div>
               </div>
+
+              {certificate.valid_until && (
+                <div>
+                  <div className="text-white/60 text-sm mb-1">Valid Until</div>
+                  <div className="text-white font-medium flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    {new Date(certificate.valid_until).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {certificate.grade !== undefined && certificate.grade !== null && (
+                <div>
+                  <div className="text-white/60 text-sm mb-1">Grade</div>
+                  <div className="text-white font-medium">
+                    {typeof certificate.grade === 'number' ? certificate.grade.toFixed(2) : certificate.grade}/100
+                  </div>
+                </div>
+              )}
+
+              {certificate.institution && (
+                <div>
+                  <div className="text-white/60 text-sm mb-1">Institution</div>
+                  <div className="text-white font-medium">
+                    {certificate.institution}
+                  </div>
+                </div>
+              )}
+
+              {certificate.instructor_notes && (
+                <div>
+                  <div className="text-white/60 text-sm mb-1">Instructor Notes</div>
+                  <div className="text-white font-medium">
+                    {certificate.instructor_notes}
+                  </div>
+                </div>
+              )}
 
               {certificate.instructor_name && (
                 <div>

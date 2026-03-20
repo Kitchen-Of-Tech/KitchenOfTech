@@ -4,11 +4,22 @@ import { randomBytes } from 'crypto';
 
 interface BatchCertificateRequest {
   certificates: Array<{
+    // Required
     studentName: string;
     courseName: string;
+    credentialCode: string;
+    level: string;
     enrollmentId: string;
     userId: string;
+    
+    // Dates
     issueDate?: string;
+    validUntil?: string;
+    
+    // Optional
+    grade?: number;
+    institution?: string;
+    instructorNotes?: string;
   }>;
 }
 
@@ -44,10 +55,18 @@ export async function POST(request: NextRequest) {
     body.certificates.forEach((cert, index) => {
       if (!cert.studentName) validationErrors.push(`Row ${index + 1}: Missing studentName`);
       if (!cert.courseName) validationErrors.push(`Row ${index + 1}: Missing courseName`);
+      if (!cert.credentialCode) validationErrors.push(`Row ${index + 1}: Missing credentialCode`);
+      if (!cert.level) validationErrors.push(`Row ${index + 1}: Missing level`);
       if (!cert.enrollmentId) validationErrors.push(`Row ${index + 1}: Missing enrollmentId`);
       if (!cert.userId) validationErrors.push(`Row ${index + 1}: Missing userId`);
       if (cert.issueDate && isNaN(new Date(cert.issueDate).getTime())) {
         validationErrors.push(`Row ${index + 1}: Invalid issueDate format`);
+      }
+      if (cert.validUntil && isNaN(new Date(cert.validUntil).getTime())) {
+        validationErrors.push(`Row ${index + 1}: Invalid validUntil format`);
+      }
+      if (cert.grade !== undefined && (cert.grade < 0 || cert.grade > 100)) {
+        validationErrors.push(`Row ${index + 1}: Grade must be 0-100`);
       }
     });
 
@@ -65,6 +84,7 @@ export async function POST(request: NextRequest) {
     // Prepare certificates for insertion
     const certificatesToInsert = body.certificates.map((cert) => {
       const issueDate = cert.issueDate ? new Date(cert.issueDate) : new Date();
+      const validUntil = cert.validUntil ? new Date(cert.validUntil) : null;
       const year = issueDate.getFullYear();
       const random = randomBytes(8).toString('hex').toUpperCase();
       const certificateId = `KOT-${year}-${random}`;
@@ -76,6 +96,12 @@ export async function POST(request: NextRequest) {
         enrollment_id: cert.enrollmentId,
         user_id: cert.userId,
         issue_date: issueDate.toISOString(),
+        valid_until: validUntil ? validUntil.toISOString() : null,
+        credential_code: cert.credentialCode,
+        level: cert.level,
+        grade: cert.grade || null,
+        institution: cert.institution || null,
+        instructor_notes: cert.instructorNotes || null,
       };
     });
 

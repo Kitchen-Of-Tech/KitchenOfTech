@@ -12,11 +12,19 @@ import {
 } from 'lucide-react';
 
 interface CertificateData {
+  // Required
   studentName: string;
   courseName: string;
+  credentialCode: string;
+  level: string;
   enrollmentId: string;
   userId: string;
+  // Optional
   issueDate?: string;
+  validUntil?: string;
+  grade?: string;
+  institution?: string;
+  instructorNotes?: string;
 }
 
 interface ApiResponse {
@@ -41,9 +49,15 @@ export function CertificateManagementClient() {
   const [singleForm, setSingleForm] = useState<CertificateData>({
     studentName: '',
     courseName: '',
+    credentialCode: '',
+    level: 'Beginner',
     enrollmentId: '',
     userId: '',
     issueDate: new Date().toISOString().split('T')[0],
+    validUntil: '',
+    grade: '',
+    institution: '',
+    instructorNotes: '',
   });
 
   // Batch Upload State
@@ -72,9 +86,15 @@ export function CertificateManagementClient() {
         setSingleForm({
           studentName: '',
           courseName: '',
+          credentialCode: '',
+          level: 'Beginner',
           enrollmentId: '',
           userId: '',
           issueDate: new Date().toISOString().split('T')[0],
+          validUntil: '',
+          grade: '',
+          institution: '',
+          instructorNotes: '',
         });
       }
     } catch (error) {
@@ -205,23 +225,35 @@ export function CertificateManagementClient() {
                 {
                   studentName: 'John Doe',
                   courseName: 'Web Development Mastery',
+                  credentialCode: 'WEB-DEV-2024-001',
+                  level: 'Advanced',
                   enrollmentId: '550e8400-e29b-41d4-a716-446655440000',
                   userId: '550e8400-e29b-41d4-a716-446655440001',
                   issueDate: '2026-03-20',
+                  validUntil: '2028-03-20',
+                  grade: 95.5,
+                  institution: 'KitchenOfTech Academy',
+                  instructorNotes: 'Excellent performance in all modules',
                 },
                 {
                   studentName: 'Jane Smith',
                   courseName: 'Advanced React',
+                  credentialCode: 'REACT-2024-002',
+                  level: 'Master',
                   enrollmentId: '550e8400-e29b-41d4-a716-446655440002',
                   userId: '550e8400-e29b-41d4-a716-446655440003',
                   issueDate: '2026-03-21',
+                  validUntil: '2028-03-21',
+                  grade: 98.0,
+                  institution: 'KitchenOfTech Academy',
+                  instructorNotes: 'Outstanding achievement and dedication',
                 },
               ],
             },
             null,
             2
           )
-        : 'studentName,courseName,enrollmentId,userId,issueDate\nJohn Doe,Web Development Mastery,550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001,2026-03-20\nJane Smith,Advanced React,550e8400-e29b-41d4-a716-446655440002,550e8400-e29b-41d4-a716-446655440003,2026-03-21';
+        : 'studentName,courseName,credentialCode,level,enrollmentId,userId,issueDate,validUntil,grade,institution,instructorNotes\nJohn Doe,Web Development Mastery,WEB-DEV-2024-001,Advanced,550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001,2026-03-20,2028-03-20,95.5,KitchenOfTech Academy,Excellent performance in all modules\nJane Smith,Advanced React,REACT-2024-002,Master,550e8400-e29b-41d4-a716-446655440002,550e8400-e29b-41d4-a716-446655440003,2026-03-21,2028-03-21,98.0,KitchenOfTech Academy,Outstanding achievement and dedication';
 
     const element = document.createElement('a');
     element.setAttribute(
@@ -338,6 +370,7 @@ export function CertificateManagementClient() {
               <p className="text-sm text-gray-400 mb-4">Add a single certificate by filling out the form below</p>
 
               <form onSubmit={handleSingleSubmit} className="space-y-4">
+                {/* Required Fields Row 1 */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label htmlFor="student-name" className="block text-sm font-medium text-gray-200">
@@ -370,7 +403,49 @@ export function CertificateManagementClient() {
                       className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                     />
                   </div>
+                </div>
 
+                {/* Required Fields Row 2 */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="credential-code" className="block text-sm font-medium text-gray-200">
+                      Credential Code *
+                    </label>
+                    <input
+                      id="credential-code"
+                      placeholder="WEB-DEV-2024-001"
+                      value={singleForm.credentialCode}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setSingleForm({ ...singleForm, credentialCode: e.target.value })
+                      }
+                      required
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="level" className="block text-sm font-medium text-gray-200">
+                      Level *
+                    </label>
+                    <select
+                      id="level"
+                      value={singleForm.level}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                        setSingleForm({ ...singleForm, level: e.target.value })
+                      }
+                      required
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                      <option value="Master">Master</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Required Fields Row 3 */}
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label htmlFor="enrollment-id" className="block text-sm font-medium text-gray-200">
                       Enrollment ID *
@@ -402,7 +477,10 @@ export function CertificateManagementClient() {
                       className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                     />
                   </div>
+                </div>
 
+                {/* Optional Fields Row 1 */}
+                <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <label htmlFor="issue-date" className="block text-sm font-medium text-gray-200">
                       Issue Date
@@ -413,6 +491,73 @@ export function CertificateManagementClient() {
                       value={singleForm.issueDate}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         setSingleForm({ ...singleForm, issueDate: e.target.value })
+                      }
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="valid-until" className="block text-sm font-medium text-gray-200">
+                      Valid Until
+                    </label>
+                    <input
+                      id="valid-until"
+                      type="date"
+                      value={singleForm.validUntil}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setSingleForm({ ...singleForm, validUntil: e.target.value })
+                      }
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="grade" className="block text-sm font-medium text-gray-200">
+                      Grade (0-100)
+                    </label>
+                    <input
+                      id="grade"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      placeholder="95.50"
+                      value={singleForm.grade}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setSingleForm({ ...singleForm, grade: e.target.value })
+                      }
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Optional Fields Row 2 */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="institution" className="block text-sm font-medium text-gray-200">
+                      Institution
+                    </label>
+                    <input
+                      id="institution"
+                      placeholder="KitchenOfTech Academy"
+                      value={singleForm.institution}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setSingleForm({ ...singleForm, institution: e.target.value })
+                      }
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="instructor-notes" className="block text-sm font-medium text-gray-200">
+                      Instructor Notes
+                    </label>
+                    <input
+                      id="instructor-notes"
+                      placeholder="Excellent performance in all modules"
+                      value={singleForm.instructorNotes}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setSingleForm({ ...singleForm, instructorNotes: e.target.value })
                       }
                       className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                     />
@@ -455,15 +600,23 @@ export function CertificateManagementClient() {
               </div>
 
               <textarea
-                placeholder={`[
-  {
-    "studentName": "John Doe",
-    "courseName": "Web Development",
-    "enrollmentId": "uuid",
-    "userId": "uuid",
-    "issueDate": "2026-03-20"
-  }
-]`}
+                placeholder={`{
+  "certificates": [
+    {
+      "studentName": "John Doe",
+      "courseName": "Web Development Mastery",
+      "credentialCode": "WEB-DEV-2024-001",
+      "level": "Advanced",
+      "enrollmentId": "uuid",
+      "userId": "uuid",
+      "issueDate": "2026-03-20",
+      "validUntil": "2028-03-20",
+      "grade": 95.5,
+      "institution": "KitchenOfTech Academy",
+      "instructorNotes": "Excellent performance"
+    }
+  ]
+}`}
                 value={batchInput}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBatchInput(e.target.value)}
                 rows={10}
@@ -508,8 +661,10 @@ export function CertificateManagementClient() {
               <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4">
                 <h4 className="font-semibold text-sm text-blue-200 mb-2">CSV Requirements:</h4>
                 <ul className="text-sm space-y-1 ml-4 text-blue-100">
-                  <li>• Required columns: studentName, courseName, enrollmentId, userId</li>
-                  <li>• Optional column: issueDate (format: YYYY-MM-DD)</li>
+                  <li>• <strong>Required columns:</strong> studentName, courseName, credentialCode, level, enrollmentId, userId</li>
+                  <li>• <strong>Optional columns:</strong> issueDate, validUntil, grade, institution, instructorNotes</li>
+                  <li>• Date format: YYYY-MM-DD</li>
+                  <li>• Grade range: 0-100</li>
                   <li>• First row must be header</li>
                   <li>• Maximum 100 rows per file</li>
                   <li>• File size limit: 5MB</li>
