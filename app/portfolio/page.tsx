@@ -131,7 +131,7 @@ export default async function PortfolioPage() {
                           </div>
 
                           {/* CTA */}
-                          <Link href={project.liveUrl || '#'}>
+                          <Link href={`/portfolio/${project.slug.current}`}>
                             <GradientButton variant="primary" size="md">
                               <span>View Case Study</span>
                               <ExternalLink className="w-4 h-4 ml-2" />
@@ -159,7 +159,7 @@ export default async function PortfolioPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {regularProjects.map((project, index) => (
                 <ScrollReveal key={project._id} animation="fade-up" delay={index * 100}>
-                  <Link href={project.liveUrl || '#'}>
+                  <Link href={`/portfolio/${project.slug.current}`}>
                     <GlassCard hover className="group overflow-hidden h-full flex flex-col">
                       {/* Image */}
                       <div className="relative h-56 overflow-hidden">

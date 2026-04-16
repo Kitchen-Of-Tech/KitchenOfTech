@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient, createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { Resend } from 'resend';
 
 // GET /api/payment/reminders - List payment reminders (Admin only)
 export async function GET(request: NextRequest) {
@@ -291,33 +292,78 @@ export async function PATCH() {
 }
 
 // Helper: Send email reminder
-async function sendEmailReminder(customer: any, transaction: any) {
-  // TODO: Integrate with your email service (SendGrid, AWS SES, etc.)
-  console.log(`Sending email reminder to ${customer.email} for transaction ${transaction.transaction_id}`);
-  
-  // Mock email sending
-  // In production, use a service like:
-  // await sendgrid.send({
-  //   to: customer.email,
-  //   from: 'payments@kitchenoftech.com',
-  //   subject: 'Payment Reminder',
-  //   html: `Dear ${customer.full_name}, your payment of ${transaction.amount} BDT is pending...`
-  // });
-  
-  return Promise.resolve();
+async function sendEmailReminder(
+  customer: { id: string; full_name?: string; email: string; phone?: string },
+  transaction: { transaction_id: string; amount: number; purpose?: string }
+) {
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #0070f3;">Payment Reminder</h2>
+        
+        <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p>Dear ${customer.full_name || 'Customer'},</p>
+          <p>This is a reminder that you have a pending payment:</p>
+          
+          <div style="background: white; padding: 15px; margin: 15px 0; border-left: 4px solid #0070f3;">
+            <p><strong>Amount:</strong> ${transaction.amount} BDT</p>
+            ${transaction.purpose ? `<p><strong>Purpose:</strong> ${transaction.purpose}</p>` : ''}
+            <p><strong>Transaction ID:</strong> ${transaction.transaction_id}</p>
+          </div>
+          
+          <p>Please complete your payment as soon as possible to avoid any disruptions.</p>
+        </div>
+        
+        <div style="margin: 30px 0;">
+          <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://kitchenoftech.org'}/dashboard" 
+             style="background: #0070f3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+            View Payment
+          </a>
+        </div>
+        
+        <p style="color: #666; font-size: 14px; border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px;">
+          If you've already made this payment, please disregard this reminder.
+        </p>
+      </div>
+    `;
+
+    const result = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@kitchenoftech.org',
+      to: customer.email,
+      subject: `Payment Reminder: ${transaction.amount} BDT Pending`,
+      html: emailHtml,
+    });
+
+    if (result.error) {
+      throw new Error(`Resend error: ${result.error.message}`);
+    }
+
+    console.log(`✅ Email reminder sent to ${customer.email} for transaction ${transaction.transaction_id}`);
+    return true;
+
+  } catch (error) {
+    console.error(`❌ Failed to send email reminder:`, error);
+    throw error;
+  }
 }
 
 // Helper: Send SMS reminder
-async function sendSMSReminder(customer: any, transaction: any) {
-  // TODO: Integrate with your SMS service (Twilio, AWS SNS, etc.)
-  console.log(`Sending SMS reminder to ${customer.phone} for transaction ${transaction.transaction_id}`);
+async function sendSMSReminder(
+  customer: { id: string; full_name?: string; email: string; phone?: string },
+  transaction: { transaction_id: string; amount: number; purpose?: string }
+) {
+  // TODO: Integrate with SMS service (Twilio, AWS SNS, etc.)
+  console.log(`SMS reminder pending for ${customer.phone}: ${transaction.amount} BDT payment due`);
   
-  // Mock SMS sending
-  // In production, use a service like:
-  // await twilio.messages.create({
+  // Example with Twilio (when integrated):
+  // import twilio from 'twilio';
+  // const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  // await client.messages.create({
   //   to: customer.phone,
-  //   from: '+1234567890',
-  //   body: `Payment reminder: ${transaction.amount} BDT pending for ${transaction.purpose}`
+  //   from: process.env.TWILIO_PHONE_NUMBER,
+  //   body: `Payment Reminder: ${transaction.amount} BDT pending for ${transaction.purpose || 'transaction'}`
   // });
   
   return Promise.resolve();

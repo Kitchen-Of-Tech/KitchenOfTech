@@ -1,6 +1,8 @@
+import { Resend } from 'resend';
+
 /**
  * Email utility for sending notifications
- * Uses Supabase SMTP or falls back to console logging
+ * Uses Resend for reliable email delivery
  */
 
 interface EmailOptions {
@@ -10,49 +12,47 @@ interface EmailOptions {
   html: string;
 }
 
+// Initialize Resend client
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 /**
- * Send an email notification
- * In production, this should use a proper email service (SendGrid, AWS SES, etc.)
- * For now, we'll log the email and mark as sent if SMTP is not configured
+ * Send an email notification using Resend
+ * Requires RESEND_API_KEY and RESEND_FROM_EMAIL in environment variables
  */
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   const { to, subject, text, html } = options;
 
-  // Check if email service is configured
-  const emailConfigured = Boolean(
-    process.env.SMTP_HOST &&
-    process.env.SMTP_PORT &&
-    process.env.SMTP_USER &&
-    process.env.SMTP_PASS
-  );
-
-  if (!emailConfigured) {
-    // Log the email instead of sending
-    console.log('📧 Email (not sent - SMTP not configured):');
+  // Check if Resend is configured
+  if (!process.env.RESEND_API_KEY) {
+    console.error('❌ RESEND_API_KEY not configured. Email not sent.');
+    console.log('📧 Email (not sent - RESEND_API_KEY not configured):');
     console.log(`To: ${to.join(', ')}`);
     console.log(`Subject: ${subject}`);
-    console.log(`Text: ${text}`);
-    console.log('---');
-    
-    // Return true to indicate we "handled" the email (even though we just logged it)
-    return true;
+    return false;
   }
 
   try {
-    // TODO: Implement actual SMTP sending using nodemailer or similar
-    // For now, we'll just log it
-    console.log('📧 Sending email:');
-    console.log(`To: ${to.join(', ')}`);
-    console.log(`Subject: ${subject}`);
-    
-    // In production, you would send the actual email here
-    // Example with nodemailer:
-    // const transporter = nodemailer.createTransport({...});
-    // await transporter.sendMail({ from: process.env.SMTP_FROM, to, subject, text, html });
+    const result = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'noreply@kitchenoftech.org',
+      to: Array.isArray(to) ? to : [to],
+      subject,
+      html: html || text,
+    });
+
+    if (result.error) {
+      console.error('❌ Email send failed:', result.error);
+      return false;
+    }
+
+    console.log('✅ Email sent successfully:', {
+      messageId: result.data?.id,
+      to: to.join(', '),
+      subject,
+    });
     
     return true;
   } catch (error) {
-    console.error('Failed to send email:', error);
+    console.error('❌ Failed to send email:', error);
     return false;
   }
 }

@@ -28,8 +28,16 @@ export default async function InstructorGradingPage({
     redirect("/auth/login?redirect=/education/instructor/grading");
   }
 
-  // TODO: Check if user is an instructor
-  // For now, any authenticated user can access (for demo purposes)
+  // Check if user is an instructor or admin
+  const { data: profile, error: profileError } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile || (profile.role !== 'instructor' && profile.role !== 'admin')) {
+    redirect("/login?error=unauthorized");
+  }
   
   const courseId = searchParams.courseId || "";
 

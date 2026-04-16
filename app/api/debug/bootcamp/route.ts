@@ -2,7 +2,7 @@
  * GET /api/debug/bootcamp
  *
  * Debug endpoint — returns raw GROQ results for bootcamp documents.
- * REMOVE or protect this route before production deployment.
+ * Only accessible in development or with admin authentication.
  *
  * Usage:
  *   http://localhost:3000/api/debug/bootcamp            → active bootcamps
@@ -12,6 +12,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { client } from '@/lib/sanity/client';
 import { groq } from 'next-sanity';
+import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 import {
   ACTIVE_BOOTCAMPS_QUERY,
   ALL_BOOTCAMPS_QUERY,
@@ -22,6 +24,29 @@ export async function GET(request: NextRequest) {
   // Only allow in development
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Not available in production' }, { status: 403 });
+  }
+
+  // Verify admin authentication (even in dev)
+  try {
+    const cookieStore = await cookies();
+    const supabase = await createClient(cookieStore);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (profile?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden - admin access required' }, { status: 403 });
+    }
+  } catch {
+    console.log('Debug endpoint - auth check skipped in dev environment');
   }
 
   const { searchParams } = new URL(request.url);
