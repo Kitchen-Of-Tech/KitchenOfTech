@@ -495,6 +495,8 @@ export const CLIENT_LOGOS_QUERY = groq`
     _id,
     name,
     logo,
+    website,
+    featured,
     order
   }
 `;

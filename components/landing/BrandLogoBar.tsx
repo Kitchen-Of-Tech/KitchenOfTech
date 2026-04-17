@@ -6,6 +6,7 @@ import { CLIENT_LOGOS_QUERY, HOME_PAGE_QUERY } from "@/lib/sanity/queries";
 import type { ClientLogo } from "@/types";
 import type { Image as SanityImageSource } from "sanity";
 import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ClientLogoSection {
   enabled?: boolean;
@@ -17,6 +18,7 @@ export function BrandLogoBar() {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [logos, setLogos] = useState<ClientLogo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [sectionSettings, setSectionSettings] = useState<ClientLogoSection>({
     enabled: true,
     title: "Trusted by Industry Leaders",
@@ -47,20 +49,22 @@ export function BrandLogoBar() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller || logos.length === 0) return;
+  const handlePrevious = () => {
+    setCurrentIndex((prev) => (prev === 0 ? logos.length - 1 : prev - 1));
+  };
 
-    // Duplicate items for infinite scroll
-    const scrollerInner = scroller.querySelector("[data-scroller-inner]");
-    if (scrollerInner) {
-      const items = Array.from(scrollerInner.children);
-      items.forEach((item) => {
-        const duplicate = item.cloneNode(true) as HTMLElement;
-        scrollerInner.appendChild(duplicate);
-      });
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev === logos.length - 1 ? 0 : prev + 1));
+  };
+
+  const visibleCount = 4; // Number of logos visible at once
+  const getVisibleLogos = () => {
+    const visible = [];
+    for (let i = 0; i < visibleCount && i < logos.length; i++) {
+      visible.push(logos[(currentIndex + i) % logos.length]);
     }
-  }, [logos]);
+    return visible;
+  };
 
   // Don't render if disabled or no logos
   if (!loading && (sectionSettings.enabled === false || logos.length === 0)) {
@@ -83,65 +87,94 @@ export function BrandLogoBar() {
           </p>
         </div>
 
-        {/* Logo Scroller */}
-        <div
-          ref={scrollerRef}
-          className="relative overflow-hidden mask-gradient"
-          data-scroller
-        >
-          <div
-            data-scroller-inner
-            className="flex gap-12 md:gap-16 items-center animate-scroll"
-            style={{
-              width: "max-content",
-            }}
-          >
-            {logos.map((client) => (
-              <div
-                key={client._id}
-                className="flex-shrink-0 w-32 md:w-40 h-16 md:h-20 flex items-center justify-center grayscale hover:grayscale-0 transition-all opacity-50 hover:opacity-100"
+        {/* Logo Slider */}
+        <div className="container-custom">
+          <div className="flex items-center justify-between gap-4 md:gap-8">
+            {/* Previous Button */}
+            {logos.length > visibleCount && (
+              <button
+                onClick={handlePrevious}
+                aria-label="Previous clients"
+                className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 flex items-center justify-center transition-all hover:shadow-glow-sm"
               >
-                {client.logo?.asset ? (
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={urlFor(client.logo as SanityImageSource).width(200).height(100).url()}
-                      alt={client.name}
-                      fill
-                      sizes="(max-width: 768px) 128px, 160px"
-                      className="object-contain"
-                    />
+                <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </button>
+            )}
+
+            {/* Logo Container */}
+            <div className="flex-1 overflow-hidden">
+              <div
+                ref={scrollerRef}
+                className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 transition-opacity duration-300"
+              >
+                {getVisibleLogos().map((client, index) => (
+                  <div
+                    key={`${client._id}-${index}`}
+                    className="flex flex-col items-center justify-center"
+                  >
+                    <a
+                      href={client.website || "#"}
+                      target={client.website ? "_blank" : undefined}
+                      rel={client.website ? "noopener noreferrer" : undefined}
+                      className={`relative group w-full h-20 md:h-24 flex items-center justify-center rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 hover:border-white/30 transition-all ${
+                        client.website ? "hover:bg-white/10 cursor-pointer" : ""
+                      }`}
+                    >
+                      {client.logo?.asset ? (
+                        <div className="relative w-5/6 h-5/6">
+                          <Image
+                            src={urlFor(client.logo as SanityImageSource)
+                              .width(300)
+                              .height(150)
+                              .url()}
+                            alt={client.name}
+                            fill
+                            sizes="(max-width: 768px) 100px, 150px"
+                            className="object-contain grayscale group-hover:grayscale-0 transition-all"
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-white/70 font-semibold text-xs md:text-sm text-center px-2">
+                          {client.name}
+                        </span>
+                      )}
+                    </a>
                   </div>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center glass rounded-lg p-4">
-                    <span className="text-white/70 font-semibold text-sm md:text-base text-center">
-                      {client.name}
-                    </span>
-                  </div>
-                )}
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Next Button */}
+            {logos.length > visibleCount && (
+              <button
+                onClick={handleNext}
+                aria-label="Next clients"
+                className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 flex items-center justify-center transition-all hover:shadow-glow-sm"
+              >
+                <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              </button>
+            )}
           </div>
+
+          {/* Pagination Dots */}
+          {logos.length > visibleCount && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              {Array.from({ length: logos.length }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentIndex(index)}
+                  aria-label={`Go to client ${index + 1}`}
+                  className={`h-2 rounded-full transition-all ${
+                    index === currentIndex
+                      ? "w-8 bg-primary"
+                      : "w-2 bg-white/30 hover:bg-white/50"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
-
-      <style jsx>{`
-        .mask-gradient {
-          -webkit-mask-image: linear-gradient(
-            to right,
-            transparent,
-            black 10%,
-            black 90%,
-            transparent
-          );
-          mask-image: linear-gradient(
-            to right,
-            transparent,
-            black 10%,
-            black 90%,
-            transparent
-          );
-        }
-      `}</style>
     </section>
   );
 }

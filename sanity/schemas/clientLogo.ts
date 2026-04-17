@@ -21,10 +21,24 @@ export const clientLogo = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: "website",
+      title: "Client Website URL",
+      type: "url",
+      description: "Optional website link for the client",
+    }),
+    defineField({
+      name: "featured",
+      title: "Featured",
+      type: "boolean",
+      initialValue: true,
+      description: "Show this client logo on the home page slider",
+    }),
+    defineField({
       name: "order",
       title: "Display Order",
       type: "number",
       validation: (Rule) => Rule.min(0),
+      initialValue: 0,
     }),
   ],
   preview: {
