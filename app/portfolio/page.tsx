@@ -6,8 +6,9 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { GradientButton } from "@/components/ui/GradientButton";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { client, urlFor } from "@/lib/sanity/client";
+import { sanityFetch, urlFor } from "@/lib/sanity/client";
 import { PORTFOLIO_QUERY } from "@/lib/sanity/queries";
+import { CACHE_TAGS, CACHE_DURATION } from "@/lib/cache";
 import type { Portfolio } from "@/types";
 import type { Image as SanityImageSource } from "sanity";
 
@@ -17,8 +18,12 @@ export const metadata = {
 };
 
 export default async function PortfolioPage() {
-  // Fetch portfolio items from Sanity
-  const portfolioItems = await client.fetch<Portfolio[]>(PORTFOLIO_QUERY);
+  // Fetch portfolio items from Sanity with proper caching
+  const portfolioItems = await sanityFetch<Portfolio[]>({
+    query: PORTFOLIO_QUERY,
+    tags: [CACHE_TAGS.PORTFOLIO],
+    revalidate: CACHE_DURATION.SEMI_STATIC,
+  });
 
   // Get unique categories from fetched data (using industry as category)
   const allCategories = portfolioItems.map(item => item.industry).filter(Boolean);

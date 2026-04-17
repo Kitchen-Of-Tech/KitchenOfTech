@@ -3,8 +3,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
-import { client, urlFor } from '@/lib/sanity/client';
+import { sanityFetch, urlFor } from '@/lib/sanity/client';
 import { PORTFOLIO_ITEM_QUERY, PORTFOLIO_QUERY } from '@/lib/sanity/queries';
+import { CACHE_TAGS, CACHE_DURATION } from '@/lib/cache';
 import type { Portfolio } from '@/types';
 import type { Image as SanityImageSource } from 'sanity';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -20,7 +21,11 @@ export const revalidate = 3600; // Revalidate every hour
 // Generate static params for all portfolio items
 export async function generateStaticParams() {
   try {
-    const portfolios = await client.fetch<Portfolio[]>(PORTFOLIO_QUERY);
+    const portfolios = await sanityFetch<Portfolio[]>({
+      query: PORTFOLIO_QUERY,
+      tags: [CACHE_TAGS.PORTFOLIO],
+      revalidate: CACHE_DURATION.SEMI_STATIC,
+    });
     return portfolios.map((portfolio) => ({
       slug: portfolio.slug.current,
     }));
@@ -34,8 +39,11 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   try {
     const { slug } = await params;
-    const portfolio = await client.fetch<Portfolio>(PORTFOLIO_ITEM_QUERY, {
-      slug,
+    const portfolio = await sanityFetch<Portfolio>({
+      query: PORTFOLIO_ITEM_QUERY,
+      params: { slug },
+      tags: [CACHE_TAGS.PORTFOLIO, `portfolio-${slug}`],
+      revalidate: CACHE_DURATION.SEMI_STATIC,
     });
 
     if (!portfolio) {
@@ -79,8 +87,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function PortfolioDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const portfolio = await client.fetch<Portfolio>(PORTFOLIO_ITEM_QUERY, {
-    slug,
+  const portfolio = await sanityFetch<Portfolio>({
+    query: PORTFOLIO_ITEM_QUERY,
+    params: { slug },
+    tags: [CACHE_TAGS.PORTFOLIO, `portfolio-${slug}`],
+    revalidate: CACHE_DURATION.SEMI_STATIC,
   });
 
   if (!portfolio) {
