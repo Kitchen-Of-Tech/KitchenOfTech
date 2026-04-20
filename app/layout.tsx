@@ -15,6 +15,7 @@ import { AnalyticsProvider } from "@/lib/analytics/provider";
 import Script from 'next/script';
 import { ConditionalNavbar } from '@/components/layout/ConditionalNavbar';
 import { SessionWrapper } from "@/components/providers/SessionWrapper";
+import { FloatingWhatsApp } from '@/components/FloatingWhatsApp';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -73,6 +74,7 @@ export default function RootLayout({
                   Skip to main content
                 </a>
                 <ConditionalNavbar />
+                <FloatingWhatsApp />
                 <TemplateTransition>
                   {children}
                 </TemplateTransition>
