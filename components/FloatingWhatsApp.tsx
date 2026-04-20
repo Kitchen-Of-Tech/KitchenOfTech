@@ -29,7 +29,7 @@ export function FloatingWhatsApp() {
     <>
       {/* Floating Button */}
       <div
-        className="fixed bottom-6 left-6 z-40 group cursor-pointer"
+        className="fixed left-4 top-1/2 -translate-y-1/2 z-40 group cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleWhatsAppClick}

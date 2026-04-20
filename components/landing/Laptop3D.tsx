@@ -8,11 +8,11 @@ import * as THREE from "three";
 // Service icons that float around the laptop
 const services: Array<{ name: string; position: [number, number, number]; color: string }> = [
   { name: "Digital Marketing", position: [-1.8, 0.8, 0.5], color: "#3b82f6" },
-  { name: "Graphic Design", position: [1.8, 0.8, 0.5], color: "#8b5cf6" },
+  { name: "Graphic Design", position: [0.8, 0.8, 0.5], color: "#8b5cf6" },
   { name: "Video Editing", position: [0, 1.5, -0.5], color: "#06b6d4" },
   { name: "EduTech", position: [-1.5, -0.5, 1], color: "#a855f7" },
-  { name: "AI Automation", position: [1.5, -0.5, 1], color: "#3b82f6" },
-  { name: "Software & Web Development", position: [0, -0.8, 0.2], color: "#8b5cf6" },
+  { name: "AI Automation", position: [0.5, -0.5, 1], color: "#3b82f6" },
+  { name: "Software & Web Development", position: [0, -0.2, 0.2], color: "#8b5cf6" },
 ];
 
 // Custom optimized laptop using basic geometries
