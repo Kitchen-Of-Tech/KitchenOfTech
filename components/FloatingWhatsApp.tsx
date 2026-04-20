@@ -29,7 +29,7 @@ export function FloatingWhatsApp() {
     <>
       {/* Floating Button */}
       <div
-        className="fixed left-4 top-1/2 -translate-y-1/2 z-40 group cursor-pointer"
+        className="fixed bottom-8 right-8 z-40 group cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleWhatsAppClick}
@@ -70,9 +70,11 @@ export function FloatingWhatsApp() {
           {/* Hover Tooltip */}
           {isHovered && (
             <div
-              className="absolute left-16 bg-gray-900 text-white px-3 py-2 rounded-lg whitespace-nowrap text-sm font-medium shadow-lg pointer-events-none"
+              className="absolute -left-48 bg-gray-900 text-white px-3 py-2 rounded-lg whitespace-nowrap text-sm font-medium shadow-lg pointer-events-none"
               style={{
-                animation: 'fadeIn 0.3s ease-out forwards'
+                animation: 'fadeIn 0.3s ease-out forwards',
+                top: '50%',
+                transform: 'translateY(-50%)'
               }}
             >
               Chat with us on WhatsApp
@@ -81,7 +83,7 @@ export function FloatingWhatsApp() {
                 style={{
                   width: 0,
                   height: 0,
-                  borderLeft: '8px solid rgb(17, 24, 39)',
+                  borderRight: '8px solid rgb(17, 24, 39)',
                   borderTop: '4px solid transparent',
                   borderBottom: '4px solid transparent'
                 }}
