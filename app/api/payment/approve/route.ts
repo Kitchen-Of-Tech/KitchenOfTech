@@ -3,12 +3,17 @@ import { cookies } from "next/headers";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
 import { sendPaymentApprovalEmail } from '@/lib/email/notifications';
+import { require2FA } from '@/lib/middleware/require-2fa';
 
 // POST - Approve a payment transaction (CEO/Manager only)
 export async function POST(request: NextRequest) {
   // Apply rate limiting (20 requests per minute for sensitive operations)
   const rateLimitResponse = await applyRateLimit(request, rateLimiters.apiStrict);
   if (rateLimitResponse) return rateLimitResponse;
+
+  // Require 2FA for payment approval
+  const twoFAError = await require2FA(request);
+  if (twoFAError) return twoFAError;
 
   try {
     const cookieStore = await cookies();

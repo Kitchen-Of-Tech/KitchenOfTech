@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient, createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { require2FA } from '@/lib/middleware/require-2fa';
+import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
 
 // POST /api/payment/refund - Process refund (Admin only)
 export async function POST(request: NextRequest) {
+  // Apply rate limiting (10 refunds per hour)
+  const rateLimitResponse = await applyRateLimit(request, rateLimiters.payment);
+  if (rateLimitResponse) return rateLimitResponse;
+
+  // Require 2FA for refund operations
+  const twoFAError = await require2FA(request);
+  if (twoFAError) return twoFAError;
+  
   try {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
@@ -63,6 +73,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         error: 'Transaction already refunded',
         refund_status: transaction.refund_status 
+      }, { status: 400 });
+    }
+
+    // CHECK REFUND DEADLINE (30 days from transaction creation)
+    const REFUND_DEADLINE_DAYS = 30;
+    const transactionDate = new Date(transaction.created_at);
+    const deadlineDate = new Date(transactionDate.getTime() + REFUND_DEADLINE_DAYS * 24 * 60 * 60 * 1000);
+    const now = new Date();
+
+    if (now > deadlineDate) {
+      const daysOld = Math.floor((now.getTime() - transactionDate.getTime()) / (24 * 60 * 60 * 1000));
+      return NextResponse.json({
+        error: 'Refund deadline exceeded',
+        message: `This transaction is ${daysOld} days old. Refunds are only allowed within ${REFUND_DEADLINE_DAYS} days of the transaction.`,
+        transaction_date: transactionDate.toISOString(),
+        deadline_date: deadlineDate.toISOString(),
+        days_old: daysOld,
+        deadline_days: REFUND_DEADLINE_DAYS,
       }, { status: 400 });
     }
 

@@ -36,7 +36,11 @@ export async function POST(request: NextRequest) {
       purchase_type,
       purchase_id,
       purchase_details,
+      idempotency_key, // Client can provide UUID, or we generate one
     } = body;
+    
+    // Generate or validate idempotency key
+    const finalIdempotencyKey = idempotency_key || crypto.randomUUID();
     
     // Validate required fields
     if (!payment_method_id || !transaction_id || !amount || !purchase_type) {
@@ -78,7 +82,7 @@ export async function POST(request: NextRequest) {
     // Check for duplicate transaction ID (prevent double submissions)
     const { data: existingTransaction } = await supabase
       .from("payment_transactions")
-      .select("id")
+      .select("id, idempotency_key")
       .eq("transaction_id", transaction_id)
       .single();
     
@@ -87,6 +91,32 @@ export async function POST(request: NextRequest) {
         { error: "This transaction ID has already been submitted" },
         { status: 400 }
       );
+    }
+    
+    // Check for idempotency key match (allow retry with same idempotency key)
+    const { data: idempotentTransaction } = await supabase
+      .from("payment_transactions")
+      .select("*")
+      .eq("idempotency_key", finalIdempotencyKey)
+      .single();
+    
+    if (idempotentTransaction) {
+      // Return existing transaction for idempotent retry
+      const { data: enrichedTransaction } = await supabase
+        .from("payment_transactions")
+        .select(`
+          *,
+          payment_method:payment_methods(name, type)
+        `)
+        .eq("id", idempotentTransaction.id)
+        .single();
+      
+      return NextResponse.json({
+        success: true,
+        transaction: enrichedTransaction,
+        message: "Payment transaction retrieved (idempotent retry detected)",
+        idempotent: true,
+      });
     }
     
     // Create payment transaction
@@ -101,6 +131,7 @@ export async function POST(request: NextRequest) {
         purchase_type,
         purchase_id,
         purchase_details,
+        idempotency_key: finalIdempotencyKey,
         status: "pending",
       })
       .select(`
