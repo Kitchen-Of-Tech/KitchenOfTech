@@ -804,8 +804,8 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
       )}
 
       {(showCreateModal || showEditModal) && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-6">
-          <div className="max-h-[85vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0b0b11] p-6">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-black/70 p-6">
+          <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0b0b11] p-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <h2 className="text-2xl font-semibold text-white">
                 {showCreateModal ? 'Add New Client' : 'Edit Client'}
@@ -1140,11 +1140,12 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
                   <div className="mt-2 space-y-2">
                     {form.follow_up_emails.map((value, index) => (
                       <div key={`followup-email-${index}`} className="flex gap-2">
-                        <input
+                        <textarea
                           value={value}
                           onChange={(event) => updateFollowUpEmail(index, event.target.value)}
                           placeholder="Follow up email"
                           className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+                          rows={2}
                         />
                         <button
                           type="button"
@@ -1170,11 +1171,12 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
                   <div className="mt-2 space-y-2">
                     {form.follow_up_messages.map((value, index) => (
                       <div key={`followup-message-${index}`} className="flex gap-2">
-                        <input
+                        <textarea
                           value={value}
                           onChange={(event) => updateFollowUpMessage(index, event.target.value)}
                           placeholder="Follow up message"
                           className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+                          rows={3}
                         />
                         <button
                           type="button"
