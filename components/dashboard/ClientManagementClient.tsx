@@ -805,7 +805,7 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
 
       {(showCreateModal || showEditModal) && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-black/70 p-6">
-          <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0b0b11] p-6">
+          <div className="w-full max-w-5xl overflow-x-hidden rounded-2xl border border-white/10 bg-[#0b0b11] p-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <h2 className="text-2xl font-semibold text-white">
                 {showCreateModal ? 'Add New Client' : 'Edit Client'}
@@ -822,8 +822,8 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
               </button>
             </div>
 
-            <form onSubmit={showCreateModal ? handleCreateClient : handleEditClient} className="mt-6 space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
+            <form onSubmit={showCreateModal ? handleCreateClient : handleEditClient} className="mt-6 w-full space-y-6">
+              <div className="grid gap-4 md:grid-cols-2 min-w-0">
                 <div>
                   <label className="text-sm text-white/60">Client Status</label>
                   <select
@@ -892,12 +892,12 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
                       </option>
                     ))}
                   </select>
-                  <div className="mt-2 flex gap-2">
+                  <div className="mt-2 flex gap-2 min-w-0">
                     <input
                       value={newBusinessType}
                       onChange={(event) => setNewBusinessType(event.target.value)}
                       placeholder="Add new business type"
-                      className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+                      className="flex-1 min-w-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
                     />
                     <button
                       type="button"
@@ -922,12 +922,12 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
                       </option>
                     ))}
                   </select>
-                  <div className="mt-2 flex gap-2">
+                  <div className="mt-2 flex gap-2 min-w-0">
                     <input
                       value={newSource}
                       onChange={(event) => setNewSource(event.target.value)}
                       placeholder="Add new source"
-                      className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+                      className="flex-1 min-w-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
                     />
                     <button
                       type="button"
@@ -1139,19 +1139,19 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
                   <label className="text-sm text-white/60">Follow Up Emails (multiple lines)</label>
                   <div className="mt-2 space-y-2">
                     {form.follow_up_emails.map((value, index) => (
-                      <div key={`followup-email-${index}`} className="flex gap-2">
+                      <div key={`followup-email-${index}`} className="flex gap-2 min-w-0">
                         <textarea
                           value={value}
                           onChange={(event) => updateFollowUpEmail(index, event.target.value)}
                           placeholder="Follow up email"
-                          className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+                          className="flex-1 min-w-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
                           rows={2}
                         />
                         <button
                           type="button"
                           onClick={() => removeFollowUpEmail(index)}
                           disabled={form.follow_up_emails.length === 1}
-                          className="rounded-lg border border-white/10 px-3 text-white/60 disabled:opacity-40"
+                          className="shrink-0 rounded-lg border border-white/10 px-3 text-white/60 disabled:opacity-40"
                         >
                           <X className="h-4 w-4" />
                         </button>
@@ -1170,19 +1170,19 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
                   <label className="text-sm text-white/60">Follow Up Messages (multiple lines)</label>
                   <div className="mt-2 space-y-2">
                     {form.follow_up_messages.map((value, index) => (
-                      <div key={`followup-message-${index}`} className="flex gap-2">
+                      <div key={`followup-message-${index}`} className="flex gap-2 min-w-0">
                         <textarea
                           value={value}
                           onChange={(event) => updateFollowUpMessage(index, event.target.value)}
                           placeholder="Follow up message"
-                          className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+                          className="flex-1 min-w-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
                           rows={3}
                         />
                         <button
                           type="button"
                           onClick={() => removeFollowUpMessage(index)}
                           disabled={form.follow_up_messages.length === 1}
-                          className="rounded-lg border border-white/10 px-3 text-white/60 disabled:opacity-40"
+                          className="shrink-0 rounded-lg border border-white/10 px-3 text-white/60 disabled:opacity-40"
                         >
                           <X className="h-4 w-4" />
                         </button>
