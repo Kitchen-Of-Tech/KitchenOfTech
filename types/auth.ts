@@ -268,6 +268,67 @@ export interface PaymentTransaction {
   updated_at: string;
 }
 
+// Client Database Types
+export interface ClientMediaItem {
+  name: string;
+  type: string;
+  dataUrl: string;
+  size?: number;
+}
+
+export interface ClientSocialLink {
+  platform: string;
+  url: string;
+}
+
+export interface ClientRecord {
+  id: string;
+  client_id: string;
+  client_status:
+    | '1st Attack'
+    | 'Fellows'
+    | 'Attack Plan Done'
+    | 'Replied'
+    | 'Project Planning'
+    | 'Project Revision'
+    | 'Project Running'
+    | 'Re Follow Up'
+    | 'Cold'
+    | 'Connected'
+    | 'Re Cold'
+    | 'Follow Up'
+    | 'Black Listed'
+    | 'Not Client'
+    | 'Client';
+  possibility: 'High' | 'Medium' | 'Low';
+  client_name: string;
+  business_name?: string;
+  client_description?: string;
+  client_business_type?: string;
+  client_found_from?: string;
+  client_media?: ClientMediaItem[];
+  important_links?: string[];
+  social_links?: ClientSocialLink[];
+  phone_numbers?: string[];
+  whatsapp_numbers?: string[];
+  imo_numbers?: string[];
+  emails?: string[];
+  country?: string;
+  address?: string;
+  consultation_time_local?: string;
+  consultation_timezone?: string;
+  consultation_time_bdt?: string;
+  cold_email?: string;
+  cold_message?: string;
+  follow_up_emails?: string[];
+  follow_up_messages?: string[];
+  comment?: string;
+  created_at: string;
+  created_by?: string;
+  updated_at: string;
+  updated_by?: string;
+}
+
 export interface PaymentVerificationLog {
   id: string;
   transaction_id: string;

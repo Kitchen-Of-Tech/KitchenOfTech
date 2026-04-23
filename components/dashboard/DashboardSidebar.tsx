@@ -28,6 +28,7 @@ export default function DashboardSidebar({ user }: DashboardSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   const canManageUsers = user.role?.level ? user.role.level <= 2 : false; // CEO or Manager
+  const isManagerOnly = user.role?.level === 2;
   
   const navigation = [
     {
@@ -77,6 +78,12 @@ export default function DashboardSidebar({ user }: DashboardSidebarProps) {
       href: '/dashboard/certificates',
       icon: Trophy,
       show: canManageUsers, // CEO and Manager can manage certificates
+    },
+    {
+      name: 'Clients',
+      href: '/dashboard/clients',
+      icon: Users,
+      show: isManagerOnly, // Manager only
     },
   ];
 

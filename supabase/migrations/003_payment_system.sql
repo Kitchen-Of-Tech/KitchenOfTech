@@ -85,11 +85,13 @@ ALTER TABLE public.payment_verification_logs ENABLE ROW LEVEL SECURITY;
 
 -- Payment Methods Policies
 -- Anyone can read active payment methods
+DROP POLICY IF EXISTS "Anyone can read active payment methods" ON public.payment_methods;
 CREATE POLICY "Anyone can read active payment methods"
   ON public.payment_methods FOR SELECT
   USING (is_active = true);
 
 -- Only CEO can manage payment methods
+DROP POLICY IF EXISTS "CEO can manage payment methods" ON public.payment_methods;
 CREATE POLICY "CEO can manage payment methods"
   ON public.payment_methods FOR ALL
   TO authenticated
@@ -103,18 +105,21 @@ CREATE POLICY "CEO can manage payment methods"
 
 -- Payment Transactions Policies
 -- Users can read their own transactions
+DROP POLICY IF EXISTS "Users can read own transactions" ON public.payment_transactions;
 CREATE POLICY "Users can read own transactions"
   ON public.payment_transactions FOR SELECT
   TO authenticated
   USING (user_id = auth.uid());
 
 -- Users can create their own transactions
+DROP POLICY IF EXISTS "Users can create transactions" ON public.payment_transactions;
 CREATE POLICY "Users can create transactions"
   ON public.payment_transactions FOR INSERT
   TO authenticated
   WITH CHECK (user_id = auth.uid() AND status = 'pending');
 
 -- CEO and Managers can view all transactions
+DROP POLICY IF EXISTS "Admins can view all transactions" ON public.payment_transactions;
 CREATE POLICY "Admins can view all transactions"
   ON public.payment_transactions FOR SELECT
   TO authenticated
@@ -127,6 +132,7 @@ CREATE POLICY "Admins can view all transactions"
   );
 
 -- CEO and Managers can update transaction status
+DROP POLICY IF EXISTS "Admins can update transactions" ON public.payment_transactions;
 CREATE POLICY "Admins can update transactions"
   ON public.payment_transactions FOR UPDATE
   TO authenticated
@@ -140,6 +146,7 @@ CREATE POLICY "Admins can update transactions"
 
 -- Payment Verification Logs Policies
 -- Users can read logs for their transactions
+DROP POLICY IF EXISTS "Users can read own transaction logs" ON public.payment_verification_logs;
 CREATE POLICY "Users can read own transaction logs"
   ON public.payment_verification_logs FOR SELECT
   TO authenticated
@@ -152,6 +159,7 @@ CREATE POLICY "Users can read own transaction logs"
   );
 
 -- Admins can view all logs
+DROP POLICY IF EXISTS "Admins can view all logs" ON public.payment_verification_logs;
 CREATE POLICY "Admins can view all logs"
   ON public.payment_verification_logs FOR SELECT
   TO authenticated
@@ -164,6 +172,7 @@ CREATE POLICY "Admins can view all logs"
   );
 
 -- System can insert logs
+DROP POLICY IF EXISTS "Authenticated users can create logs" ON public.payment_verification_logs;
 CREATE POLICY "Authenticated users can create logs"
   ON public.payment_verification_logs FOR INSERT
   TO authenticated

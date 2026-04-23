@@ -1,6 +1,6 @@
 import { getCurrentUser } from '@/lib/auth/server';
 import { redirect } from 'next/navigation';
-import { Users, FolderKanban, ListTodo, CheckCircle } from 'lucide-react';
+import { Users, FolderKanban, ListTodo, CheckCircle, UserRound } from 'lucide-react';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -88,6 +88,17 @@ export default async function DashboardPage() {
               <Users className="w-8 h-8 text-blue-400 mb-3 group-hover:scale-110 transition-transform" />
               <h3 className="text-white font-semibold mb-1">Manage Users</h3>
               <p className="text-white/60 text-sm">Create and manage user accounts</p>
+            </a>
+          )}
+
+          {user.role?.level === 2 && (
+            <a
+              href="/dashboard/clients"
+              className="p-6 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:border-emerald-500/40 transition-all group"
+            >
+              <UserRound className="w-8 h-8 text-emerald-400 mb-3 group-hover:scale-110 transition-transform" />
+              <h3 className="text-white font-semibold mb-1">Client Database</h3>
+              <p className="text-white/60 text-sm">Track cold outreach clients</p>
             </a>
           )}
           
