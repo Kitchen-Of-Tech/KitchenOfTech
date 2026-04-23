@@ -13,8 +13,8 @@ export default async function ClientsPage() {
     redirect('/login');
   }
 
-  // Only Manager can access this page
-  if (!user.role || user.role.level !== 2) {
+  // Only CEO and Manager can access this page
+  if (!user.role || user.role.level > 2) {
     redirect('/dashboard');
   }
 

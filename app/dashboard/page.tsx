@@ -91,7 +91,7 @@ export default async function DashboardPage() {
             </a>
           )}
 
-          {user.role?.level === 2 && (
+          {user.role?.level && user.role.level <= 2 && (
             <a
               href="/dashboard/clients"
               className="p-6 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:border-emerald-500/40 transition-all group"

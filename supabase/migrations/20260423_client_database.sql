@@ -117,36 +117,36 @@ ALTER TABLE public.client_business_types ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.client_sources ENABLE ROW LEVEL SECURITY;
 
 -- Manager only access
-CREATE POLICY "Managers can manage client records"
+CREATE POLICY "Admins can manage client records"
   ON public.client_records FOR ALL
   TO authenticated
   USING (
     EXISTS (
       SELECT 1 FROM public.users u
       JOIN public.roles r ON u.role_id = r.id
-      WHERE u.id = auth.uid() AND r.level = 2
+      WHERE u.id = auth.uid() AND r.level <= 2
     )
   );
 
-CREATE POLICY "Managers can manage client business types"
+CREATE POLICY "Admins can manage client business types"
   ON public.client_business_types FOR ALL
   TO authenticated
   USING (
     EXISTS (
       SELECT 1 FROM public.users u
       JOIN public.roles r ON u.role_id = r.id
-      WHERE u.id = auth.uid() AND r.level = 2
+      WHERE u.id = auth.uid() AND r.level <= 2
     )
   );
 
-CREATE POLICY "Managers can manage client sources"
+CREATE POLICY "Admins can manage client sources"
   ON public.client_sources FOR ALL
   TO authenticated
   USING (
     EXISTS (
       SELECT 1 FROM public.users u
       JOIN public.roles r ON u.role_id = r.id
-      WHERE u.id = auth.uid() AND r.level = 2
+      WHERE u.id = auth.uid() AND r.level <= 2
     )
   );
 
@@ -160,6 +160,8 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_client_records_updated_at ON public.client_records;
 
 CREATE TRIGGER update_client_records_updated_at
   BEFORE UPDATE ON public.client_records

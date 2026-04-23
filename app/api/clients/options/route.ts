@@ -3,15 +3,15 @@ import { createClient } from '@supabase/supabase-js';
 import { getCurrentUser } from '@/lib/auth/server';
 import { applyRateLimit, rateLimiters } from '@/lib/ratelimit';
 
-function isManager(level?: number) {
-  return level === 2;
+function isAdmin(level?: number) {
+  return level !== undefined && level <= 2;
 }
 
 export async function GET() {
   try {
     const currentUser = await getCurrentUser();
 
-    if (!currentUser || !isManager(currentUser.role?.level)) {
+    if (!currentUser || !isAdmin(currentUser.role?.level)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
 
-    if (!currentUser || !isManager(currentUser.role?.level)) {
+    if (!currentUser || !isAdmin(currentUser.role?.level)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
