@@ -45,8 +45,8 @@ interface ClientFormState {
   consultation_time_bdt: string;
   cold_email: string;
   cold_message: string;
-  follow_up_emails: string;
-  follow_up_messages: string;
+  follow_up_emails: string[];
+  follow_up_messages: string[];
   comment: string;
   client_media: ClientMediaItem[];
 }
@@ -92,8 +92,8 @@ const DEFAULT_FORM_STATE: ClientFormState = {
   consultation_time_bdt: '',
   cold_email: '',
   cold_message: '',
-  follow_up_emails: '',
-  follow_up_messages: '',
+  follow_up_emails: [''],
+  follow_up_messages: [''],
   comment: '',
   client_media: [],
 };
@@ -254,8 +254,8 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
     consultation_time_bdt: form.consultation_time_bdt || undefined,
     cold_email: form.cold_email.trim() || undefined,
     cold_message: form.cold_message.trim() || undefined,
-    follow_up_emails: splitLines(form.follow_up_emails),
-    follow_up_messages: splitLines(form.follow_up_messages),
+    follow_up_emails: form.follow_up_emails.map((value) => value.trim()).filter(Boolean),
+    follow_up_messages: form.follow_up_messages.map((value) => value.trim()).filter(Boolean),
     comment: form.comment.trim() || undefined,
   });
 
@@ -398,12 +398,56 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
       consultation_time_bdt: client.consultation_time_bdt || '',
       cold_email: client.cold_email || '',
       cold_message: client.cold_message || '',
-      follow_up_emails: joinLines(client.follow_up_emails),
-      follow_up_messages: joinLines(client.follow_up_messages),
+      follow_up_emails: client.follow_up_emails && client.follow_up_emails.length > 0 ? client.follow_up_emails : [''],
+      follow_up_messages: client.follow_up_messages && client.follow_up_messages.length > 0 ? client.follow_up_messages : [''],
       comment: client.comment || '',
       client_media: client.client_media || [],
     });
     setShowEditModal(true);
+  };
+
+  const updateFollowUpEmail = (index: number, value: string) => {
+    setForm((prev) => {
+      const next = [...prev.follow_up_emails];
+      next[index] = value;
+      return { ...prev, follow_up_emails: next };
+    });
+  };
+
+  const updateFollowUpMessage = (index: number, value: string) => {
+    setForm((prev) => {
+      const next = [...prev.follow_up_messages];
+      next[index] = value;
+      return { ...prev, follow_up_messages: next };
+    });
+  };
+
+  const addFollowUpEmail = () => {
+    setForm((prev) => ({
+      ...prev,
+      follow_up_emails: [...prev.follow_up_emails, ''],
+    }));
+  };
+
+  const addFollowUpMessage = () => {
+    setForm((prev) => ({
+      ...prev,
+      follow_up_messages: [...prev.follow_up_messages, ''],
+    }));
+  };
+
+  const removeFollowUpEmail = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      follow_up_emails: prev.follow_up_emails.filter((_, i) => i !== index),
+    }));
+  };
+
+  const removeFollowUpMessage = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      follow_up_messages: prev.follow_up_messages.filter((_, i) => i !== index),
+    }));
   };
 
   const handleMediaUpload = async (files: FileList | null) => {
@@ -760,8 +804,8 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
       )}
 
       {(showCreateModal || showEditModal) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6">
-          <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0b0b11] p-6">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-6">
+          <div className="max-h-[85vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-white/10 bg-[#0b0b11] p-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <h2 className="text-2xl font-semibold text-white">
                 {showCreateModal ? 'Add New Client' : 'Edit Client'}
@@ -1093,21 +1137,63 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
                 </div>
                 <div>
                   <label className="text-sm text-white/60">Follow Up Emails (multiple lines)</label>
-                  <textarea
-                    value={form.follow_up_emails}
-                    onChange={(event) => setForm((prev) => ({ ...prev, follow_up_emails: event.target.value }))}
-                    className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
-                    rows={3}
-                  />
+                  <div className="mt-2 space-y-2">
+                    {form.follow_up_emails.map((value, index) => (
+                      <div key={`followup-email-${index}`} className="flex gap-2">
+                        <input
+                          value={value}
+                          onChange={(event) => updateFollowUpEmail(index, event.target.value)}
+                          placeholder="Follow up email"
+                          className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeFollowUpEmail(index)}
+                          disabled={form.follow_up_emails.length === 1}
+                          className="rounded-lg border border-white/10 px-3 text-white/60 disabled:opacity-40"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addFollowUpEmail}
+                      className="rounded-lg border border-white/10 px-3 py-2 text-white/70"
+                    >
+                      Add Follow Up Email
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="text-sm text-white/60">Follow Up Messages (multiple lines)</label>
-                  <textarea
-                    value={form.follow_up_messages}
-                    onChange={(event) => setForm((prev) => ({ ...prev, follow_up_messages: event.target.value }))}
-                    className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
-                    rows={3}
-                  />
+                  <div className="mt-2 space-y-2">
+                    {form.follow_up_messages.map((value, index) => (
+                      <div key={`followup-message-${index}`} className="flex gap-2">
+                        <input
+                          value={value}
+                          onChange={(event) => updateFollowUpMessage(index, event.target.value)}
+                          placeholder="Follow up message"
+                          className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeFollowUpMessage(index)}
+                          disabled={form.follow_up_messages.length === 1}
+                          className="rounded-lg border border-white/10 px-3 text-white/60 disabled:opacity-40"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={addFollowUpMessage}
+                      className="rounded-lg border border-white/10 px-3 py-2 text-white/70"
+                    >
+                      Add Follow Up Message
+                    </button>
+                  </div>
                 </div>
               </div>
 

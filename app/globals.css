@@ -157,6 +157,18 @@ button {
   font-family: inherit;
 }
 
+/* Consistent dropdown styling */
+select,
+option {
+  background-color: #0f1118;
+  color: #ffffff;
+}
+
+select:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 /* Animations */
 @keyframes shimmer {
   0% {

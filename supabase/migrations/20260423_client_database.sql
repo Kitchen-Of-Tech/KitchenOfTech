@@ -108,6 +108,8 @@ CREATE INDEX IF NOT EXISTS idx_client_records_possibility ON public.client_recor
 CREATE INDEX IF NOT EXISTS idx_client_records_country ON public.client_records(country);
 CREATE INDEX IF NOT EXISTS idx_client_records_business_type ON public.client_records(client_business_type);
 CREATE INDEX IF NOT EXISTS idx_client_records_found_from ON public.client_records(client_found_from);
+CREATE INDEX IF NOT EXISTS idx_client_records_followup_emails ON public.client_records USING GIN (follow_up_emails);
+CREATE INDEX IF NOT EXISTS idx_client_records_followup_messages ON public.client_records USING GIN (follow_up_messages);
 
 -- =============================================
 -- 4. ROW LEVEL SECURITY (RLS)
@@ -117,6 +119,7 @@ ALTER TABLE public.client_business_types ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.client_sources ENABLE ROW LEVEL SECURITY;
 
 -- Manager only access
+DROP POLICY IF EXISTS "Admins can manage client records" ON public.client_records;
 CREATE POLICY "Admins can manage client records"
   ON public.client_records FOR ALL
   TO authenticated
@@ -128,6 +131,7 @@ CREATE POLICY "Admins can manage client records"
     )
   );
 
+DROP POLICY IF EXISTS "Admins can manage client business types" ON public.client_business_types;
 CREATE POLICY "Admins can manage client business types"
   ON public.client_business_types FOR ALL
   TO authenticated
@@ -139,6 +143,7 @@ CREATE POLICY "Admins can manage client business types"
     )
   );
 
+DROP POLICY IF EXISTS "Admins can manage client sources" ON public.client_sources;
 CREATE POLICY "Admins can manage client sources"
   ON public.client_sources FOR ALL
   TO authenticated
