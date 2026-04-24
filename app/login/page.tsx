@@ -12,6 +12,18 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [signupStep, setSignupStep] = useState<'options' | 'team_member'>('options');
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [signupError, setSignupError] = useState('');
+  const [signupSuccess, setSignupSuccess] = useState('');
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [teamMemberForm, setTeamMemberForm] = useState({
+    full_name: '',
+    email: '',
+    phone_number: '',
+    password: '',
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +56,42 @@ export default function LoginPage() {
       setError(err instanceof Error ? err.message : "Login failed");
       setLoading(false);
     }
+  };
+
+  const handleTeamMemberSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSignupError('');
+    setSignupSuccess('');
+    setSignupLoading(true);
+
+    try {
+      const response = await fetch('/api/signup/team-member', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(teamMemberForm),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Signup failed');
+      }
+
+      setSignupSuccess(data.message || 'Signup request submitted.');
+      setTeamMemberForm({ full_name: '', email: '', phone_number: '', password: '' });
+    } catch (err) {
+      setSignupError(err instanceof Error ? err.message : 'Signup failed');
+    } finally {
+      setSignupLoading(false);
+    }
+  };
+
+  const closeSignupModal = () => {
+    setShowSignupModal(false);
+    setSignupStep('options');
+    setSignupError('');
+    setSignupSuccess('');
+    setTeamMemberForm({ full_name: '', email: '', phone_number: '', password: '' });
   };
 
   return (
@@ -163,6 +211,16 @@ export default function LoginPage() {
             </GradientButton>
           </form>
 
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => setShowSignupModal(true)}
+              className="text-white/70 hover:text-white transition-colors text-sm"
+            >
+              Don&apos;t have an account? Sign Up
+            </button>
+          </div>
+
           {/* Back to Home */}
           <div className="mt-6 text-center">
             <Link
@@ -181,6 +239,135 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
+      {showSignupModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6">
+          <div className="glass w-full max-w-lg rounded-2xl border border-white/10 p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-white">Sign Up</h2>
+              <button
+                type="button"
+                onClick={closeSignupModal}
+                className="rounded-lg p-2 text-white/60 hover:text-white"
+              >
+                <span className="sr-only">Close</span>
+                ✕
+              </button>
+            </div>
+
+            {signupStep === 'options' && (
+              <div className="mt-6 grid gap-4">
+                {[
+                  { key: 'student', label: 'Student', disabled: true },
+                  { key: 'teacher', label: 'Teacher', disabled: true },
+                  { key: 'client', label: 'Client', disabled: true },
+                  { key: 'team_member', label: 'Team Member', disabled: false },
+                ].map((option) => (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() => !option.disabled && setSignupStep('team_member')}
+                    className={cn(
+                      'rounded-xl border border-white/10 px-4 py-3 text-left transition-colors',
+                      option.disabled
+                        ? 'text-white/40 cursor-not-allowed bg-white/5'
+                        : 'text-white hover:border-white/30 hover:bg-white/10'
+                    )}
+                  >
+                    <div className="text-sm font-semibold">{option.label}</div>
+                    <div className="text-xs text-white/50">
+                      {option.disabled ? 'Coming soon' : 'Request team member access'}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {signupStep === 'team_member' && (
+              <form onSubmit={handleTeamMemberSignup} className="mt-6 space-y-4">
+                {signupError && (
+                  <div className="rounded-xl border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-300">
+                    {signupError}
+                  </div>
+                )}
+                {signupSuccess && (
+                  <div className="rounded-xl border border-green-500/50 bg-green-500/10 p-3 text-sm text-green-300">
+                    {signupSuccess}
+                  </div>
+                )}
+                <div>
+                  <label className="block text-white/80 text-sm mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={teamMemberForm.full_name}
+                    onChange={(e) => setTeamMemberForm({ ...teamMemberForm, full_name: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-white"
+                    placeholder="Full name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white/80 text-sm mb-2">Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={teamMemberForm.email}
+                    onChange={(e) => setTeamMemberForm({ ...teamMemberForm, email: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-white"
+                    placeholder="you@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white/80 text-sm mb-2">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={teamMemberForm.phone_number}
+                    onChange={(e) => setTeamMemberForm({ ...teamMemberForm, phone_number: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-white"
+                    placeholder="Phone number"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white/80 text-sm mb-2">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showSignupPassword ? 'text' : 'password'}
+                      required
+                      value={teamMemberForm.password}
+                      onChange={(e) => setTeamMemberForm({ ...teamMemberForm, password: e.target.value })}
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-white"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      className="absolute inset-y-0 right-3 flex items-center text-white/60"
+                    >
+                      {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setSignupStep('options')}
+                    className="flex-1 rounded-xl border border-white/10 px-4 py-2 text-white/70"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={signupLoading}
+                    className="flex-1 rounded-xl bg-gradient-primary px-4 py-2 text-white"
+                  >
+                    {signupLoading ? 'Submitting...' : 'Submit'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

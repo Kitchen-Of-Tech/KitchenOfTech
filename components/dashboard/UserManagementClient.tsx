@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Key, Power, X, Eye, EyeOff } from 'lucide-react';
-import type { User, Role } from '@/types/auth';
+import type { User, Role, SignupRequest } from '@/types/auth';
 
 interface UserManagementClientProps {
   currentUser: User;
@@ -25,13 +25,17 @@ interface EditUserForm {
 export default function UserManagementClient({ currentUser }: UserManagementClientProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [signupRequests, setSignupRequests] = useState<SignupRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<SignupRequest | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
@@ -52,10 +56,17 @@ export default function UserManagementClient({ currentUser }: UserManagementClie
   });
   
   const [newPassword, setNewPassword] = useState('');
+  const [approveForm, setApproveForm] = useState({
+    role_id: '',
+    department: '',
+    title: ''
+  });
+  const [rejectionReason, setRejectionReason] = useState('');
 
   useEffect(() => {
     fetchUsers();
     fetchRoles();
+    fetchSignupRequests();
   }, []);
 
   const fetchUsers = async () => {
@@ -81,6 +92,18 @@ export default function UserManagementClient({ currentUser }: UserManagementClie
       }
     } catch (error) {
       console.error('Failed to fetch roles:', error);
+    }
+  };
+
+  const fetchSignupRequests = async () => {
+    try {
+      const response = await fetch('/api/signup/requests');
+      if (response.ok) {
+        const data = await response.json();
+        setSignupRequests(data.requests || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch signup requests:', error);
     }
   };
 
@@ -239,6 +262,82 @@ export default function UserManagementClient({ currentUser }: UserManagementClie
     }
   };
 
+  const handleApproveRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRequest) return;
+
+    setActionLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/signup/requests/${selectedRequest.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'approve',
+          role_id: approveForm.role_id,
+          department: approveForm.department,
+          title: approveForm.title,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to approve request');
+      }
+
+      setSuccess('Signup request approved successfully!');
+      setShowApproveModal(false);
+      setSelectedRequest(null);
+      setApproveForm({ role_id: '', department: '', title: '' });
+      fetchSignupRequests();
+      fetchUsers();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectRequest = async () => {
+    if (!selectedRequest) return;
+
+    setActionLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/signup/requests/${selectedRequest.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'reject',
+          rejection_reason: rejectionReason,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to reject request');
+      }
+
+      setSuccess('Signup request rejected');
+      setShowRejectModal(false);
+      setSelectedRequest(null);
+      setRejectionReason('');
+      fetchSignupRequests();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const openEditModal = (user: User) => {
     setSelectedUser(user);
     setEditForm({
@@ -260,6 +359,18 @@ export default function UserManagementClient({ currentUser }: UserManagementClie
     setShowDeleteModal(true);
   };
 
+  const openApproveModal = (request: SignupRequest) => {
+    setSelectedRequest(request);
+    setApproveForm({ role_id: '', department: '', title: '' });
+    setShowApproveModal(true);
+  };
+
+  const openRejectModal = (request: SignupRequest) => {
+    setSelectedRequest(request);
+    setRejectionReason('');
+    setShowRejectModal(true);
+  };
+
   const filteredUsers = users.filter(user =>
     user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -267,6 +378,7 @@ export default function UserManagementClient({ currentUser }: UserManagementClie
   );
 
   const canDelete = currentUser.role?.level === 1; // Only CEO can delete
+  const canApproveRequests = currentUser.role?.level === 1; // Only CEO can approve
   const activeUsers = users.filter(u => u.is_active).length;
   const inactiveUsers = users.filter(u => !u.is_active).length;
 
@@ -328,6 +440,58 @@ export default function UserManagementClient({ currentUser }: UserManagementClie
           />
         </div>
       </div>
+
+      {canApproveRequests && signupRequests.length > 0 && (
+        <div className="glass rounded-xl border border-white/10 overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/10">
+            <h2 className="text-lg font-semibold text-white">Pending Signup Requests</h2>
+            <p className="text-sm text-white/60">Approve team member signup requests.</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/10 bg-white/5">
+                  <th className="text-left px-6 py-4 text-white font-semibold">Name</th>
+                  <th className="text-left px-6 py-4 text-white font-semibold">Email</th>
+                  <th className="text-left px-6 py-4 text-white font-semibold">Phone</th>
+                  <th className="text-left px-6 py-4 text-white font-semibold">Type</th>
+                  <th className="text-left px-6 py-4 text-white font-semibold">Requested</th>
+                  <th className="text-left px-6 py-4 text-white font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {signupRequests.map((request) => (
+                  <tr key={request.id} className="border-b border-white/10">
+                    <td className="px-6 py-4 text-white/80">{request.full_name}</td>
+                    <td className="px-6 py-4 text-white/80">{request.email}</td>
+                    <td className="px-6 py-4 text-white/80">{request.phone_number || '-'}</td>
+                    <td className="px-6 py-4 text-white/80">{request.user_type.replace('_', ' ')}</td>
+                    <td className="px-6 py-4 text-white/70">
+                      {new Date(request.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => openApproveModal(request)}
+                          className="px-3 py-1.5 rounded-lg bg-green-500/20 text-green-300 text-sm"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => openRejectModal(request)}
+                          className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-300 text-sm"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Users Table */}
       <div className="glass rounded-xl border border-white/10 overflow-hidden">
@@ -432,6 +596,8 @@ export default function UserManagementClient({ currentUser }: UserManagementClie
       {showEditModal && selectedUser && <EditUserModal />}
       {showPasswordModal && selectedUser && <PasswordModal />}
       {showDeleteModal && selectedUser && <DeleteModal />}
+      {showApproveModal && selectedRequest && <ApproveRequestModal />}
+      {showRejectModal && selectedRequest && <RejectRequestModal />}
     </div>
   );
 
@@ -609,6 +775,128 @@ export default function UserManagementClient({ currentUser }: UserManagementClie
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    );
+  }
+
+  function ApproveRequestModal() {
+    if (!selectedRequest) return null;
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="glass rounded-2xl border border-white/10 p-6 w-full max-w-md">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white">Approve Signup</h2>
+            <button
+              onClick={() => setShowApproveModal(false)}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5 text-white/60" />
+            </button>
+          </div>
+          <div className="mb-4 text-sm text-white/70">
+            {selectedRequest.full_name} • {selectedRequest.email}
+          </div>
+          <form onSubmit={handleApproveRequest} className="space-y-4">
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-2">Department</label>
+              <input
+                type="text"
+                value={approveForm.department}
+                onChange={(e) => setApproveForm({ ...approveForm, department: e.target.value })}
+                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-primary/50 transition-colors"
+                placeholder="Enter department"
+              />
+            </div>
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-2">Title</label>
+              <input
+                type="text"
+                value={approveForm.title}
+                onChange={(e) => setApproveForm({ ...approveForm, title: e.target.value })}
+                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-primary/50 transition-colors"
+                placeholder="Enter title"
+              />
+            </div>
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-2">Role</label>
+              <select
+                required
+                value={approveForm.role_id}
+                onChange={(e) => setApproveForm({ ...approveForm, role_id: e.target.value })}
+                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-primary/50 transition-colors"
+              >
+                <option value="">Select a role</option>
+                {roles.map((role) => (
+                  <option key={role.id} value={role.id} className="bg-dark-secondary">
+                    {role.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setShowApproveModal(false)}
+                className="flex-1 px-4 py-2 border border-white/10 rounded-lg text-white hover:bg-white/5 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={actionLoading}
+                className="flex-1 px-4 py-2 bg-gradient-primary text-white rounded-lg hover:shadow-glow-md transition-all disabled:opacity-50"
+              >
+                {actionLoading ? 'Approving...' : 'Approve'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  function RejectRequestModal() {
+    if (!selectedRequest) return null;
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="glass rounded-2xl border border-white/10 p-6 w-full max-w-md">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white">Reject Signup</h2>
+            <button
+              onClick={() => setShowRejectModal(false)}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5 text-white/60" />
+            </button>
+          </div>
+          <p className="text-sm text-white/70 mb-4">
+            Reject {selectedRequest.full_name}&apos;s signup request?
+          </p>
+          <textarea
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            rows={3}
+            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-primary/50 transition-colors"
+            placeholder="Optional rejection reason"
+          />
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setShowRejectModal(false)}
+              className="flex-1 px-4 py-2 border border-white/10 rounded-lg text-white hover:bg-white/5 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={actionLoading}
+              onClick={handleRejectRequest}
+              className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:shadow-glow-md transition-all disabled:opacity-50"
+            >
+              {actionLoading ? 'Rejecting...' : 'Reject'}
+            </button>
+          </div>
         </div>
       </div>
     );

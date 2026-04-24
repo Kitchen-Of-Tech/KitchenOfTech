@@ -16,9 +16,31 @@ export interface User {
   role_id: string;
   role?: Role;
   avatar_url?: string;
+  phone_number?: string;
+  department?: string;
+  title?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface SignupRequest {
+  id: string;
+  auth_user_id?: string | null;
+  full_name: string;
+  email: string;
+  phone_number?: string | null;
+  user_type: 'student' | 'teacher' | 'client' | 'team_member';
+  status: 'pending' | 'approved' | 'rejected';
+  department?: string | null;
+  title?: string | null;
+  role_id?: string | null;
+  approved_by?: string | null;
+  approved_at?: string | null;
+  rejected_by?: string | null;
+  rejected_at?: string | null;
+  rejection_reason?: string | null;
+  created_at: string;
 }
 
 export interface Team {
