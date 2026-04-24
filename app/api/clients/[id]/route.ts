@@ -43,7 +43,7 @@ export async function PATCH(
 
     if (error) {
       console.error('Error updating client:', error);
-      return NextResponse.json({ error: 'Failed to update client' }, { status: 500 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ client: data });
@@ -78,7 +78,7 @@ export async function DELETE(
 
     if (error) {
       console.error('Error deleting client:', error);
-      return NextResponse.json({ error: 'Failed to delete client' }, { status: 500 });
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
