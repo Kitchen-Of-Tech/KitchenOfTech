@@ -453,6 +453,7 @@ export default function UserManagementClient({ currentUser }: UserManagementClie
                 <tr className="border-b border-white/10 bg-white/5">
                   <th className="text-left px-6 py-4 text-white font-semibold">Name</th>
                   <th className="text-left px-6 py-4 text-white font-semibold">Email</th>
+                  <th className="text-left px-6 py-4 text-white font-semibold">Username</th>
                   <th className="text-left px-6 py-4 text-white font-semibold">Phone</th>
                   <th className="text-left px-6 py-4 text-white font-semibold">Type</th>
                   <th className="text-left px-6 py-4 text-white font-semibold">Requested</th>
@@ -464,6 +465,7 @@ export default function UserManagementClient({ currentUser }: UserManagementClie
                   <tr key={request.id} className="border-b border-white/10">
                     <td className="px-6 py-4 text-white/80">{request.full_name}</td>
                     <td className="px-6 py-4 text-white/80">{request.email}</td>
+                    <td className="px-6 py-4 text-white/80">{request.username || '-'}</td>
                     <td className="px-6 py-4 text-white/80">{request.phone_number || '-'}</td>
                     <td className="px-6 py-4 text-white/80">{request.user_type.replace('_', ' ')}</td>
                     <td className="px-6 py-4 text-white/70">

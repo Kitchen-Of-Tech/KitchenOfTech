@@ -7,10 +7,10 @@ export async function POST(request: NextRequest) {
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    const { full_name, email, phone_number, password } = await request.json();
+    const { full_name, username, email, phone_number, password } = await request.json();
 
-    if (!full_name || !email || !password) {
-      return NextResponse.json({ error: 'Full name, email, and password are required' }, { status: 400 });
+    if (!full_name || !username || !email || !password) {
+      return NextResponse.json({ error: 'Full name, username, email, and password are required' }, { status: 400 });
     }
 
     const supabaseAdmin = createClient(
@@ -28,6 +28,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'An account with this email already exists' }, { status: 400 });
     }
 
+    const { data: existingUsername } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('username', username)
+      .single();
+
+    if (existingUsername) {
+      return NextResponse.json({ error: 'This username is already taken' }, { status: 400 });
+    }
+
     const { data: existingRequest } = await supabaseAdmin
       .from('signup_requests')
       .select('id')
@@ -37,6 +47,17 @@ export async function POST(request: NextRequest) {
 
     if (existingRequest) {
       return NextResponse.json({ error: 'A signup request is already pending for this email' }, { status: 400 });
+    }
+
+    const { data: existingRequestUsername } = await supabaseAdmin
+      .from('signup_requests')
+      .select('id')
+      .eq('username', username)
+      .eq('status', 'pending')
+      .single();
+
+    if (existingRequestUsername) {
+      return NextResponse.json({ error: 'A signup request is already pending for this username' }, { status: 400 });
     }
 
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
@@ -54,6 +75,7 @@ export async function POST(request: NextRequest) {
       .from('signup_requests')
       .insert({
         auth_user_id: authData.user.id,
+        username,
         full_name,
         email,
         phone_number,

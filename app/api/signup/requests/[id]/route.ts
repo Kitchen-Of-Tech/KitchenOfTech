@@ -96,7 +96,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Role is required for approval' }, { status: 400 });
     }
 
-    const username = await generateUsername(supabaseAdmin, requestRow.email);
+  const username = requestRow.username || await generateUsername(supabaseAdmin, requestRow.email);
 
     const { error: insertError } = await supabaseAdmin
       .from('users')

@@ -81,10 +81,11 @@ export async function POST(request: NextRequest) {
     console.log('🔍 API: Looking up username:', username);
 
     // Get user's email from username
+    const identifier = String(username).toLowerCase();
     const { data: userProfile, error: profileError } = await supabaseAdmin
       .from('users')
       .select('email, is_active, id')
-      .eq('username', username)
+      .or(`username.eq.${identifier},email.eq.${identifier}`)
       .single();
 
     console.log('📋 API: User profile result:', { found: !!userProfile, error: profileError?.message });

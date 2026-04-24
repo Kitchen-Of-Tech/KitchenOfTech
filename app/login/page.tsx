@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [teamMemberForm, setTeamMemberForm] = useState({
     full_name: '',
+    username: '',
     email: '',
     phone_number: '',
     password: '',
@@ -78,7 +79,7 @@ export default function LoginPage() {
       }
 
       setSignupSuccess(data.message || 'Signup request submitted.');
-      setTeamMemberForm({ full_name: '', email: '', phone_number: '', password: '' });
+  setTeamMemberForm({ full_name: '', username: '', email: '', phone_number: '', password: '' });
     } catch (err) {
       setSignupError(err instanceof Error ? err.message : 'Signup failed');
     } finally {
@@ -91,7 +92,7 @@ export default function LoginPage() {
     setSignupStep('options');
     setSignupError('');
     setSignupSuccess('');
-    setTeamMemberForm({ full_name: '', email: '', phone_number: '', password: '' });
+  setTeamMemberForm({ full_name: '', username: '', email: '', phone_number: '', password: '' });
   };
 
   return (
@@ -120,10 +121,10 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Username Field */}
+            {/* Username/Email Field */}
             <div>
               <label htmlFor="username" className="block text-white/80 mb-2 text-sm font-medium">
-                Username
+                Username or Email
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -142,7 +143,7 @@ export default function LoginPage() {
                     "transition-all border border-white/10",
                     "hover:border-white/20"
                   )}
-                  placeholder="your_username"
+                  placeholder="username or email"
                   disabled={loading}
                 />
               </div>
@@ -304,6 +305,17 @@ export default function LoginPage() {
                     onChange={(e) => setTeamMemberForm({ ...teamMemberForm, full_name: e.target.value })}
                     className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-white"
                     placeholder="Full name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-white/80 text-sm mb-2">Username</label>
+                  <input
+                    type="text"
+                    required
+                    value={teamMemberForm.username}
+                    onChange={(e) => setTeamMemberForm({ ...teamMemberForm, username: e.target.value })}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-white"
+                    placeholder="Username"
                   />
                 </div>
                 <div>

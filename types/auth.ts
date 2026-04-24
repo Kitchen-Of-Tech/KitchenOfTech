@@ -27,6 +27,7 @@ export interface User {
 export interface SignupRequest {
   id: string;
   auth_user_id?: string | null;
+  username?: string | null;
   full_name: string;
   email: string;
   phone_number?: string | null;

@@ -15,6 +15,7 @@ ALTER TABLE public.users
 CREATE TABLE IF NOT EXISTS public.signup_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   auth_user_id UUID UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
+  username TEXT UNIQUE,
   full_name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   phone_number TEXT,
