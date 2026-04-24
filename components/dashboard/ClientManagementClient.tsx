@@ -121,8 +121,9 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientRecord | null>(null);
-  const isModalOpen = showCreateModal || showEditModal;
+  const isModalOpen = showCreateModal || showEditModal || showViewModal;
 
   const [form, setForm] = useState<ClientFormState>(DEFAULT_FORM_STATE);
   const [actionLoading, setActionLoading] = useState(false);
@@ -596,6 +597,22 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
     }));
   };
 
+  const openViewModal = (client: ClientRecord) => {
+    setSelectedClient(client);
+    setShowViewModal(true);
+  };
+
+  const renderList = (items?: string[]) => {
+    if (!items || items.length === 0) return <span className="text-white/40">-</span>;
+    return (
+      <ul className="list-disc space-y-1 pl-4 text-white/80">
+        {items.map((item, index) => (
+          <li key={`${item}-${index}`}>{item}</li>
+        ))}
+      </ul>
+    );
+  };
+
   const filteredClients = clients.filter((client) => {
     const query = searchQuery.toLowerCase();
     const matchesQuery =
@@ -760,7 +777,11 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
             </thead>
             <tbody className="divide-y divide-white/10">
               {filteredClients.map((client) => (
-                <tr key={client.id} className="text-white/80">
+                <tr
+                  key={client.id}
+                  className="cursor-pointer text-white/80 hover:bg-white/5"
+                  onClick={() => openViewModal(client)}
+                >
                   <td className="px-4 py-3 font-semibold text-white">{client.client_id}</td>
                   <td className="px-4 py-3">
                     <div className="text-white">{client.client_name}</div>
@@ -772,14 +793,18 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
                   <td className="px-4 py-3">{new Date(client.created_at).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-right space-x-2">
                     <button
-                      onClick={() => openEditModal(client)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openEditModal(client);
+                      }}
                       className="inline-flex items-center gap-1 rounded-lg border border-white/10 px-2 py-1 text-white/70 hover:text-white"
                     >
                       <Edit2 className="h-4 w-4" />
                       Edit
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={(event) => {
+                        event.stopPropagation();
                         setSelectedClient(client);
                         setShowDeleteModal(true);
                       }}
@@ -804,7 +829,11 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {filteredClients.map((client) => (
-            <div key={client.id} className="glass rounded-2xl border border-white/10 p-6">
+            <div
+              key={client.id}
+              className="glass cursor-pointer rounded-2xl border border-white/10 p-6 hover:border-white/20"
+              onClick={() => openViewModal(client)}
+            >
               <div className="flex items-start justify-between">
                 <div>
                   <div className="text-xs text-white/40">{client.client_id}</div>
@@ -822,13 +851,17 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
               </div>
               <div className="mt-4 flex gap-2">
                 <button
-                  onClick={() => openEditModal(client)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    openEditModal(client);
+                  }}
                   className="flex-1 rounded-lg border border-white/10 px-3 py-2 text-sm text-white/70 hover:text-white"
                 >
                   Edit
                 </button>
                 <button
-                  onClick={() => {
+                  onClick={(event) => {
+                    event.stopPropagation();
                     setSelectedClient(client);
                     setShowDeleteModal(true);
                   }}
@@ -1288,6 +1321,154 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showViewModal && selectedClient && (
+        <div
+          className="fixed inset-0 z-50 flex h-screen items-start justify-center overflow-y-scroll overscroll-contain bg-black/70 p-6"
+          data-lenis-prevent
+          onWheel={handleOverlayWheel}
+        >
+          <div className="w-full max-w-5xl overflow-x-hidden rounded-2xl border border-white/10 bg-[#0b0b11] p-6">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div>
+                <p className="text-xs text-white/40">{selectedClient.client_id}</p>
+                <h2 className="text-2xl font-semibold text-white">{selectedClient.client_name}</h2>
+                <p className="text-sm text-white/60">{selectedClient.business_name}</p>
+              </div>
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="rounded-lg p-2 text-white/60 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              <div className="space-y-4">
+                <div className="rounded-xl border border-white/10 p-4">
+                  <h3 className="text-sm font-semibold text-white">Status & Possibility</h3>
+                  <div className="mt-3 space-y-2 text-sm text-white/70">
+                    <div>Status: <span className="text-white">{selectedClient.client_status}</span></div>
+                    <div>Possibility: <span className="text-white">{selectedClient.possibility}</span></div>
+                    <div>Found From: <span className="text-white">{selectedClient.client_found_from || '-'}</span></div>
+                    <div>Business Type: <span className="text-white">{selectedClient.client_business_type || '-'}</span></div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 p-4">
+                  <h3 className="text-sm font-semibold text-white">Contact</h3>
+                  <div className="mt-3 space-y-3 text-sm text-white/70">
+                    <div>
+                      <div className="text-xs text-white/50">Phone Numbers</div>
+                      {renderList(selectedClient.phone_numbers)}
+                    </div>
+                    <div>
+                      <div className="text-xs text-white/50">WhatsApp Numbers</div>
+                      {renderList(selectedClient.whatsapp_numbers)}
+                    </div>
+                    <div>
+                      <div className="text-xs text-white/50">IMO Numbers</div>
+                      {renderList(selectedClient.imo_numbers)}
+                    </div>
+                    <div>
+                      <div className="text-xs text-white/50">Emails</div>
+                      {renderList(selectedClient.emails)}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 p-4">
+                  <h3 className="text-sm font-semibold text-white">Location</h3>
+                  <div className="mt-3 space-y-2 text-sm text-white/70">
+                    <div>Country: <span className="text-white">{selectedClient.country || '-'}</span></div>
+                    <div>Address: <span className="text-white">{selectedClient.address || '-'}</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="rounded-xl border border-white/10 p-4">
+                  <h3 className="text-sm font-semibold text-white">Consultation Time</h3>
+                  <div className="mt-3 space-y-2 text-sm text-white/70">
+                    <div>Client Local: <span className="text-white">{selectedClient.consultation_time_local || '-'}</span></div>
+                    <div>Timezone: <span className="text-white">{selectedClient.consultation_timezone || '-'}</span></div>
+                    <div>Bangladesh Time: <span className="text-white">{selectedClient.consultation_time_bdt || '-'}</span></div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 p-4">
+                  <h3 className="text-sm font-semibold text-white">Links</h3>
+                  <div className="mt-3 space-y-3 text-sm text-white/70">
+                    <div>
+                      <div className="text-xs text-white/50">Important Links</div>
+                      {renderList(selectedClient.important_links)}
+                    </div>
+                    <div>
+                      <div className="text-xs text-white/50">Social Links</div>
+                      {selectedClient.social_links && selectedClient.social_links.length > 0 ? (
+                        <ul className="list-disc space-y-1 pl-4 text-white/80">
+                          {selectedClient.social_links.map((link, index) => (
+                            <li key={`${link.platform}-${index}`}>
+                              {link.platform}: {link.url}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="text-white/40">-</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 p-4">
+                  <h3 className="text-sm font-semibold text-white">Outreach</h3>
+                  <div className="mt-3 space-y-3 text-sm text-white/70">
+                    <div>
+                      <div className="text-xs text-white/50">Cold Email</div>
+                      <div className="text-white">{selectedClient.cold_email || '-'}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-white/50">Cold Message</div>
+                      <div className="text-white">{selectedClient.cold_message || '-'}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-white/50">Follow Up Emails</div>
+                      {renderList(selectedClient.follow_up_emails)}
+                    </div>
+                    <div>
+                      <div className="text-xs text-white/50">Follow Up Messages</div>
+                      {renderList(selectedClient.follow_up_messages)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              <div className="rounded-xl border border-white/10 p-4">
+                <h3 className="text-sm font-semibold text-white">Comment</h3>
+                <p className="mt-2 text-sm text-white/70">{selectedClient.comment || '-'}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 p-4">
+                <h3 className="text-sm font-semibold text-white">Media</h3>
+                {selectedClient.client_media && selectedClient.client_media.length > 0 ? (
+                  <div className="mt-3 grid grid-cols-2 gap-4">
+                    {selectedClient.client_media.map((media, index) => (
+                      <div key={`${media.name}-${index}`} className="rounded-lg border border-white/10 p-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={media.dataUrl} alt={media.name} className="h-24 w-full rounded-md object-cover" />
+                        <div className="mt-2 text-xs text-white/60">{media.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-sm text-white/40">No media uploaded.</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}

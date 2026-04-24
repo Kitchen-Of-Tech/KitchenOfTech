@@ -113,6 +113,33 @@ CREATE INDEX IF NOT EXISTS idx_client_records_followup_emails ON public.client_r
 CREATE INDEX IF NOT EXISTS idx_client_records_followup_messages ON public.client_records USING GIN (follow_up_messages);
 
 -- =============================================
+-- 3A. UPDATE CHECK CONSTRAINT (IDEMPOTENT)
+-- =============================================
+ALTER TABLE public.client_records
+  DROP CONSTRAINT IF EXISTS client_records_client_status_check;
+
+ALTER TABLE public.client_records
+  ADD CONSTRAINT client_records_client_status_check
+  CHECK (client_status IN (
+    'Initial',
+    '1st Attack',
+    'Fellows',
+    'Attack Plan Done',
+    'Replied',
+    'Project Planning',
+    'Project Revision',
+    'Project Running',
+    'Re Follow Up',
+    'Cold',
+    'Connected',
+    'Re Cold',
+    'Follow Up',
+    'Black Listed',
+    'Not Client',
+    'Client'
+  ));
+
+-- =============================================
 -- 4. ROW LEVEL SECURITY (RLS)
 -- =============================================
 ALTER TABLE public.client_records ENABLE ROW LEVEL SECURITY;
