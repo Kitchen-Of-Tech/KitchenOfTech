@@ -285,6 +285,7 @@ export interface ClientRecord {
   id: string;
   client_id: string;
   client_status:
+    | 'Initial'
     | '1st Attack'
     | 'Fellows'
     | 'Attack Plan Done'
@@ -302,7 +303,7 @@ export interface ClientRecord {
     | 'Client';
   possibility: 'High' | 'Medium' | 'Low';
   client_name: string;
-  business_name?: string;
+  business_name: string;
   client_description?: string;
   client_business_type?: string;
   client_found_from?: string;

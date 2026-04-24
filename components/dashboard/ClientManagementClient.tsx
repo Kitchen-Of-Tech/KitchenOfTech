@@ -52,6 +52,7 @@ interface ClientFormState {
 }
 
 const CLIENT_STATUSES: ClientRecord['client_status'][] = [
+  'Initial',
   '1st Attack',
   'Fellows',
   'Attack Plan Done',
@@ -72,7 +73,7 @@ const CLIENT_STATUSES: ClientRecord['client_status'][] = [
 const POSSIBILITIES: ClientRecord['possibility'][] = ['High', 'Medium', 'Low'];
 
 const DEFAULT_FORM_STATE: ClientFormState = {
-  client_status: 'Cold',
+  client_status: 'Initial',
   possibility: 'Medium',
   client_name: '',
   business_name: '',
@@ -121,6 +122,7 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientRecord | null>(null);
+  const isModalOpen = showCreateModal || showEditModal;
 
   const [form, setForm] = useState<ClientFormState>(DEFAULT_FORM_STATE);
   const [actionLoading, setActionLoading] = useState(false);
@@ -177,6 +179,25 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
       .filter(Boolean);
 
   const joinLines = (value?: string[]) => (value && value.length ? value.join('\n') : '');
+
+  const formatErrorMessage = (message: string) => {
+    try {
+      const parsed = JSON.parse(message);
+      if (Array.isArray(parsed)) {
+        return parsed.join(', ');
+      }
+      if (parsed && typeof parsed === 'object') {
+        if ('message' in parsed) return String(parsed.message);
+        if ('errors' in parsed && Array.isArray(parsed.errors)) return parsed.errors.join(', ');
+        if ('fieldErrors' in parsed && parsed.fieldErrors && typeof parsed.fieldErrors === 'object') {
+          return Object.values(parsed.fieldErrors).flat().join(', ');
+        }
+      }
+    } catch {
+      // ignore JSON parse errors
+    }
+    return message;
+  };
 
   const getTimeZoneOffset = (date: Date, timeZone: string) => {
     const formatter = new Intl.DateTimeFormat('en-US', {
@@ -236,7 +257,7 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
     client_status: form.client_status,
     possibility: form.possibility,
     client_name: form.client_name.trim(),
-    business_name: form.business_name.trim() || undefined,
+    business_name: form.business_name.trim(),
     client_description: form.client_description.trim() || undefined,
     client_business_type: form.client_business_type || undefined,
     client_found_from: form.client_found_from || undefined,
@@ -261,6 +282,14 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
 
   const handleCreateClient = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!form.client_name.trim()) {
+      setError('Client name is required.');
+      return;
+    }
+    if (!form.business_name.trim()) {
+      setError('Business name is required.');
+      return;
+    }
     setActionLoading(true);
     setError('');
 
@@ -292,6 +321,14 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
   const handleEditClient = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!selectedClient) return;
+    if (!form.client_name.trim()) {
+      setError('Client name is required.');
+      return;
+    }
+    if (!form.business_name.trim()) {
+      setError('Business name is required.');
+      return;
+    }
     setActionLoading(true);
     setError('');
 
@@ -448,6 +485,16 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
       ...prev,
       follow_up_messages: prev.follow_up_messages.filter((_, i) => i !== index),
     }));
+  };
+
+  const handleOverlayWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    // Ensure the overlay itself scrolls when wheel events occur (fallback if a smooth-scroller intercepts).
+    const el = e.currentTarget as HTMLDivElement;
+    if (!el) return;
+    // Scroll the overlay by the wheel delta
+    el.scrollBy({ top: e.deltaY, left: 0, behavior: 'auto' });
+    e.stopPropagation();
+    e.preventDefault();
   };
 
   const handleMediaUpload = async (files: FileList | null) => {
@@ -615,12 +662,12 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
         </div>
       </div>
 
-      {error && (
+      {!isModalOpen && error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-          {error}
+          {formatErrorMessage(error)}
         </div>
       )}
-      {success && (
+      {!isModalOpen && success && (
         <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-300">
           {success}
         </div>
@@ -804,7 +851,11 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
       )}
 
       {(showCreateModal || showEditModal) && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-black/70 p-6">
+        <div
+          className="fixed inset-0 z-50 flex h-screen items-start justify-center overflow-y-scroll overscroll-contain bg-black/70 p-6"
+          data-lenis-prevent
+          onWheel={handleOverlayWheel}
+        >
           <div className="w-full max-w-5xl overflow-x-hidden rounded-2xl border border-white/10 bg-[#0b0b11] p-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <h2 className="text-2xl font-semibold text-white">
@@ -821,6 +872,17 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
                 <X className="h-5 w-5" />
               </button>
             </div>
+
+            {error && (
+              <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {formatErrorMessage(error)}
+              </div>
+            )}
+            {success && (
+              <div className="mt-4 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-300">
+                {success}
+              </div>
+            )}
 
             <form onSubmit={showCreateModal ? handleCreateClient : handleEditClient} className="mt-6 w-full space-y-6">
               <div className="grid gap-4 md:grid-cols-2 min-w-0">
@@ -867,6 +929,7 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
                     value={form.business_name}
                     onChange={(event) => setForm((prev) => ({ ...prev, business_name: event.target.value }))}
                     className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-white"
+                    required
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -1235,7 +1298,7 @@ export default function ClientManagementClient({ currentUser }: ClientManagement
       )}
 
       {showDeleteModal && selectedClient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6" onWheel={handleOverlayWheel}>
           <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0b0b11] p-6">
             <h3 className="text-xl font-semibold text-white">Delete Client</h3>
             <p className="mt-2 text-white/60">

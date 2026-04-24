@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS public.client_records (
   client_id TEXT UNIQUE NOT NULL DEFAULT public.generate_client_id(),
 
   -- Status
-  client_status TEXT NOT NULL CHECK (client_status IN (
+  client_status TEXT NOT NULL DEFAULT 'Initial' CHECK (client_status IN (
+    'Initial',
     '1st Attack',
     'Fellows',
     'Attack Plan Done',
@@ -61,7 +62,7 @@ CREATE TABLE IF NOT EXISTS public.client_records (
 
   -- Basic Info
   client_name TEXT NOT NULL,
-  business_name TEXT,
+  business_name TEXT NOT NULL,
   client_description TEXT,
   client_business_type TEXT,
   client_found_from TEXT,

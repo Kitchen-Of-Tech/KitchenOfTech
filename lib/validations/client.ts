@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const clientStatusSchema = z.enum([
+  'Initial',
   '1st Attack',
   'Fellows',
   'Attack Plan Done',
@@ -36,7 +37,7 @@ export const clientCreateSchema = z.object({
   client_status: clientStatusSchema,
   possibility: clientPossibilitySchema,
   client_name: z.string().min(2, 'Client name is required'),
-  business_name: z.string().optional(),
+  business_name: z.string().min(2, 'Business name is required'),
   client_description: z.string().optional(),
   client_business_type: z.string().optional(),
   client_found_from: z.string().optional(),
