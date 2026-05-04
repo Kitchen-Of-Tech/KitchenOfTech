@@ -6,7 +6,6 @@ import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/analytics/GoogleTagManager";
-import { FacebookPixel } from "@/components/analytics/FacebookPixel";
 import { TemplateTransition } from "@/components/transitions/TemplateTransition";
 import { generateSiteMetadata } from "@/lib/metadata";
 import { Analytics } from '@vercel/analytics/react';
@@ -35,7 +34,6 @@ export default function RootLayout({
 }>) {
   const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "";
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID || "";
-  const facebookPixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || "";
   
   return (
     <html lang="en" className="lenis" suppressHydrationWarning>
@@ -59,7 +57,6 @@ export default function RootLayout({
         {measurementId && <GoogleAnalytics measurementId={measurementId} />}
         <Suspense fallback={null}>
           {gtmId && <GoogleTagManager gtmId={gtmId} />}
-          {facebookPixelId && <FacebookPixel pixelId={facebookPixelId} />}
         </Suspense>
         
         <SessionWrapper>
