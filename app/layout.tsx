@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import "./globals.css";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
-import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/analytics/GoogleTagManager";
 import { TemplateTransition } from "@/components/transitions/TemplateTransition";
 import { generateSiteMetadata } from "@/lib/metadata";
@@ -32,7 +31,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "";
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID || "";
   
   return (
@@ -54,7 +52,6 @@ export default function RootLayout({
         />
         
         {/* Analytics */}
-        {measurementId && <GoogleAnalytics measurementId={measurementId} />}
         <Suspense fallback={null}>
           {gtmId && <GoogleTagManager gtmId={gtmId} />}
         </Suspense>

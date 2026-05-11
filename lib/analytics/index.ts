@@ -5,6 +5,12 @@
 
 import { track as vercelTrack } from '@vercel/analytics';
 
+declare global {
+  interface Window {
+    dataLayer: Array<Record<string, unknown>>;
+  }
+}
+
 export type EventName =
   // Navigation Events
   | 'page_view'
@@ -187,8 +193,8 @@ class Analytics {
     // Send to custom analytics endpoint (if needed)
     this.sendToCustomEndpoint(eventData);
 
-    // Send to Google Analytics (if configured)
-    this.sendToGoogleAnalytics(eventName, eventData);
+    // Send to dataLayer (for GTM)
+    this.sendToDataLayer(eventName, eventData);
   }
 
   /**
@@ -239,7 +245,7 @@ class Analytics {
   /**
    * Send event to custom analytics endpoint
    */
-  private async sendToCustomEndpoint(eventData: any) {
+  private async sendToCustomEndpoint(eventData: Record<string, unknown>) {
     try {
       // Only send in production
       if (process.env.NODE_ENV !== 'production') {
@@ -262,18 +268,22 @@ class Analytics {
   }
 
   /**
-   * Send to Google Analytics (if gtag is available)
+   * Send to GTM dataLayer
    */
-  private sendToGoogleAnalytics(eventName: string, eventData: any) {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', eventName, eventData);
+  private sendToDataLayer(eventName: string, eventData: Record<string, unknown>) {
+    if (typeof window !== 'undefined') {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: eventName,
+        ...eventData,
+      });
     }
   }
 
   /**
    * Log messages (only in development)
    */
-  private log(...args: any[]) {
+  private log(...args: unknown[]) {
     if (this.debug) {
       console.log('[Analytics]', ...args);
     }

@@ -13,7 +13,7 @@ import {
   BookOpen,
   DollarSign,
 } from 'lucide-react';
-import { PortableText } from '@portabletext/react';
+import { PortableText, type PortableTextComponents } from '@portabletext/react';
 import { Footer } from '@/components/layout/Footer';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
@@ -63,6 +63,71 @@ const STATUS_COLORS: Record<string, string> = {
   running: 'bg-blue-500/20 text-blue-400 border-blue-500/40',
   completed: 'bg-white/10 text-white/50 border-white/20',
   cancelled: 'bg-red-500/20 text-red-400 border-red-500/40',
+};
+
+const bootcampDescriptionComponents: PortableTextComponents = {
+  block: {
+    h1: ({ children }) => (
+      <h1 className="text-3xl md:text-4xl font-bold text-white mt-8 mb-4 leading-tight">
+        {children}
+      </h1>
+    ),
+    h2: ({ children }) => (
+      <h2 className="text-2xl md:text-3xl font-bold text-white mt-7 mb-3 leading-snug">
+        {children}
+      </h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className="text-xl md:text-2xl font-semibold text-white mt-6 mb-3">
+        {children}
+      </h3>
+    ),
+    h4: ({ children }) => (
+      <h4 className="text-lg font-semibold text-white mt-5 mb-2">
+        {children}
+      </h4>
+    ),
+    normal: ({ children }) => (
+      <p className="text-white/80 leading-relaxed text-sm md:text-base mb-4">
+        {children}
+      </p>
+    ),
+    blockquote: ({ children }) => (
+      <blockquote className="border-l-4 border-primary/50 pl-4 text-white/70 italic my-4">
+        {children}
+      </blockquote>
+    ),
+  },
+  list: {
+    bullet: ({ children }) => (
+      <ul className="list-disc pl-5 space-y-2 text-white/75 mb-4">
+        {children}
+      </ul>
+    ),
+    number: ({ children }) => (
+      <ol className="list-decimal pl-5 space-y-2 text-white/75 mb-4">
+        {children}
+      </ol>
+    ),
+  },
+  listItem: {
+    bullet: ({ children }) => <li className="leading-relaxed">{children}</li>,
+    number: ({ children }) => <li className="leading-relaxed">{children}</li>,
+  },
+  marks: {
+    strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
+    em: ({ children }) => <em className="text-white/80 italic">{children}</em>,
+    link: ({ value, children }) => (
+      <a
+        href={value?.href}
+        target={value?.href?.startsWith('http') ? '_blank' : undefined}
+        rel={value?.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+        className="text-primary underline hover:text-primary/80"
+      >
+        {children}
+      </a>
+    ),
+  },
 };
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -232,8 +297,11 @@ export default async function BootcampDetailPage({ params }: Props) {
                     {bootcamp.shortDescription}
                   </p>
                   {bootcamp.fullDescription && (
-                    <div className="text-white/70 space-y-3 leading-relaxed text-base">
-                      <PortableText value={bootcamp.fullDescription as never} />
+                    <div className="space-y-4">
+                      <PortableText
+                        value={bootcamp.fullDescription as never}
+                        components={bootcampDescriptionComponents}
+                      />
                     </div>
                   )}
                 </div>
@@ -421,7 +489,7 @@ export default async function BootcampDetailPage({ params }: Props) {
 
             {/* ── RIGHT: Sticky Registration Form ──────────────────── */}
             <div className="lg:col-span-1">
-              <div className="sticky top-28 space-y-4">
+              <div className="lg:sticky lg:top-24 max-h-[calc(100vh-8rem)] overflow-y-auto space-y-4" data-lenis-prevent>
                 <ScrollReveal animation="fade-up">
                   <BootcampRegistrationForm bootcamp={bootcamp} />
                 </ScrollReveal>

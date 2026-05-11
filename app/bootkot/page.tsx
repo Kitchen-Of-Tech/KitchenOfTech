@@ -5,7 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 import { sanityFetch, urlFor } from "@/lib/sanity/client";
-import { ACTIVE_BOOTCAMPS_QUERY } from "@/lib/sanity/queries";
+import { ALL_BOOTCAMPS_QUERY } from "@/lib/sanity/queries";
 import type { Bootcamp } from "@/types";
 import type { Image as SanityImageSource } from "sanity";
 
@@ -17,10 +17,10 @@ export const metadata = {
 
 export const revalidate = 3600;
 
-async function getActiveBootcamps(): Promise<Bootcamp[]> {
+async function getAllBootcamps(): Promise<Bootcamp[]> {
   try {
     const bootcamps = await sanityFetch<Bootcamp[]>({
-      query: ACTIVE_BOOTCAMPS_QUERY,
+      query: ALL_BOOTCAMPS_QUERY,
       tags: ["bootcamp"],
     });
     return bootcamps ?? [];
@@ -31,7 +31,7 @@ async function getActiveBootcamps(): Promise<Bootcamp[]> {
 }
 
 export default async function BootKotPage() {
-  const bootcamps = await getActiveBootcamps();
+  const bootcamps = await getAllBootcamps();
 
   return (
     <div className="min-h-screen bg-dark">
