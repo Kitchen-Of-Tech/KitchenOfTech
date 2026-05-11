@@ -489,7 +489,7 @@ export default async function BootcampDetailPage({ params }: Props) {
 
             {/* ── RIGHT: Sticky Registration Form ──────────────────── */}
             <div className="lg:col-span-1">
-              <div className="lg:sticky lg:top-24 max-h-[calc(100vh-8rem)] overflow-y-auto space-y-4" data-lenis-prevent>
+              <div className="lg:sticky lg:top-24 space-y-4">
                 <ScrollReveal animation="fade-up">
                   <BootcampRegistrationForm bootcamp={bootcamp} />
                 </ScrollReveal>
